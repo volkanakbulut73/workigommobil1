@@ -8,6 +8,7 @@ import { MessagesListScreen } from '../screens/MessagesListScreen';
 import { ChatScreen } from '../screens/ChatScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { TalepDetailScreen } from '../screens/TalepDetailScreen';
+import { TrackerScreen } from '../screens/TrackerScreen';
 
 const Stack = createStackNavigator();
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { DBService } from '../services/dbService';
+import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '../store/useAuthStore';
 import { ChevronLeft, Check, QrCode, CreditCard, Flag, X } from 'lucide-react-native';
 
@@ -16,7 +16,7 @@ export function TrackerScreen() {
 
   const fetchTransaction = async () => {
     try {
-      const { data, error } = await DBService.supabase
+      const { data, error } = await supabase
         .from('transactions')
         .select(`
           *, 
@@ -39,21 +39,21 @@ export function TrackerScreen() {
     if (id) {
       fetchTransaction();
       
-      const channel = DBService.supabase
+      const channel = supabase
         .channel(`tracker-${id}`)
         .on('postgres_changes', {
           event: 'UPDATE',
           schema: 'public',
           table: 'transactions',
           filter: `id=eq.${id}`
-        }, (payload) => {
+        }, (payload: any) => {
           // Re-fetch to get complete relations or update directly
           fetchTransaction();
         })
         .subscribe();
         
       return () => {
-        DBService.supabase.removeChannel(channel);
+        supabase.removeChannel(channel);
       };
     } else {
       setLoading(false);
@@ -83,7 +83,7 @@ export function TrackerScreen() {
 
   const handleUpdateStatus = async (newStatus: string) => {
     try {
-      const { error } = await DBService.supabase
+      const { error } = await supabase
         .from('transactions')
         .update({ status: newStatus })
         .eq('id', id);

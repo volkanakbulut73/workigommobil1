@@ -7,7 +7,7 @@ import * as Sentry from '@sentry/react-native';
 import Toast from 'react-native-toast-message';
 import NetInfo from '@react-native-community/netinfo';
 
-const FallbackComponent = (props: { error: Error; resetError: () => void }) => (
+const FallbackComponent = (props: { error: unknown; resetError: () => void }) => (
   <View style={styles.errorContainer}>
     <Text style={styles.errorTitle}>Oops! Bir şeyler ters gitti.</Text>
     <Text style={styles.errorText}>Lütfen uygulamayı yeniden başlatın veya tekrar deneyin.</Text>

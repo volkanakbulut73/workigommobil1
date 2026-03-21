@@ -289,9 +289,9 @@ const styles = StyleSheet.create({
   imageContainer: {
     height: 120, width: '100%', backgroundColor: '#1C2541', position: 'relative',
   },
-  image: { width: '100%', height: '100%' },
+  image: { width: '100%', height: '100%', overflow: 'hidden' },
   imagePlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  placeholderText: { fontSize: 32, fontWeight: 'black', color: 'rgba(255,255,255,0.1)' },
+  placeholderText: { fontSize: 32, fontWeight: '900', color: 'rgba(255,255,255,0.1)' },
   ratingBadge: {
     position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.5)',
     flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6, paddingVertical: 3,

@@ -46,4 +46,6 @@ export interface Thread {
   last_message: string | null;
   type: 'market' | 'task' | 'private';
   updated_at: string;
+  seller?: any;
+  listing?: any;
 }

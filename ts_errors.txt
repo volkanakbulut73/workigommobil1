@@ -1,0 +1,87 @@
+App.tsx(6,25): error TS2307: Cannot find module '@sentry/react-native' or its corresponding type declarations.
+src/hooks/usePushNotifications.ts(3,25): error TS2307: Cannot find module 'expo-device' or its corresponding type declarations.
+src/hooks/usePushNotifications.ts(4,32): error TS2307: Cannot find module 'expo-notifications' or its corresponding type declarations.
+src/hooks/usePushNotifications.ts(32,82): error TS7006: Parameter 'notification' implicitly has an 'any' type.
+src/hooks/usePushNotifications.ts(36,86): error TS7006: Parameter 'response' implicitly has an 'any' type.
+src/navigation/linking.ts(2,26): error TS2307: Cannot find module 'expo-linking' or its corresponding type declarations.
+src/navigation/linking.ts(3,32): error TS2307: Cannot find module 'expo-notifications' or its corresponding type declarations.
+src/navigation/MainStack.tsx(45,20): error TS2304: Cannot find name 'TrackerScreen'.
+src/navigation/TabNavigator.tsx(6,10): error TS2614: Module '"../screens/HomeScreen"' has no exported member 'HomeScreen'. Did you mean to use 'import HomeScreen from "../screens/HomeScreen"' instead?
+src/navigation/TabNavigator.tsx(9,10): error TS2614: Module '"../screens/MuhabbetScreen"' has no exported member 'MuhabbetScreen'. Did you mean to use 'import MuhabbetScreen from "../screens/MuhabbetScreen"' instead?
+src/screens/HomeScreen.tsx(2,34): error TS2305: Module '"react-native"' has no exported member 'ScrollState'.
+src/screens/HomeScreen.tsx(97,36): error TS2339: Property 'seller' does not exist on type 'Thread'.
+src/screens/HomeScreen.tsx(101,66): error TS2339: Property 'seller' does not exist on type 'Thread'.
+src/screens/HomeScreen.tsx(103,35): error TS2339: Property 'listing' does not exist on type 'Thread'.
+src/screens/MarketCreateScreen.tsx(8,30): error TS2307: Cannot find module 'expo-image-picker' or its corresponding type declarations.
+src/screens/MarketCreateScreen.tsx(9,24): error TS2307: Cannot find module 'base64-arraybuffer' or its corresponding type declarations.
+src/screens/MarketDetailScreen.tsx(146,49): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: ImageProps): Image', gave the following error.
+    Type 'ViewStyle | TextStyle | ImageStyle' is not assignable to type 'StyleProp<ImageStyle>'.
+      Type 'ViewStyle' is not assignable to type 'StyleProp<ImageStyle>'.
+        Type 'ViewStyle' is not assignable to type 'ImageStyle'.
+          Types of property 'overflow' are incompatible.
+            Type '"visible" | "hidden" | "scroll" | undefined' is not assignable to type '"visible" | "hidden" | undefined'.
+              Type '"scroll"' is not assignable to type '"visible" | "hidden" | undefined'.
+  Overload 2 of 2, '(props: ImageProps, context: any): Image', gave the following error.
+    Type 'ViewStyle | TextStyle | ImageStyle' is not assignable to type 'StyleProp<ImageStyle>'.
+      Type 'ViewStyle' is not assignable to type 'StyleProp<ImageStyle>'.
+        Type 'ViewStyle' is not assignable to type 'ImageStyle'.
+          Types of property 'overflow' are incompatible.
+            Type '"visible" | "hidden" | "scroll" | undefined' is not assignable to type '"visible" | "hidden" | undefined'.
+              Type '"scroll"' is not assignable to type '"visible" | "hidden" | undefined'.
+src/screens/MarketDetailScreen.tsx(164,18): error TS2769: No overload matches this call.
+  Overload 2 of 2, '(props: ImageProps, context: any): Image', gave the following error.
+    Type 'ViewStyle | TextStyle | ImageStyle' is not assignable to type 'ImageStyle | Falsy | RegisteredStyle<ImageStyle> | RecursiveArray<ImageStyle | Falsy | RegisteredStyle<ImageStyle>> | readonly (ImageStyle | ... 1 more ... | RegisteredStyle<...>)[]'.
+      Type 'ViewStyle' is not assignable to type 'ImageStyle | Falsy | RegisteredStyle<ImageStyle> | RecursiveArray<ImageStyle | Falsy | RegisteredStyle<ImageStyle>> | readonly (ImageStyle | ... 1 more ... | RegisteredStyle<...>)[]'.
+        Type 'ViewStyle' is not assignable to type 'ImageStyle'.
+          Types of property 'overflow' are incompatible.
+            Type '"visible" | "hidden" | "scroll" | undefined' is not assignable to type '"visible" | "hidden" | undefined'.
+              Type '"scroll"' is not assignable to type '"visible" | "hidden" | undefined'.
+  Overload 2 of 2, '(props: ImageProps, context: any): Image', gave the following error.
+    Type 'false | ViewStyle | TextStyle | ImageStyle' is not assignable to type 'ImageStyle | Falsy | RegisteredStyle<ImageStyle> | RecursiveArray<ImageStyle | Falsy | RegisteredStyle<ImageStyle>> | readonly (ImageStyle | ... 1 more ... | RegisteredStyle<...>)[]'.
+      Type 'ViewStyle' is not assignable to type 'ImageStyle | Falsy | RegisteredStyle<ImageStyle> | RecursiveArray<ImageStyle | Falsy | RegisteredStyle<ImageStyle>> | readonly (ImageStyle | ... 1 more ... | RegisteredStyle<...>)[]'.
+        Type 'ViewStyle' is not assignable to type 'ImageStyle'.
+          Types of property 'overflow' are incompatible.
+            Type '"visible" | "hidden" | "scroll" | undefined' is not assignable to type '"visible" | "hidden" | undefined'.
+              Type '"scroll"' is not assignable to type '"visible" | "hidden" | undefined'.
+src/screens/MarketDetailScreen.tsx(193,54): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: ImageProps): Image', gave the following error.
+    Type 'ViewStyle | TextStyle | ImageStyle' is not assignable to type 'StyleProp<ImageStyle>'.
+      Type 'ViewStyle' is not assignable to type 'StyleProp<ImageStyle>'.
+        Type 'ViewStyle' is not assignable to type 'ImageStyle'.
+          Types of property 'overflow' are incompatible.
+            Type '"visible" | "hidden" | "scroll" | undefined' is not assignable to type '"visible" | "hidden" | undefined'.
+              Type '"scroll"' is not assignable to type '"visible" | "hidden" | undefined'.
+  Overload 2 of 2, '(props: ImageProps, context: any): Image', gave the following error.
+    Type 'ViewStyle | TextStyle | ImageStyle' is not assignable to type 'StyleProp<ImageStyle>'.
+      Type 'ViewStyle' is not assignable to type 'StyleProp<ImageStyle>'.
+        Type 'ViewStyle' is not assignable to type 'ImageStyle'.
+          Types of property 'overflow' are incompatible.
+            Type '"visible" | "hidden" | "scroll" | undefined' is not assignable to type '"visible" | "hidden" | undefined'.
+              Type '"scroll"' is not assignable to type '"visible" | "hidden" | undefined'.
+src/screens/MarketDetailScreen.tsx(250,42): error TS2322: Type '"black"' is not assignable to type '"normal" | "bold" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900" | undefined'.
+src/screens/MarketScreen.tsx(29,13): error TS2322: Type 'ViewStyle | TextStyle | ImageStyle' is not assignable to type 'StyleProp<ImageStyle & { fontWeight?: "normal" | "bold" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900" | undefined; color?: ColorValue | undefined; fontSize?: number | undefined; }>'.
+  Type 'ViewStyle' is not assignable to type 'StyleProp<ImageStyle & { fontWeight?: "normal" | "bold" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900" | undefined; color?: ColorValue | undefined; fontSize?: number | undefined; }>'.
+    Type 'ViewStyle' is not assignable to type 'ImageStyle & { fontWeight?: "normal" | "bold" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900" | undefined; color?: ColorValue | undefined; fontSize?: number | undefined; }'.
+      Type 'ViewStyle' is not assignable to type 'ImageStyle'.
+        Types of property 'overflow' are incompatible.
+          Type '"visible" | "hidden" | "scroll" | undefined' is not assignable to type '"visible" | "hidden" | undefined'.
+            Type '"scroll"' is not assignable to type '"visible" | "hidden" | undefined'.
+src/screens/MarketScreen.tsx(61,15): error TS2322: Type 'ViewStyle | TextStyle | ImageStyle' is not assignable to type 'StyleProp<ImageStyle & { fontWeight?: "normal" | "bold" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900" | undefined; color?: ColorValue | undefined; fontSize?: number | undefined; }>'.
+  Type 'ViewStyle' is not assignable to type 'StyleProp<ImageStyle & { fontWeight?: "normal" | "bold" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900" | undefined; color?: ColorValue | undefined; fontSize?: number | undefined; }>'.
+    Type 'ViewStyle' is not assignable to type 'ImageStyle & { fontWeight?: "normal" | "bold" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900" | undefined; color?: ColorValue | undefined; fontSize?: number | undefined; }'.
+      Type 'ViewStyle' is not assignable to type 'ImageStyle'.
+        Types of property 'overflow' are incompatible.
+          Type '"visible" | "hidden" | "scroll" | undefined' is not assignable to type '"visible" | "hidden" | undefined'.
+            Type '"scroll"' is not assignable to type '"visible" | "hidden" | undefined'.
+src/screens/MarketScreen.tsx(294,36): error TS2322: Type '"black"' is not assignable to type '"normal" | "bold" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900" | undefined'.
+src/screens/TalepDetailScreen.tsx(31,47): error TS2339: Property 'supabase' does not exist on type '{ getProfile(userId: string): Promise<Profile>; updateProfile(userId: string, updates: Partial<Profile>): Promise<Profile>; ... 5 more ...; acceptTransaction(transactionId: string, supporterId: string, supportPercentage: number): Promise<...>; }'.
+src/screens/TalepDetailScreen.tsx(53,41): error TS2339: Property 'supabase' does not exist on type '{ getProfile(userId: string): Promise<Profile>; updateProfile(userId: string, updates: Partial<Profile>): Promise<Profile>; ... 5 more ...; acceptTransaction(transactionId: string, supporterId: string, supportPercentage: number): Promise<...>; }'.
+src/screens/TaleplerScreen.tsx(15,11): error TS2559: Type 'any[]' has no properties in common with type 'ViewStyle'.
+src/screens/TrackerScreen.tsx(19,47): error TS2339: Property 'supabase' does not exist on type '{ getProfile(userId: string): Promise<Profile>; updateProfile(userId: string, updates: Partial<Profile>): Promise<Profile>; ... 5 more ...; acceptTransaction(transactionId: string, supporterId: string, supportPercentage: number): Promise<...>; }'.
+src/screens/TrackerScreen.tsx(42,33): error TS2339: Property 'supabase' does not exist on type '{ getProfile(userId: string): Promise<Profile>; updateProfile(userId: string, updates: Partial<Profile>): Promise<Profile>; ... 5 more ...; acceptTransaction(transactionId: string, supporterId: string, supportPercentage: number): Promise<...>; }'.
+src/screens/TrackerScreen.tsx(49,13): error TS7006: Parameter 'payload' implicitly has an 'any' type.
+src/screens/TrackerScreen.tsx(56,19): error TS2339: Property 'supabase' does not exist on type '{ getProfile(userId: string): Promise<Profile>; updateProfile(userId: string, updates: Partial<Profile>): Promise<Profile>; ... 5 more ...; acceptTransaction(transactionId: string, supporterId: string, supportPercentage: number): Promise<...>; }'.
+src/screens/TrackerScreen.tsx(86,41): error TS2339: Property 'supabase' does not exist on type '{ getProfile(userId: string): Promise<Profile>; updateProfile(userId: string, updates: Partial<Profile>): Promise<Profile>; ... 5 more ...; acceptTransaction(transactionId: string, supporterId: string, supportPercentage: number): Promise<...>; }'.
+src/services/analyticsService.ts(1,25): error TS2307: Cannot find module '@sentry/react-native' or its corresponding type declarations.
+src/services/analyticsService.ts(2,21): error TS2307: Cannot find module 'posthog-react-native' or its corresponding type declarations.

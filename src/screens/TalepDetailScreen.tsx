@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { DBService } from '../services/dbService';
+import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '../store/useAuthStore';
 import { ChevronLeft, CheckCircle } from 'lucide-react-native';
 
@@ -28,7 +28,7 @@ export function TalepDetailScreen() {
     try {
       // In a real app we would have a getTransactionById method
       // For now we assume DBService or supabase can fetch it
-      const { data, error } = await DBService.supabase
+      const { data, error } = await supabase
         .from('transactions')
         .select(`*, profiles!transactions_seeker_id_fkey(full_name, avatar_url)`)
         .eq('id', id)
@@ -50,7 +50,7 @@ export function TalepDetailScreen() {
     setAccepting(true);
     try {
       // Assuming DBService has acceptTransaction or similar
-      const { error } = await DBService.supabase
+      const { error } = await supabase
         .from('transactions')
         .update({ 
           status: 'waiting-cash-payment',

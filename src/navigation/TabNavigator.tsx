@@ -3,10 +3,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, ClipboardList, ShoppingCart, MessageSquare, User } from 'lucide-react-native';
 
 // Screens (Placeholders for now)
-import { HomeScreen } from '../screens/HomeScreen';
+import HomeScreen from '../screens/HomeScreen';
 import { TaleplerScreen } from '../screens/TaleplerScreen';
 import { MarketScreen } from '../screens/MarketScreen';
-import { MuhabbetScreen } from '../screens/MuhabbetScreen';
+import MuhabbetScreen from '../screens/MuhabbetScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
