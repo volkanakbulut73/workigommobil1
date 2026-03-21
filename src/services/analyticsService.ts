@@ -1,0 +1,115 @@
+import * as Sentry from '@sentry/react-native';
+import PostHog from 'posthog-react-native';
+
+declare const __DEV__: boolean;
+
+const IS_PROD = !__DEV__;
+
+// Create a singleton instance of PostHog
+export let posthog: PostHog | null = null;
+
+class AnalyticsServiceImpl {
+  public init() {
+    try {
+      if (!IS_PROD) {
+        console.log('[Analytics] INIT: Development mode, analytics disabled (logging to console)');
+        return;
+      }
+
+      const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN;
+      const posthogKey = process.env.EXPO_PUBLIC_POSTHOG_API_KEY || process.env.POSTHOG_API_KEY;
+
+      if (sentryDsn) {
+        Sentry.init({
+          dsn: sentryDsn,
+          enableAutoPerformanceTracing: true, // Minimal performance tracing
+          enableNativeFramesTracking: true,
+          tracesSampleRate: 1.0,
+        });
+      } else {
+        console.warn('[Analytics] SENTRY_DSN missing in environment variables.');
+      }
+
+      if (posthogKey) {
+        posthog = new PostHog(posthogKey, {
+          host: 'https://eu.posthog.com', // or 'https://app.posthog.com' based on region, assuming EU by default for many GDPR compliant setups, but we can stick to defaults
+        });
+      } else {
+        console.warn('[Analytics] POSTHOG_API_KEY missing in environment variables.');
+      }
+    } catch (error) {
+      console.error('[Analytics] Failed to initialize analytics:', error);
+    }
+  }
+
+  public identifyUser(userId: string, properties?: Record<string, any>) {
+    try {
+      if (!IS_PROD) {
+        console.log(`[Analytics] IDENTIFY USER: ${userId}`, properties);
+        return;
+      }
+
+      if (posthog) {
+        posthog.identify(userId, properties);
+      }
+      Sentry.setUser({ id: userId, ...properties });
+    } catch (error) {
+      console.error('[Analytics] Failed to identify user:', error);
+    }
+  }
+
+  public trackEvent(eventName: string, properties?: Record<string, any>) {
+    try {
+      if (!IS_PROD) {
+        console.log(`[Analytics] TRACK EVENT: ${eventName}`, properties || {});
+        return;
+      }
+
+      if (posthog) {
+        posthog.capture(eventName, properties);
+      }
+    } catch (error) {
+      console.error('[Analytics] Failed to track event:', error);
+    }
+  }
+
+  public captureException(error: any, context?: Record<string, any>) {
+    try {
+      if (!IS_PROD) {
+        console.log(`[Analytics] CAPTURE EXCEPTION:`, error, context);
+        return;
+      }
+
+      if (context) {
+        Sentry.withScope((scope: any) => {
+          Object.entries(context).forEach(([key, value]) => {
+            scope.setExtra(key, value);
+          });
+          Sentry.captureException(error);
+        });
+      } else {
+        Sentry.captureException(error);
+      }
+    } catch (err) {
+      console.error('[Analytics] Failed to capture exception:', err);
+    }
+  }
+
+  public resetUser() {
+    try {
+      if (!IS_PROD) {
+        console.log('[Analytics] RESET USER');
+        return;
+      }
+
+      if (posthog) {
+        posthog.reset();
+      }
+      Sentry.setUser(null);
+    } catch (error) {
+      console.error('[Analytics] Failed to reset user:', error);
+    }
+  }
+}
+
+export const AnalyticsService = new AnalyticsServiceImpl();

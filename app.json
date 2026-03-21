@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Workigom",
+    "slug": "workigom-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.workigom.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Profil fotoğrafı güncellemek ve ilan görselleri kamerasından fotoğraf çekebilmek için kameraya izin verin.",
+        "NSPhotoLibraryUsageDescription": "Pazara resim yükleyebilmeniz için galeriye erişim izni gereklidir."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "package": "com.workigom.app",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "supabaseUrl": "https://nqdnrzcvdifbinbvzqkt.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xZG5yemN2ZGlmYmluYnZ6cWt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzOTQxMzYsImV4cCI6MjA4Nzk3MDEzNn0.fJhCDfEsKCjlxMWx6l_qimvRlZrnjJL9WeW2gTFupEs"
+    }
+  }
+}
