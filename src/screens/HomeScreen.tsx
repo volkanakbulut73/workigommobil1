@@ -44,7 +44,7 @@ export default function HomeScreen() {
             </View>
           </View>
           <View style={styles.heroIconWrapper}>
-            <Rocket color="#8eff71" size={72} strokeWidth={1} style={{ opacity: 0.4 }} />
+            <Rocket color="#8eff71" size={72} strokeWidth={1} style={{ opacity: 0.3 }} />
           </View>
         </TouchableOpacity>
 
@@ -65,8 +65,8 @@ export default function HomeScreen() {
           <View style={styles.statsRow}>
             {/* Transactions */}
             <View style={[styles.statCard, styles.statCardHalf]}>
-              <View style={[styles.statIconBox, { backgroundColor: 'rgba(144, 249, 163, 0.1)' }]}>
-                <RefreshCcw color="#90f9a3" size={16} />
+              <View style={[styles.statIconBox, { backgroundColor: 'rgba(142, 255, 113, 0.1)' }]}>
+                <RefreshCcw color="#8eff71" size={16} />
               </View>
               <View style={styles.statBottomText}>
                 <Text style={styles.statLabel}>İŞLEMLER</Text>
@@ -76,8 +76,8 @@ export default function HomeScreen() {
 
             {/* Active Balance */}
             <View style={[styles.statCard, styles.statCardHalf]}>
-              <View style={[styles.statIconBox, { backgroundColor: 'rgba(136, 246, 255, 0.1)' }]}>
-                <Zap color="#88f6ff" size={16} />
+              <View style={[styles.statIconBox, { backgroundColor: 'rgba(142, 255, 113, 0.1)' }]}>
+                <Zap color="#8eff71" size={16} />
               </View>
               <View style={styles.statBottomText}>
                 <Text style={styles.statLabel}>AKTİF BAKİYE</Text>
@@ -90,7 +90,7 @@ export default function HomeScreen() {
         {/* Recent Transactions */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Son İşlemler</Text>
+            <Text style={styles.sectionTitle}>Paylaşım Taleplerin</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Talepler')}>
               <Text style={styles.seeAllText}>TÜMÜNÜ GÖR</Text>
             </TouchableOpacity>
@@ -98,61 +98,61 @@ export default function HomeScreen() {
           
           <View style={styles.transactionList}>
             {/* Item 1 */}
-            <View style={styles.transactionItem}>
+            <TouchableOpacity style={styles.transactionItem} activeOpacity={0.7}>
               <View style={styles.txLeft}>
                 <View style={styles.txIconBox}>
-                  <Store color="#aaaab6" size={24} />
+                  <Store color="#8eff71" size={24} />
                 </View>
                 <View>
-                  <Text style={styles.txTitle}>Market</Text>
+                  <Text style={styles.txTitle}>Getir Market</Text>
                   <Text style={styles.txSubtitle}>Bugün, 14:20</Text>
                 </View>
               </View>
               <View style={styles.txRight}>
-                <Text style={styles.txAmount}>-₺124.50</Text>
+                <Text style={styles.txAmount}>₺124.50</Text>
                 <View style={styles.txStatusBadge}>
                   <Text style={styles.txStatusText}>TAMAMLANDI</Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
 
             {/* Item 2 */}
-            <View style={styles.transactionItem}>
+            <TouchableOpacity style={styles.transactionItem} activeOpacity={0.7}>
               <View style={styles.txLeft}>
                 <View style={styles.txIconBox}>
-                  <Utensils color="#aaaab6" size={24} />
+                  <Utensils color="#8eff71" size={24} />
                 </View>
                 <View>
-                  <Text style={styles.txTitle}>Restoran</Text>
+                  <Text style={styles.txTitle}>Yemeksepeti</Text>
                   <Text style={styles.txSubtitle}>Dün, 20:15</Text>
                 </View>
               </View>
               <View style={styles.txRight}>
-                <Text style={styles.txAmount}>-₺85.00</Text>
+                <Text style={styles.txAmount}>₺85.00</Text>
                 <View style={styles.txStatusBadge}>
                   <Text style={styles.txStatusText}>TAMAMLANDI</Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
 
             {/* Item 3 */}
-            <View style={styles.transactionItem}>
+            <TouchableOpacity style={styles.transactionItem} activeOpacity={0.7}>
               <View style={styles.txLeft}>
                 <View style={styles.txIconBox}>
-                  <CreditCard color="#aaaab6" size={24} />
+                  <CreditCard color="#8eff71" size={24} />
                 </View>
                 <View>
-                  <Text style={styles.txTitle}>Nakit Çekim</Text>
+                  <Text style={styles.txTitle}>Cüzdan Yükleme</Text>
                   <Text style={styles.txSubtitle}>12 Eki, 11:30</Text>
                 </View>
               </View>
               <View style={styles.txRight}>
-                <Text style={styles.txAmount}>-₺200.00</Text>
+                <Text style={styles.txAmount}>₺200.00</Text>
                 <View style={[styles.txStatusBadge, { backgroundColor: 'rgba(255, 115, 81, 0.1)' }]}>
                   <Text style={[styles.txStatusText, { color: '#ff7351' }]}>BEKLEMEDE</Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -223,10 +223,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#0c0e16',
   },
   contentContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 80,
     paddingBottom: 40,
-    gap: 24,
+    gap: 28,
   },
   header: {
     position: 'absolute',
@@ -238,10 +238,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    backgroundColor: 'rgba(12, 14, 22, 0.95)',
-    zIndex: 50,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(142, 255, 113, 0.05)',
+    backgroundColor: 'rgba(12, 14, 22, 0.85)',
+    zIndex: 100,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -252,11 +250,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#222531',
+    backgroundColor: '#1d1f2a',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(142, 255, 113, 0.1)',
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
   avatar: {
     width: 32,
@@ -264,10 +264,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   brandTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '900',
     textTransform: 'uppercase',
-    letterSpacing: -0.5,
+    letterSpacing: 2,
     color: '#8eff71',
   },
   headerRight: {
@@ -280,22 +280,24 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
     borderRadius: 32,
-    backgroundColor: '#171923',
+    backgroundColor: '#1d1f2a',
     padding: 24,
     minHeight: 180,
     justifyContent: 'center',
     marginTop: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
   },
   heroGlow: {
     position: 'absolute',
-    right: -40,
-    top: -40,
-    width: 192,
-    height: 192,
+    right: -60,
+    top: -60,
+    width: 220,
+    height: 220,
     backgroundColor: 'rgba(142, 255, 113, 0.1)',
-    borderRadius: 96,
+    borderRadius: 110,
   },
   heroContent: {
     position: 'relative',
@@ -303,10 +305,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   heroTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    lineHeight: 32,
-    letterSpacing: -0.5,
+    lineHeight: 34,
+    letterSpacing: -1,
     color: '#ededf9',
   },
   heroTitleHighlight: {
@@ -314,47 +316,52 @@ const styles = StyleSheet.create({
   },
   heroBtn: {
     backgroundColor: '#8eff71',
-    paddingHorizontal: 24,
-    paddingVertical: 10,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
     borderRadius: 9999,
     alignSelf: 'flex-start',
     shadowColor: '#8eff71',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOpacity: 0.4,
+    shadowRadius: 15,
+    elevation: 8,
   },
   heroBtnText: {
-    color: '#0b5800',
-    fontWeight: 'bold',
+    color: '#0c0e16',
+    fontWeight: '900',
     fontSize: 14,
+    textTransform: 'uppercase',
   },
   heroIconWrapper: {
     position: 'absolute',
-    right: 16,
-    bottom: 16,
-    opacity: 0.4,
+    right: 20,
+    bottom: 20,
+    opacity: 0.3,
   },
   statsGrid: {
-    gap: 12,
+    gap: 16,
   },
   statCard: {
-    backgroundColor: '#11131c',
-    borderRadius: 24,
-    padding: 20,
+    backgroundColor: '#1d1f2a',
+    borderRadius: 28,
+    padding: 24,
     justifyContent: 'space-between',
     overflow: 'hidden',
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 15,
   },
   statCardWide: {
-    height: 128,
+    height: 140,
   },
   statsRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 16,
   },
   statCardHalf: {
     flex: 1,
-    height: 144,
+    height: 150,
   },
   statHeaderRow: {
     flexDirection: 'row',
@@ -365,81 +372,87 @@ const styles = StyleSheet.create({
   statLabel: {
     color: '#aaaab6',
     fontSize: 10,
+    fontWeight: 'bold',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 2,
   },
   statBadge: {
     backgroundColor: 'rgba(142, 255, 113, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 9999,
   },
   statBadgeText: {
     color: '#8eff71',
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: '900',
   },
   statValueBig: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 32,
+    fontWeight: '900',
     color: '#ededf9',
     zIndex: 2,
   },
   statGlowRight: {
     position: 'absolute',
-    bottom: -40,
-    right: -40,
-    width: 150,
-    height: 150,
-    backgroundColor: 'rgba(142, 255, 113, 0.05)',
-    borderRadius: 100,
+    bottom: -50,
+    right: -50,
+    width: 160,
+    height: 160,
+    backgroundColor: 'rgba(142, 255, 113, 0.08)',
+    borderRadius: 80,
   },
   statIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   statBottomText: {
-    gap: 4,
+    gap: 6,
   },
   statValueSmall: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '900',
     color: '#ededf9',
   },
   sectionContainer: {
-    gap: 16,
+    gap: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '900',
     color: '#ededf9',
+    letterSpacing: -0.5,
   },
   seeAllText: {
     color: '#8eff71',
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: '900',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 2,
   },
   transactionList: {
-    gap: 12,
+    gap: 16,
   },
   transactionItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#171923',
-    borderRadius: 20,
+    padding: 20,
+    backgroundColor: '#1d1f2a',
+    borderRadius: 24,
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
   },
   txLeft: {
     flexDirection: 'row',
@@ -447,92 +460,103 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   txIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: '#222531',
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    backgroundColor: 'rgba(142, 255, 113, 0.05)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   txTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#ededf9',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   txSubtitle: {
     fontSize: 10,
     color: '#aaaab6',
+    fontWeight: 'bold',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   txRight: {
     alignItems: 'flex-end',
-    gap: 4,
+    gap: 8,
   },
   txAmount: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '900',
     color: '#ededf9',
   },
   txStatusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 9999,
     backgroundColor: 'rgba(142, 255, 113, 0.1)',
   },
   txStatusText: {
     fontSize: 9,
-    fontWeight: 'bold',
+    fontWeight: '900',
     color: '#8eff71',
     textTransform: 'uppercase',
   },
   leaderboardCard: {
     backgroundColor: '#1d1f2a',
-    borderRadius: 28,
-    padding: 8,
-    gap: 4,
+    borderRadius: 32,
+    padding: 12,
+    gap: 8,
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.06,
+    shadowRadius: 25,
   },
   rank1Container: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 12,
-    backgroundColor: 'rgba(142, 255, 113, 0.1)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(142, 255, 113, 0.05)',
+    padding: 16,
+    backgroundColor: 'rgba(142, 255, 113, 0.15)',
+    borderRadius: 24,
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
   },
   rankItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 12,
-    borderRadius: 20,
+    padding: 16,
+    borderRadius: 24,
   },
   rankLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
   },
   rank1Badge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#8eff71',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
   },
   rank1BadgeText: {
-    color: '#0d6100',
+    color: '#0c0e16',
     fontWeight: '900',
-    fontSize: 14,
+    fontSize: 16,
   },
   rankBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#171923',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -542,46 +566,48 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   rank1Avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     borderWidth: 2,
     borderColor: '#8eff71',
   },
   rankAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#222531',
   },
   rankName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#ededf9',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   rankPoints1: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#8eff71',
-    fontWeight: 'bold',
+    fontWeight: '900',
+    textTransform: 'uppercase',
   },
   rankPoints: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#aaaab6',
     fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   allRankBtn: {
     width: '100%',
-    paddingVertical: 12,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   allRankBtnText: {
-    color: '#aaaab6',
-    fontSize: 12,
-    fontWeight: 'bold',
+    color: '#8eff71',
+    fontSize: 11,
+    fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: 2,
+    opacity: 0.6,
   },
 });

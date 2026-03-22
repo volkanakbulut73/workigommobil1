@@ -18,7 +18,7 @@ export function Header() {
             style={styles.iconButton}
             onPress={() => navigation.navigate('MessagesList')}
           >
-            <MessageCircle color="#fff" size={24} />
+            <MessageCircle color="#8eff71" size={24} />
             {unreadMessageCount > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{unreadMessageCount}</Text>
@@ -30,7 +30,7 @@ export function Header() {
             style={styles.iconButton}
             onPress={() => navigation.navigate('Notifications')}
           >
-            <Bell color="#fff" size={24} />
+            <Bell color="#8eff71" size={24} />
             {unreadCount > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{unreadCount}</Text>
@@ -45,49 +45,56 @@ export function Header() {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: '#000',
+    backgroundColor: '#0c0e16',
     paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0,
   },
   container: {
-    height: 60,
+    height: 64,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#111',
+    paddingHorizontal: 24,
+    backgroundColor: 'rgba(12, 14, 22, 0.85)',
+    zIndex: 100,
   },
   logo: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
-    color: '#00FF00',
-    letterSpacing: -0.5,
+    color: '#8eff71',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
   iconButton: {
-    padding: 8,
-    marginLeft: 10,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
   },
   badge: {
     position: 'absolute',
     top: 4,
     right: 4,
-    backgroundColor: '#FF3B30',
-    borderRadius: 9,
-    minWidth: 18,
-    height: 18,
+    backgroundColor: '#8eff71',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#000',
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 5,
   },
   badgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: 'bold',
+    color: '#0c0e16',
+    fontSize: 9,
+    fontWeight: '900',
   },
 });

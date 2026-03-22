@@ -13,7 +13,7 @@ export function Layout({ children, withHeader = true }: LayoutProps) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
+      <StatusBar barStyle="light-content" backgroundColor="#0c0e16" />
       {withHeader && <Header />}
       <View style={styles.content}>
         {children}
@@ -25,7 +25,7 @@ export function Layout({ children, withHeader = true }: LayoutProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#0c0e16',
   },
   content: {
     flex: 1,
