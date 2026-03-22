@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Workigom Mobile Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&amp;family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed": "#2ff801",
+              "on-tertiary": "#005d62",
+              "secondary": "#90f9a3",
+              "surface-dim": "#0c0e16",
+              "surface-container-highest": "#222531",
+              "on-surface-variant": "#aaaab6",
+              "secondary-fixed-dim": "#82ea96",
+              "on-tertiary-fixed-variant": "#005e63",
+              "error": "#ff7351",
+              "error-dim": "#d53d18",
+              "background": "#0c0e16",
+              "inverse-surface": "#faf8ff",
+              "on-tertiary-fixed": "#003f43",
+              "on-primary": "#0d6100",
+              "secondary-dim": "#82ea96",
+              "error-container": "#b92902",
+              "surface-container-high": "#1d1f2a",
+              "tertiary-container": "#17eefa",
+              "tertiary-fixed": "#17eefa",
+              "surface-tint": "#8eff71",
+              "on-primary-fixed-variant": "#0d6200",
+              "surface-container-low": "#11131c",
+              "primary": "#8eff71",
+              "outline-variant": "#464751",
+              "outline": "#74757f",
+              "primary-fixed-dim": "#2be800",
+              "on-secondary-container": "#e4ffe2",
+              "tertiary": "#88f6ff",
+              "on-error-container": "#ffd2c8",
+              "on-background": "#ededf9",
+              "surface-bright": "#292c38",
+              "primary-container": "#2ff801",
+              "on-secondary-fixed": "#004a1e",
+              "secondary-fixed": "#90f9a3",
+              "tertiary-dim": "#00deea",
+              "surface-container-lowest": "#000000",
+              "surface-container": "#171923",
+              "surface": "#0c0e16",
+              "secondary-container": "#006d2f",
+              "surface-variant": "#222531",
+              "on-primary-container": "#0b5800",
+              "on-secondary-fixed-variant": "#006a2e",
+              "on-tertiary-container": "#005458",
+              "on-error": "#450900",
+              "tertiary-fixed-dim": "#00deea",
+              "on-secondary": "#005f28",
+              "on-primary-fixed": "#064200",
+              "inverse-on-surface": "#53545e",
+              "on-surface": "#ededf9",
+              "primary-dim": "#2be800",
+              "inverse-primary": "#106f00"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .neon-glow { text-shadow: 0 0 10px rgba(142, 255, 113, 0.4); }
+        .glass-panel { backdrop-filter: blur(12px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background selection:bg-primary/30 min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#0c0e16] dark:bg-[#0c0e16] shadow-[0_20px_40px_rgba(142,255,113,0.05)]">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center border border-primary/10">
+<img alt="User Avatar" class="w-8 h-8 rounded-full" data-alt="User profile avatar with neon glow border" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfuLfAVpnaGORYEXdTnUewlJNXW2FXxcfNeM3Pnzx_gurdveAJwWYqY90dlmNBkWnfVksmYIM_0xKQUPnzt9-F7Z8egKoO946kW56JSOxK4vrxfG395PGPnOseC3N0yl-EdtNzTIrfU-iM59-_xz-J6V3WDpqVAWQso0FNJuyW6iHmLFpon6KKs1csPfqrC6cCJhHIGZiyjARhYRZor3XucXKerBf3Lp8GxHKfQ08zZfNURCPWPj9EOz2ilJDHZ-5DfH-C6ObBsg"/>
+</div>
+</div>
+<h1 class="font-['Space_Grotesk'] font-bold text-xl uppercase tracking-tighter text-[#8eff71] dark:text-[#8eff71]">Workigom</h1>
+<button class="w-10 h-10 flex items-center justify-center hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined text-[#8eff71]">notifications</span>
+</button>
+</header>
+<main class="pt-20 px-4 space-y-6">
+<!-- Hero/Banner -->
+<section class="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-surface-container to-surface-container-highest p-6 min-h-[180px] flex flex-col justify-center">
+<div class="absolute -right-10 -top-10 w-48 h-48 bg-primary/10 rounded-full blur-3xl"></div>
+<div class="relative z-10 space-y-4">
+<h2 class="font-headline font-bold text-2xl leading-tight tracking-tight">Birlikte Paylaş,<br/><span class="text-primary">Daha Fazla Kazan</span></h2>
+<button class="bg-gradient-to-r from-primary to-primary-container text-on-primary-container px-6 py-2.5 rounded-full font-bold text-sm shadow-[0_8px_20px_rgba(142,255,113,0.3)] active:scale-95 transition-all">
+                    Hemen Başla
+                </button>
+</div>
+<div class="absolute right-4 bottom-4 opacity-40">
+<span class="material-symbols-outlined text-7xl text-primary" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+</div>
+</section>
+<!-- Stats Grid (1x2 Hybrid Bento) -->
+<section class="grid grid-cols-2 gap-3">
+<div class="col-span-2 bg-surface-container-low p-5 rounded-[24px] flex flex-col justify-between h-32 relative overflow-hidden">
+<div class="flex justify-between items-start relative z-10">
+<span class="text-on-surface-variant font-medium text-xs uppercase tracking-widest">Toplam Tasarruf</span>
+<span class="text-primary bg-primary/10 px-2 py-1 rounded-full text-[10px] font-bold">+12%</span>
+</div>
+<div class="relative z-10">
+<span class="font-headline text-3xl font-bold text-on-surface">₺1,450.00</span>
+</div>
+<div class="absolute bottom-0 right-0 w-24 h-24 bg-primary/5 rounded-full translate-x-1/2 translate-y-1/2 blur-2xl"></div>
+</div>
+<div class="bg-surface-container-low p-5 rounded-[24px] flex flex-col justify-between h-36">
+<div class="w-8 h-8 rounded-xl bg-secondary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-sm">sync_alt</span>
+</div>
+<div>
+<span class="block text-on-surface-variant text-[10px] uppercase font-bold tracking-tighter mb-1">İşlemler</span>
+<span class="font-headline text-xl font-bold text-on-surface">42 işle</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-5 rounded-[24px] flex flex-col justify-between h-36">
+<div class="w-8 h-8 rounded-xl bg-tertiary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary text-sm">bolt</span>
+</div>
+<div>
+<span class="block text-on-surface-variant text-[10px] uppercase font-bold tracking-tighter mb-1">Aktif Bakite</span>
+<span class="font-headline text-xl font-bold text-on-surface">₺340.50</span>
+</div>
+</div>
+</section>
+<!-- Recent Transactions -->
+<section class="space-y-4">
+<div class="flex justify-between items-end px-2">
+<h3 class="font-headline font-bold text-lg">Son İşlemler</h3>
+<span class="text-primary text-xs font-bold uppercase tracking-wider">Tümünü Gör</span>
+</div>
+<div class="space-y-3">
+<!-- Item 1 -->
+<div class="flex items-center justify-between p-4 bg-surface-container rounded-[20px]">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">storefront</span>
+</div>
+<div>
+<p class="font-bold text-sm text-on-surface">Market</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wide">Bugün, 14:20</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-headline font-bold text-sm text-on-surface">-₺124.50</p>
+<span class="text-[9px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 uppercase">Tamamlandı</span>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center justify-between p-4 bg-surface-container rounded-[20px]">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">restaurant</span>
+</div>
+<div>
+<p class="font-bold text-sm text-on-surface">Restoran</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wide">Dün, 20:15</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-headline font-bold text-sm text-on-surface">-₺85.00</p>
+<span class="text-[9px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 uppercase">Tamamlandı</span>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center justify-between p-4 bg-surface-container rounded-[20px]">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">atm</span>
+</div>
+<div>
+<p class="font-bold text-sm text-on-surface">Nakit Çekim</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wide">12 Eki, 11:30</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-headline font-bold text-sm text-on-surface">-₺200.00</p>
+<span class="text-[9px] font-bold text-error px-2 py-0.5 rounded-full bg-error/10 uppercase">Beklemede</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Leaderboard -->
+<section class="space-y-4">
+<div class="flex justify-between items-end px-2">
+<h3 class="font-headline font-bold text-lg">Liderlik Tablosu</h3>
+</div>
+<div class="bg-surface-container-high rounded-[28px] p-2 space-y-1">
+<!-- Rank 1 -->
+<div class="flex items-center justify-between p-3 bg-primary/10 rounded-[20px] border border-primary/5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary font-black text-sm">1</div>
+<img alt="User 1" class="w-10 h-10 rounded-full border-2 border-primary" data-alt="Avatar of the top ranking user" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBB5UvZAAaXXaYa7volVB49tp8ONbOtubO3ZV3g0b7KyS1EQOfu_8hzasYjDSaXqwl8SuUhvVw2uQy0AYR3BRWZ7kW3QuznV-BhsI3O396Ga4CMVH1OWtr_iQDMu4B40o2XtTogouCtdLB9BJ2hKR_-5H3uMr4mW0MgkxvekPooxH0nuCkzisz6usYPWc5eqM-0v3L7VrThGZHsI1y_lGhWkM2s8mXM_Fr_seP9ldvgynvn4IlRIYn8Q6p-FcvjMjQIm-_u-cBoQ"/>
+<div>
+<p class="font-bold text-sm text-on-surface">Caner D.</p>
+<p class="text-[10px] text-primary font-bold">4.2k Puan</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+<!-- Rank 2 -->
+<div class="flex items-center justify-between p-3 rounded-[20px]">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant font-black text-sm">2</div>
+<img alt="User 2" class="w-10 h-10 rounded-full border-2 border-transparent" data-alt="Avatar of second rank user" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQ8TE1BxNb8m3hiQlZ1lmnZak8tYRoO70tGJhlONaS5CzSSQAYwGOc8RTE1zxwfWtg7EXLWAWuKudfq740Gdn-LcjyKctkmnwcadlYr2TUjaZFdWDOiEdKskoTVSjcL6NDeeJoD5ST6Uw4pd4vNDIDVeP5DPCfEy72FZdjv_cF-E7U-8rGOGJVUpGTJdyL2R0V-4k-Hs84A9va-2E8TDTHS_GyE87OJMHQQBVALXdUpFVhNP5zAv1-qd1iluAI60UzCijLfD9UVw"/>
+<div>
+<p class="font-bold text-sm text-on-surface">Melis A.</p>
+<p class="text-[10px] text-on-surface-variant font-bold">3.8k Puan</p>
+</div>
+</div>
+</div>
+<!-- Rank 3 -->
+<div class="flex items-center justify-between p-3 rounded-[20px]">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant font-black text-sm">3</div>
+<img alt="User 3" class="w-10 h-10 rounded-full border-2 border-transparent" data-alt="Avatar of third rank user" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuzPg-klizPeqtQ8c6-jwCsXYOU3EUQLPDRVnLZfi24VcGZf662FWswel710A1Kpga5dxUpIkCd5uoKxu5l-3RINPO_EnZLY_t1c34qpQYxiNmkIl4xG3PmwUvB7MdFf6NajcgFWLvazhqUuRj0x7fcgGQkz4thEtH2MJazcjUF21wtp9AMTxdv4sFk-MRA7tfmK8oephG8CM8q0EHoP_P6nDBnQzVxt1pVvsiq3KyOZn3SxoIAJ42erQ45lgD_yC7jJu2Lry8Tw"/>
+<div>
+<p class="font-bold text-sm text-on-surface">Berk S.</p>
+<p class="text-[10px] text-on-surface-variant font-bold">3.5k Puan</p>
+</div>
+</div>
+</div>
+<button class="w-full py-3 text-on-surface-variant text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors">
+                    Tüm Sıralama
+                </button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-6 pt-3 bg-[#0c0e16]/80 backdrop-blur-xl rounded-t-[32px] no-border tonal-layering shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+<!-- Ana Sayfa (Active) -->
+<a class="flex flex-col items-center justify-center text-[#8eff71] bg-[#8eff71]/10 rounded-full px-3 py-1 active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Manrope'] text-[10px] font-bold uppercase tracking-wider">Ana Sayfa</span>
+</a>
+<!-- Talepler -->
+<a class="flex flex-col items-center justify-center text-[#ededf9]/50 hover:text-[#8eff71] transition-colors active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">pending_actions</span>
+<span class="font-['Manrope'] text-[10px] font-bold uppercase tracking-wider">Talepler</span>
+</a>
+<!-- Market -->
+<a class="flex flex-col items-center justify-center text-[#ededf9]/50 hover:text-[#8eff71] transition-colors active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">storefront</span>
+<span class="font-['Manrope'] text-[10px] font-bold uppercase tracking-wider">Market</span>
+</a>
+<!-- Mesajlarım -->
+<a class="flex flex-col items-center justify-center text-[#ededf9]/50 hover:text-[#8eff71] transition-colors active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-['Manrope'] text-[10px] font-bold uppercase tracking-wider">Mesajlarım</span>
+</a>
+<!-- Muhabbet -->
+<a class="flex flex-col items-center justify-center text-[#ededf9]/50 hover:text-[#8eff71] transition-colors active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">forum</span>
+<span class="font-['Manrope'] text-[10px] font-bold uppercase tracking-wider">Muhabbet</span>
+</a>
+<!-- Profil -->
+<a class="flex flex-col items-center justify-center text-[#ededf9]/50 hover:text-[#8eff71] transition-colors active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Manrope'] text-[10px] font-bold uppercase tracking-wider">Profil</span>
+</a>
+</nav>
+</body></html>

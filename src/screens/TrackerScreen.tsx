@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Animated } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { DBService } from '../services/dbService';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/useAuthStore';
-import { ChevronLeft, Check, QrCode, CreditCard, Flag, X } from 'lucide-react-native';
+import { ChevronLeft, Check, CreditCard, QrCode, Upload as UploadIcon, CheckCircle2, Info, RefreshCw } from 'lucide-react-native';
 
 export function TrackerScreen() {
   const route = useRoute<any>();
@@ -14,6 +14,26 @@ export function TrackerScreen() {
   
   const [transaction, setTransaction] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Animation values
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.15,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        })
+      ])
+    ).start();
+  }, [pulseAnim]);
 
   const fetchTransaction = async () => {
     try {
@@ -48,7 +68,6 @@ export function TrackerScreen() {
           table: 'transactions',
           filter: `id=eq.${id}`
         }, (payload: any) => {
-          // Re-fetch to get complete relations or update directly
           fetchTransaction();
         })
         .subscribe();
@@ -64,7 +83,7 @@ export function TrackerScreen() {
   if (loading || !transaction) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color="#00e5ff" size="large" />
+        <ActivityIndicator color="#8eff71" size="large" />
       </View>
     );
   }
@@ -102,22 +121,26 @@ export function TrackerScreen() {
     ]);
   };
 
-  // Steps configuration
+  // Steps configuration (matching HTML design labels and icons)
   const steps = [
     {
       id: 'waiting-supporter',
-      label: currentIndex > 0 ? 'Eşleşme Sağlandı' : 'Eşleşme Bekleniyor',
-      icon: <Check size={20} color="#fff" />,
-      descActive: 'İşleniyor...', descCompleted: 'Tamamlandı', descPending: 'Bekliyor',
+      label: currentIndex > 0 ? 'EŞLEŞME SAĞLANDI' : 'EŞLEŞME BEKLENİYOR',
+      icon: RefreshCw,
+      descActive: 'Yapay zeka ağ üzerinde en uygun partneri arıyor...',
+      descCompleted: 'Eşleşme sağlandı.',
+      descPending: 'Bekliyor...',
     },
     {
       id: 'waiting-cash-payment',
-      label: 'Ödeme Bekleniyor',
-      icon: <CreditCard size={20} color="#fff" />,
-      descActive: 'İşleniyor...', descCompleted: 'Ödendi', descPending: 'Bekliyor',
+      label: 'ÖDEME BEKLENİYOR',
+      icon: CreditCard,
+      descActive: 'Lütfen belirtilen tutarı ödeyin.',
+      descCompleted: 'Ödeme tamamlandı.',
+      descPending: 'Bekliyor...',
       renderAction: () => isSeeker ? (
         <TouchableOpacity style={styles.actionBtn} onPress={() => handleUpdateStatus('cash-paid')}>
-          <Text style={styles.actionBtnText}>Ödemeyi Yaptım</Text>
+          <Text style={styles.actionBtnText}>ÖDEMEYİ YAPTIM</Text>
         </TouchableOpacity>
       ) : (
         <Text style={styles.infoText}>Karşı taraf ödemeyi onayladığında QR açılacaktır.</Text>
@@ -125,34 +148,40 @@ export function TrackerScreen() {
     },
     {
       id: 'cash-paid',
-      label: 'QR Kod Bekleniyor',
-      icon: <QrCode size={20} color="#fff" />,
-      descActive: 'İşleniyor...', descCompleted: 'Hazırlandı', descPending: 'Bekliyor',
+      label: 'QR KOD HAZIRLANIYOR',
+      icon: QrCode,
+      descActive: 'QR kodun sisteme yüklenmesi bekleniyor.',
+      descCompleted: 'QR kod hazırlandı.',
+      descPending: 'Bekliyor...',
       renderAction: () => !isSeeker ? (
         <TouchableOpacity style={styles.actionBtn} onPress={() => handleUpdateStatus('qr-uploaded')}>
-          <Text style={styles.actionBtnText}>QR Kodu Yükle (Simüle)</Text>
+          <Text style={styles.actionBtnText}>QR KODU YÜKLE</Text>
         </TouchableOpacity>
       ) : null
     },
     {
       id: 'qr-uploaded',
-      label: 'QR Onayı',
-      icon: <QrCode size={20} color="#fff" />,
-      descActive: 'İşleniyor...', descCompleted: 'Onaylandı', descPending: 'Bekliyor',
+      label: 'QR YÜKLENDİ',
+      icon: UploadIcon,
+      descActive: 'Lütfen QR kodu onaylayın.',
+      descCompleted: 'QR kod onaylandı.',
+      descPending: 'Bekliyor...',
       renderAction: () => isSeeker ? (
         <TouchableOpacity style={styles.actionBtn} onPress={() => handleUpdateStatus('completed')}>
-          <Text style={styles.actionBtnText}>İşlemi Onayla</Text>
+          <Text style={styles.actionBtnText}>İŞLEMİ ONAYLA</Text>
         </TouchableOpacity>
       ) : null
     },
     {
       id: 'completed',
-      label: 'Tamamlandı',
-      icon: <Flag size={20} color="#fff" />,
-      descActive: 'İşlem Başarılı', descCompleted: 'İşlem Başarılı', descPending: 'Bekliyor',
+      label: 'TAMAMLANDI',
+      icon: CheckCircle2,
+      descActive: 'İşlem Başarılı',
+      descCompleted: 'İşlem Başarılı',
+      descPending: 'Bekliyor...',
       renderAction: () => (
-        <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('MainTabs', { screen: 'Talepler' })}>
-          <Text style={styles.actionBtnText}>Ana Sayfaya Dön</Text>
+        <TouchableOpacity style={styles.actionBtnPrimary} onPress={() => navigation.navigate('MainTabs', { screen: 'Talepler' })}>
+          <Text style={styles.actionBtnTextPrimary}>ANA SAYFAYA DÖN</Text>
         </TouchableOpacity>
       )
     }
@@ -160,30 +189,41 @@ export function TrackerScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* TopAppBar */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ChevronLeft color="#00e5ff" size={24} />
-        </TouchableOpacity>
-        <View style={styles.liveBadge}>
-          <View style={styles.liveDot} />
-          <Text style={styles.liveText}> CANLI</Text>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity 
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.8}
+          >
+            <ChevronLeft color="#8eff71" size={24} strokeWidth={3} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>SÜREÇ TAKİBİ</Text>
         </View>
       </View>
 
+      {/* Main Content */}
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>İşlem Detayları</Text>
-        <Text style={styles.subtitle}>
-          Durum: <Text style={styles.subtitleHighlight}>{status === 'cancelled' ? 'İptal Edildi' : 'Devam Ediyor'}</Text>
-        </Text>
+        
+        {/* Status indicator for active/cancelled */}
+        <View style={styles.statusBox}>
+           {status === 'cancelled' ? (
+             <Text style={styles.statusBoxTextCancelled}>İŞLEM İPTAL EDİLDİ</Text>
+           ) : (
+             <Text style={styles.statusBoxTextActive}>İŞLEM DEVAM EDİYOR</Text>
+           )}
+        </View>
 
-        <View style={styles.timelineContainer}>
-          {/* Vertical Line */}
-          <View style={styles.timelineLine} />
+        {/* Vertical Progress Tracker */}
+        <View style={styles.trackerContainer}>
+          {/* Vertical Timeline Line */}
+          <View style={styles.timelineLineWrapper}>
+             <View style={styles.timelineLine} />
+          </View>
 
           {steps.map((step, index) => {
             const stepIndex = statusOrder.indexOf(step.id);
-            // Default pending
             let state = 'pending';
             if (currentIndex === -1 || status === 'cancelled') state = 'pending';
             else if (currentIndex > stepIndex) state = 'completed';
@@ -191,36 +231,47 @@ export function TrackerScreen() {
 
             const isActive = state === 'active';
             const isCompleted = state === 'completed';
+            const isPending = state === 'pending';
+
+            const StepIcon = step.icon;
 
             return (
-              <View key={step.id} style={[styles.stepItem, state === 'pending' && { opacity: 0.5 }]}>
-                {/* Node */}
+              <View 
+                key={step.id} 
+                style={[
+                  styles.stepItem, 
+                  isPending && styles.stepItemPending
+                ]}
+              >
+                {/* Step Node */}
                 <View style={styles.nodeWrapper}>
                   {isActive ? (
-                    <View style={styles.nodeActive}>
-                      <View style={styles.nodeActiveInner} />
+                    <View style={styles.activeNodeContainer}>
+                      <Animated.View style={[styles.activeNodeGlow, { transform: [{ scale: pulseAnim }], opacity: pulseAnim.interpolate({inputRange: [1, 1.15], outputRange: [0.8, 0.4]}) }]} />
+                      <View style={styles.nodeActive}>
+                        <StepIcon size={18} color="#0d6100" />
+                      </View>
                     </View>
                   ) : isCompleted ? (
                     <View style={styles.nodeCompleted}>
-                      <Check size={16} color="#00e5ff" />
+                      <StepIcon size={18} color="#8eff71" />
                     </View>
                   ) : (
                     <View style={styles.nodePending}>
-                      <Text style={styles.nodePendingText}>{index + 1}</Text>
+                      <StepIcon size={18} color="#aaaab6" />
                     </View>
                   )}
                 </View>
 
-                {/* Content */}
-                <View style={styles.stepContent}>
-                  <View style={styles.stepHeaderRow}>
-                    <Text style={[styles.stepLabel, isActive && styles.stepLabelActive]}>{step.label}</Text>
-                    {isActive && (
-                      <View style={styles.badgeActive}>
-                        <Text style={styles.badgeActiveText}>ŞU AN BURADASINIZ</Text>
-                      </View>
-                    )}
-                  </View>
+                {/* Step Content */}
+                <View style={styles.stepContentBox}>
+                  <Text style={[
+                      styles.stepLabel, 
+                      isActive || isCompleted ? styles.stepLabelHighlight : styles.stepLabelPending
+                    ]}
+                  >
+                    {step.label}
+                  </Text>
                   
                   <Text style={styles.stepDesc}>
                     {isCompleted ? step.descCompleted : isActive ? step.descActive : step.descPending}
@@ -237,11 +288,22 @@ export function TrackerScreen() {
           })}
         </View>
 
+        {/* Action Button Section (Cancel) */}
         {status !== 'completed' && status !== 'cancelled' && (
-          <TouchableOpacity style={styles.btnCancel} onPress={handleCancel}>
-            <X color="#f91a9c" size={18} />
-            <Text style={styles.btnCancelText}>İŞLEMİ İPTAL ET</Text>
-          </TouchableOpacity>
+          <View style={styles.cancelSection}>
+            <TouchableOpacity 
+              style={styles.cancelBtn} 
+              onPress={handleCancel}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.cancelBtnText}>İŞLEMİ İPTAL ET</Text>
+            </TouchableOpacity>
+            
+            <View style={styles.cancelInfoBox}>
+              <Info color="#ff7351" size={14} />
+              <Text style={styles.cancelInfoText}>GERİ DÖNÜŞÜ OLMAYAN EYLEM</Text>
+            </View>
+          </View>
         )}
       </ScrollView>
     </View>
@@ -249,89 +311,245 @@ export function TrackerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#050a19' },
-  center: { justifyContent: 'center', alignItems: 'center' },
+  container: {
+    flex: 1,
+    backgroundColor: '#0c0e16',
+  },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    paddingBottom: 16,
-  },
-  backBtn: { width: 40 },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#0a1529',
-    borderColor: 'rgba(0, 229, 255, 0.3)',
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  liveDot: {
-    width: 8, height: 8, borderRadius: 4, backgroundColor: '#00e5ff',
-  },
-  liveText: { color: '#00e5ff', fontSize: 10, fontWeight: 'bold' },
-  content: { padding: 24, paddingBottom: 60 },
-  title: { color: '#fff', fontSize: 24, fontWeight: 'bold', marginBottom: 4 },
-  subtitle: { color: '#aaa', fontSize: 14, marginBottom: 32 },
-  subtitleHighlight: { color: '#00e5ff', fontWeight: 'bold' },
-  timelineContainer: { position: 'relative', paddingLeft: 8 },
-  timelineLine: {
     position: 'absolute',
-    left: 27,
-    top: 10,
-    bottom: 40,
-    width: 2,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    zIndex: 0,
+    top: 0,
+    width: '100%',
+    height: 80,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(12, 14, 22, 0.9)',
+    zIndex: 50,
   },
-  stepItem: { flexDirection: 'row', marginBottom: 40, zIndex: 1 },
-  nodeWrapper: { width: 40, alignItems: 'center', marginRight: 16 },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  backBtn: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#8eff71',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
+  content: {
+    paddingTop: 100,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  statusBox: {
+    marginBottom: 32,
+  },
+  statusBoxTextActive: {
+    color: '#8eff71',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    opacity: 0.8,
+  },
+  statusBoxTextCancelled: {
+    color: '#ff7351',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  trackerContainer: {
+    position: 'relative',
+    paddingLeft: 8,
+  },
+  timelineLineWrapper: {
+    position: 'absolute',
+    left: 23, // 8px padding + 15px to center of 32px node wrapper
+    top: 16,
+    bottom: 60,
+    width: 3,
+    backgroundColor: 'rgba(237, 237, 249, 0.1)', // surface-variant/30 equivalent sort of
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  timelineLine: {
+    width: '100%',
+    height: '100%',
+    // we would animate gradient here, but a static color representing the path is fine
+    backgroundColor: 'rgba(142, 255, 113, 0.5)',
+  },
+  stepItem: {
+    flexDirection: 'row',
+    marginBottom: 48,
+    alignItems: 'flex-start',
+    gap: 24,
+  },
+  stepItemPending: {
+    opacity: 0.4,
+  },
+  nodeWrapper: {
+    width: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeNodeContainer: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  activeNodeGlow: {
+    position: 'absolute',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(142, 255, 113, 0.4)',
+  },
   nodeActive: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(0, 229, 255, 0.2)',
-    justifyContent: 'center', alignItems: 'center',
-    borderWidth: 2, borderColor: 'rgba(0, 229, 255, 0.5)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#8eff71',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 5,
   },
-  nodeActiveInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#00e5ff' },
   nodeCompleted: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#0a1529',
-    justifyContent: 'center', alignItems: 'center',
-    borderWidth: 2, borderColor: '#00e5ff',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#8eff71',
+    zIndex: 10,
   },
   nodePending: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#0a1529',
-    justifyContent: 'center', alignItems: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#222531', // surface-variant
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
-  nodePendingText: { color: '#666', fontWeight: 'bold' },
-  stepContent: { flex: 1, paddingTop: 6 },
-  stepHeaderRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', marginBottom: 4 },
-  stepLabel: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginRight: 8 },
-  stepLabelActive: { color: '#00e5ff' },
-  badgeActive: {
-    backgroundColor: '#00e5ff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4,
+  stepContentBox: {
+    flex: 1,
+    paddingTop: 4,
   },
-  badgeActiveText: { color: '#050a19', fontSize: 8, fontWeight: 'bold' },
-  stepDesc: { color: '#aaa', fontSize: 13 },
-  actionContainer: { marginTop: 16 },
+  stepLabel: {
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  stepLabelHighlight: {
+    color: '#8eff71', // primary for active/completed
+  },
+  stepLabelPending: {
+    color: '#ededf9', // on-surface
+  },
+  stepDesc: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    color: '#aaaab6', // on-surface-variant
+    lineHeight: 18,
+  },
+  actionContainer: {
+    marginTop: 16,
+    alignItems: 'flex-start',
+  },
   actionBtn: {
-    backgroundColor: 'rgba(0, 229, 255, 0.1)',
-    borderWidth: 1, borderColor: 'rgba(0, 229, 255, 0.3)',
-    paddingVertical: 12, borderRadius: 12, alignItems: 'center',
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(142, 255, 113, 0.4)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
-  actionBtnText: { color: '#00e5ff', fontWeight: 'bold' },
-  infoText: { color: '#aaa', fontSize: 12, fontStyle: 'italic' },
-  btnCancel: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    marginTop: 32, paddingVertical: 16, borderRadius: 12,
-    backgroundColor: 'rgba(249, 26, 156, 0.1)',
-    borderWidth: 1, borderColor: 'rgba(249, 26, 156, 0.3)',
+  actionBtnText: {
+    color: '#8eff71',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
-  btnCancelText: { color: '#f91a9c', fontWeight: 'bold', marginLeft: 8 },
+  actionBtnPrimary: {
+    backgroundColor: '#8eff71',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  actionBtnTextPrimary: {
+    color: '#0d6100',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  infoText: {
+    color: '#aaaab6',
+    fontFamily: 'Manrope-Medium',
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+  cancelSection: {
+    marginTop: 64,
+    alignItems: 'center',
+    gap: 16,
+  },
+  cancelBtn: {
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 115, 81, 0.05)', // error/5
+    borderWidth: 1,
+    borderColor: 'rgba(255, 115, 81, 0.2)', // error/20
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    color: '#ff7351', // error
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+  },
+  cancelInfoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    opacity: 0.5,
+  },
+  cancelInfoText: {
+    color: '#ededf9',
+    fontFamily: 'Manrope-Medium',
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
 });

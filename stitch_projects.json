@@ -1,0 +1,2471 @@
+{
+  "projects": [
+    {
+      "name": "projects/613193713376153888",
+      "title": "Workigom Mobile Dashboard",
+      "visibility": "PRIVATE",
+      "createTime": "2026-03-20T17:12:46.961187Z",
+      "updateTime": "2026-03-22T10:40:14.543784Z",
+      "projectType": "TEXT_TO_UI_PRO",
+      "thumbnailScreenshot": {
+        "name": "projects/613193713376153888/files/700a6181b3be4e13b7299c0145dd70bf",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0uiN7kx_2jo_9UyTPkeBHYaAJUSQeJ4rSkaCPl5KMzHVtQvDfCuHtmEZK2mVU2KvULpxMMR3qrhZ-BhorM1ME_bt-68EBYv2mmt_id22epSSTKAk42QwuSp4t4efSKD0BEcp2bouKwcmdzlcbVJ0cq7-Xcqq8ui5zBbqf9ntRmpj4Egzrz_MtemKupnh2JN9L1WeG1f0TPoa7alP5qET-HA6eJlRbEaXAQ3K9pEH1l7hbALOWgt18d_ZwA"
+      },
+      "origin": "STITCH",
+      "deviceType": "MOBILE",
+      "designTheme": {
+        "colorMode": "DARK",
+        "font": "SPACE_GROTESK",
+        "roundness": "ROUND_EIGHT",
+        "customColor": "#39FF14",
+        "headlineFont": "SPACE_GROTESK",
+        "bodyFont": "MANROPE",
+        "labelFont": "MANROPE",
+        "namedColors": {
+          "surface_tint": "#8eff71",
+          "surface_container_low": "#11131c",
+          "surface_variant": "#222531",
+          "surface_container_lowest": "#000000",
+          "tertiary_fixed_dim": "#00deea",
+          "on_surface": "#ededf9",
+          "on_primary": "#0d6100",
+          "on_tertiary_fixed_variant": "#005e63",
+          "secondary_fixed_dim": "#82ea96",
+          "background": "#0c0e16",
+          "secondary": "#90f9a3",
+          "on_tertiary_fixed": "#003f43",
+          "primary_dim": "#2be800",
+          "primary": "#8eff71",
+          "surface_bright": "#292c38",
+          "on_error_container": "#ffd2c8",
+          "surface_container_highest": "#222531",
+          "error_container": "#b92902",
+          "outline_variant": "#464751",
+          "secondary_dim": "#82ea96",
+          "error_dim": "#d53d18",
+          "on_primary_container": "#0b5800",
+          "surface": "#0c0e16",
+          "on_error": "#450900",
+          "surface_dim": "#0c0e16",
+          "on_primary_fixed_variant": "#0d6200",
+          "on_secondary": "#005f28",
+          "tertiary_fixed": "#17eefa",
+          "inverse_primary": "#106f00",
+          "on_secondary_fixed_variant": "#006a2e",
+          "tertiary_container": "#17eefa",
+          "error": "#ff7351",
+          "on_secondary_fixed": "#004a1e",
+          "tertiary_dim": "#00deea",
+          "on_primary_fixed": "#064200",
+          "on_secondary_container": "#e4ffe2",
+          "surface_container_high": "#1d1f2a",
+          "outline": "#74757f",
+          "tertiary": "#88f6ff",
+          "primary_fixed_dim": "#2be800",
+          "surface_container": "#171923",
+          "inverse_surface": "#faf8ff",
+          "on_surface_variant": "#aaaab6",
+          "inverse_on_surface": "#53545e",
+          "primary_container": "#2ff801",
+          "on_background": "#ededf9",
+          "secondary_fixed": "#90f9a3",
+          "primary_fixed": "#2ff801",
+          "on_tertiary": "#005d62",
+          "secondary_container": "#006d2f",
+          "on_tertiary_container": "#005458"
+        },
+        "designMd": "# Design System Document\n\n## 1. Overview & Creative North Star\n**Creative North Star: \"The Neon Luminary\"**\n\nThis design system is an exercise in high-contrast precision and atmospheric depth. It moves away from the \"flat\" web by utilizing a \"Neon Luminary\" philosophy—where the interface doesn't just sit on a screen, but glows within a digital void. By pairing a deep, obsidian-like foundation with hyper-vivid radioactive accents, we create a high-tech editorial experience that feels both authoritative and futuristic.\n\nThe system breaks the traditional \"box-and-line\" template by using **intentional asymmetry** and **tonal layering**. Rather than relying on borders to separate information, we use light as a structural element. The interface is a series of \"illuminated surfaces\" floating in a dark environment, creating a sense of sophisticated, high-performance machinery.\n\n---\n\n2. Colors\n\nThe palette is anchored by a monochromatic dark foundation, punctuated by a singular, high-energy primary green.\n\n### Palette Highlights\n*   **Primary (`#8eff71`):** The \"Power On\" state. This is used sparingly for critical actions and brand markers.\n*   **Surface Foundation (`#0c0e16`):** The deep void. All elements emerge from this base.\n*   **Semantic Accents:** Secondary (`#90f9a3`) and Tertiary (`#88f6ff`) are used for data visualization and status indicators to maintain a \"cockpit\" feel without overwhelming the primary brand color.\n\n### The \"No-Line\" Rule\nProhibit the use of 1px solid borders for sectioning. Boundaries must be defined solely through background color shifts. For example, a card (`surface-container-low`) should sit on a (`surface`) background without a stroke. Separation is achieved through contrast, not lines.\n\n### Surface Hierarchy & Nesting\nTreat the UI as a series of physical layers. Each layer indicates importance:\n*   **Background:** `surface`\n*   **Navigation/Sidebars:** `surface-container-low`\n*   **Primary Cards:** `surface-container`\n*   **Nested Elements/Modals:** `surface-container-highest`\n\n### The \"Glass & Gradient\" Rule\nTo achieve a premium, custom feel, use **Glassmorphism** for floating elements (e.g., dropdowns, tooltips). Use semi-transparent surface colors with a `backdrop-blur` of 12px–20px. \n*   **Signature Texture:** Main CTAs should utilize a subtle linear gradient from `primary` to `primary-container` to provide a dimensional, \"liquid-light\" quality.\n\n---\n\n## 3. Typography\n\nThe typography strategy employs a \"High-Tech Editorial\" pairing.\n\n*   **Display & Headlines (Space Grotesk):** This font brings a technical, geometric edge. It should be used for large data points, titles, and hero statements. Its wide apertures and rhythmic spacing evoke a sense of digital precision.\n*   **Body & Labels (Manrope):** A modern sans-serif with excellent legibility. It provides the human balance to the mechanical nature of the headlines.\n\n**Hierarchy as Identity:**\nUse extreme scale contrast. A `display-lg` headline (3.5rem) should feel monumental compared to `label-md` data points (0.75rem). This creates an \"information-rich dashboard\" aesthetic common in high-end specialized software.\n\n---\n\n## 4. Elevation & Depth\n\nDepth is achieved through **Tonal Layering** rather than traditional structural lines.\n\n*   **The Layering Principle:** Stacking tiers (e.g., `surface-container-lowest` on a `surface-container` section) creates a \"recessed\" or \"elevated\" effect.\n*   **Ambient Glows (Shadows):** Standard drop shadows are forbidden. Instead, use \"Ambient Glows.\" Shadows must be extra-diffused (Blur: 20px-40px) and low-opacity (4%-8%). The color should be a tinted version of `primary` or `on-surface` to mimic light leaking from the UI elements.\n*   **The \"Ghost Border\" Fallback:** If containment is absolutely necessary, use a \"Ghost Border\": the `outline-variant` token at 15% opacity. Never use 100% opaque borders.\n*   **Atmospheric Blurs:** Use `surface-variant` with a backdrop blur for navigation overlays to keep the user grounded in the \"void\" while focusing on a specific task.\n\n---\n\n## 5. Components\n\n### Buttons\n*   **Primary:** High-vividness. Gradient of `primary` to `primary-container`. High roundedness (`full`). On hover, apply a `primary` outer glow (8px blur, 30% opacity).\n*   **Secondary:** Ghost style. Transparent background with a `Ghost Border`. Text color: `primary`.\n*   **Tertiary:** Text-only with an underline visible only on hover.\n\n### Chips\n*   **Status Chips:** Use a subtle background fill (10% opacity of the status color) and a high-contrast label. No borders. Example: \"Completed\" uses a 10% `primary` background with a 100% `primary` text label.\n\n### Input Fields\n*   **Styling:** Fields should be `surface-container-highest` with a `none` border. Focus states are indicated by a 1px glow using the `primary` token.\n*   **Feedback:** Error states use `error_dim` text and a subtle `error` tinted glow.\n\n### Cards & Lists\n*   **Rule:** Forbid divider lines. \n*   **Execution:** Use vertical white space (Spacing `6` or `8`) to separate list items. For complex lists, use alternating background tints (e.g., `surface-container-low` and `surface-container-lowest`) to create \"zebra\" layering without harsh lines.\n\n### Progress Bars (Signature Component)\n*   **Design:** A \"Liquid Neon\" bar. The track is `surface-variant`, and the indicator is a glowing `primary` with a slight outer bloom to signify active energy.\n\n---\n\n## 6. Do's and Don'ts\n\n### Do:\n*   **Do** use extreme roundedness (`xl` or `full`) for interactive elements like buttons and chips.\n*   **Do** embrace negative space. Let the `surface` color breathe to make the `primary` accents feel more impactful.\n*   **Do** use `spaceGrotesk` for all numeric data. It reinforces the \"tech\" aesthetic.\n\n### Don't:\n*   **Don’t** use pure white (`#FFFFFF`). Always use `on-surface` (`#ededf9`) to prevent harsh eye strain in dark environments.\n*   **Don’t** use standard 1px borders to separate content. It breaks the \"glow\" immersion.\n*   **Don’t** use generic system icons. Use thin-stroke, geometric icons that match the weight of `manrope` typography.\n*   **Don’t** overlap too many layers. Keep nesting to a maximum of 3 levels (Background \u003e Card \u003e Inner Element).",
+        "colorVariant": "VIBRANT",
+        "overridePrimaryColor": "#39FF14",
+        "overrideNeutralColor": "#0A0C14",
+        "spacingScale": 2
+      },
+      "screenInstances": [
+        {
+          "id": "0406adba58b848b89443aa7202b6078d",
+          "sourceScreen": "projects/613193713376153888/screens/0406adba58b848b89443aa7202b6078d",
+          "x": 7478,
+          "y": 4883,
+          "width": 390,
+          "height": 884,
+          "label": "TrackerScreen"
+        },
+        {
+          "id": "0fd2a10ea6d147669ec57af30c47b425",
+          "sourceScreen": "projects/613193713376153888/screens/0fd2a10ea6d147669ec57af30c47b425",
+          "x": 7552,
+          "y": 4949,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "2c8ee9fca0c9421a96f9f5dc6facbde0",
+          "sourceScreen": "projects/613193713376153888/screens/2c8ee9fca0c9421a96f9f5dc6facbde0",
+          "x": 2234,
+          "y": 1683,
+          "width": 390,
+          "height": 1109,
+          "hidden": true
+        },
+        {
+          "id": "477ee75f55f14b6693745b8f078ef869",
+          "sourceScreen": "projects/613193713376153888/screens/477ee75f55f14b6693745b8f078ef869",
+          "x": 6644,
+          "y": 4896,
+          "width": 390,
+          "height": 885,
+          "label": "TaleplerCreateScreen"
+        },
+        {
+          "id": "52e4bc51e71c44f287d779885d585ca4",
+          "sourceScreen": "projects/613193713376153888/screens/52e4bc51e71c44f287d779885d585ca4",
+          "x": 6161,
+          "y": 5007,
+          "width": 390,
+          "height": 884,
+          "label": "TaleplerScreen"
+        },
+        {
+          "id": "694405d7269e4bf39a30413caa93e438",
+          "sourceScreen": "projects/613193713376153888/screens/694405d7269e4bf39a30413caa93e438",
+          "x": 1621,
+          "y": -19,
+          "width": 390,
+          "height": 1358,
+          "hidden": true
+        },
+        {
+          "id": "7689daea-0b0c-4a87-b84e-ccaaa44dca63",
+          "sourceScreen": "projects/613193713376153888/screens/5912421696494631919",
+          "x": 1494,
+          "y": 1683,
+          "width": 676,
+          "height": 301,
+          "hidden": true
+        },
+        {
+          "id": "891ca8ac62e54bd1ace1fda6bb46321f",
+          "sourceScreen": "projects/613193713376153888/screens/891ca8ac62e54bd1ace1fda6bb46321f",
+          "x": 747,
+          "y": 7509,
+          "width": 390,
+          "height": 915,
+          "hidden": true
+        },
+        {
+          "id": "9ed26e44-d5a8-4512-8eba-ef849cdf0b22",
+          "sourceScreen": "projects/613193713376153888/screens/9766537400466599446",
+          "x": 396,
+          "y": 69,
+          "width": 683,
+          "height": 556,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "ae75b937-38f8-4f18-aa15-5d90fd9684a5",
+          "sourceScreen": "projects/613193713376153888/screens/5912421696494630781",
+          "y": 1683,
+          "width": 683,
+          "height": 391,
+          "hidden": true
+        },
+        {
+          "id": "assets-9591b797b3b24140ad15b2b83e415fe5-1774028047193",
+          "x": 64,
+          "y": 3048,
+          "width": 960,
+          "height": 540,
+          "sourceAsset": "assets/9591b797b3b24140ad15b2b83e415fe5",
+          "type": "DESIGN_SYSTEM_INSTANCE"
+        },
+        {
+          "id": "cd51235c-a78f-4052-b136-6f042b3cd5fc",
+          "sourceScreen": "projects/613193713376153888/screens/5857553154856041988",
+          "y": 3844,
+          "width": 956,
+          "height": 413,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "cf6992eaa6534737ac654d0110588553",
+          "sourceScreen": "projects/613193713376153888/screens/cf6992eaa6534737ac654d0110588553",
+          "x": 5715,
+          "y": 4902,
+          "width": 390,
+          "height": 1129,
+          "label": "TalepDetailScreen"
+        },
+        {
+          "id": "d14cf65f7fa54fa3b884376fdbf9cc78",
+          "sourceScreen": "projects/613193713376153888/screens/d14cf65f7fa54fa3b884376fdbf9cc78",
+          "x": 1024,
+          "y": 6361,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "d30a2125-9920-46e1-a8dd-909bc3999e5f",
+          "sourceScreen": "projects/613193713376153888/screens/16701858522268844545",
+          "y": 7509,
+          "width": 683,
+          "height": 303,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "d8479696-1495-4a8d-af50-661eba093849",
+          "sourceScreen": "projects/613193713376153888/screens/5912421696494631350",
+          "x": 747,
+          "y": 1683,
+          "width": 683,
+          "height": 407,
+          "hidden": true
+        },
+        {
+          "id": "f24082c4-16ef-425a-b251-e0b392a3164e",
+          "sourceScreen": "projects/613193713376153888/screens/15140543145968937812",
+          "y": 6369,
+          "width": 679,
+          "height": 292,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "f998c99d-a9e7-4a75-a5ad-a9f8d8816325",
+          "sourceScreen": "projects/613193713376153888/screens/5857553154856039265",
+          "x": 1020,
+          "y": 3844,
+          "width": 956,
+          "height": 413,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "ff08bd51e71d4efc9b013991b12ac9c2",
+          "sourceScreen": "projects/613193713376153888/screens/ff08bd51e71d4efc9b013991b12ac9c2",
+          "x": 1024,
+          "y": 6617,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "ff7de37657e8423c83ce286d9ce48ef1",
+          "sourceScreen": "projects/613193713376153888/screens/ff7de37657e8423c83ce286d9ce48ef1",
+          "x": 7075,
+          "y": 4747,
+          "width": 390,
+          "height": 1358,
+          "label": "HomeScreen"
+        }
+      ],
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    },
+    {
+      "name": "projects/4696659591748287695",
+      "title": "Workigom Mobile Muhabbet",
+      "visibility": "PRIVATE",
+      "createTime": "2026-03-21T00:09:21.899264Z",
+      "updateTime": "2026-03-21T00:10:55.986508Z",
+      "projectType": "PROJECT_DESIGN",
+      "thumbnailScreenshot": {
+        "name": "projects/4696659591748287695/files/6888ad99eed44a578a4a6b829926ae7d",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0uiHTqMMU22bFy1rI5VM96onuybyVhw8FugcmpGj_Fw_xpHJ1dUNgHLjeqhYubcbEmeOdML4M0ElfkZrXhKxceMEb_Er2r6v5MaLgBE5DNOwPcFhbRTA1tcQhmvrSlmtgxAHqRH0DmMjievxYvPEUBMW3znxm5VUuSwWOKwCF1v8MSbAVHLDbVPBiwPOeR8I_Xow7qsHOZmdZJV6NBKAZWIdT5wk4Dx3RZOhDOTulc4bq_A30oMpMy7qJoc"
+      },
+      "origin": "STITCH",
+      "deviceType": "MOBILE",
+      "designTheme": {
+        "colorMode": "DARK",
+        "font": "SPACE_GROTESK",
+        "roundness": "ROUND_EIGHT",
+        "customColor": "#00FF00",
+        "headlineFont": "SPACE_GROTESK",
+        "bodyFont": "MANROPE",
+        "labelFont": "MANROPE",
+        "namedColors": {
+          "tertiary_dim": "#00dbe8",
+          "on_secondary_container": "#e4ffe3",
+          "on_primary_fixed": "#014500",
+          "primary_fixed_dim": "#01ed00",
+          "surface_container_high": "#1f1f1f",
+          "outline": "#757575",
+          "tertiary": "#7af4ff",
+          "on_secondary": "#005f2a",
+          "inverse_primary": "#026f00",
+          "tertiary_fixed": "#08ebf8",
+          "on_secondary_fixed_variant": "#006a30",
+          "on_secondary_fixed": "#004a1f",
+          "tertiary_container": "#08ebf8",
+          "error": "#ff7351",
+          "secondary_fixed": "#8ff9a4",
+          "primary_fixed": "#00fd00",
+          "on_tertiary": "#005b61",
+          "on_background": "#ffffff",
+          "secondary_container": "#006d32",
+          "on_tertiary_container": "#005257",
+          "on_surface_variant": "#ababab",
+          "inverse_surface": "#f9f9f9",
+          "surface_container": "#191919",
+          "inverse_on_surface": "#555555",
+          "primary_container": "#00fd00",
+          "on_tertiary_fixed": "#003d41",
+          "primary_dim": "#01ed00",
+          "primary": "#9fff88",
+          "on_error_container": "#ffd2c8",
+          "surface_bright": "#2c2c2c",
+          "surface_container_low": "#131313",
+          "surface_variant": "#262626",
+          "surface_container_lowest": "#000000",
+          "surface_tint": "#9fff88",
+          "on_tertiary_fixed_variant": "#005c62",
+          "secondary_fixed_dim": "#81ea98",
+          "tertiary_fixed_dim": "#00dbe8",
+          "on_primary": "#026400",
+          "on_surface": "#ffffff",
+          "background": "#0e0e0e",
+          "secondary": "#8ff9a4",
+          "error_dim": "#d53d18",
+          "on_primary_container": "#015a00",
+          "surface": "#0e0e0e",
+          "on_error": "#450900",
+          "surface_dim": "#0e0e0e",
+          "on_primary_fixed_variant": "#026500",
+          "surface_container_highest": "#262626",
+          "error_container": "#b92902",
+          "outline_variant": "#484848",
+          "secondary_dim": "#81ea98"
+        },
+        "designMd": "# Design System Strategy: Kinetic Noir\n\n## 1. Overview & Creative North Star\n**The Creative North Star: \"Hyper-Link Vitality\"**\nThis design system moves beyond the static nature of traditional chat apps to create a high-energy, editorial environment. We are rejecting the \"boxy\" utility of standard messengers in favor of a \"Kinetic Noir\" aesthetic—a high-contrast, deep-space environment where communication feels like a pulse of light. \n\nBy leveraging **intentional asymmetry** and **tonal depth**, we create a signature experience. We break the grid by allowing message bubbles to vary slightly in width based on content cadence and using high-contrast typography scales that make every conversation feel like a headline. The interface doesn't just sit there; it vibrates with the energy of global connection.\n\n---\n\n## 2. Colors: The Neon Pulse\nThe palette is rooted in absolute depth to allow the neon accents to \"pierce\" the UI.\n\n*   **Primary Core:** `primary` (#9fff88) and `primary_fixed` (#00fd00). This is the lifeblood of the system. Use it sparingly for high-signal moments: active status, primary CTAs, and unread counters.\n*   **Surface Hierarchy:** We utilize `surface_container_lowest` (#000000) for the main chat canvas and `surface_container` (#191919) for grouped elements like the message input dock.\n\n**The \"No-Line\" Rule**\nExplicitly prohibited: 1px solid borders for sectioning. Structural definition must be achieved through background shifts. For example, a contact list item sits on `surface` (#0e0e0e), but the \"pinned\" section uses `surface_container_low` (#131313).\n\n**The \"Glass & Gradient\" Rule**\nTo prevent a flat \"90s dark mode\" look, use a 12% opacity `surface_bright` layer with a 20px backdrop-blur for floating headers. Main Action Buttons should utilize a subtle linear gradient from `primary` (#9fff88) to `primary_container` (#00fd00) at a 135-degree angle to provide a \"liquid neon\" feel.\n\n---\n\n## 3. Typography: Editorial Speed\nWe pair the technical precision of **Space Grotesk** with the human readability of **Manrope**.\n\n*   **Display & Headlines:** `display-lg` to `headline-sm` use **Space Grotesk**. Its wide apertures and quirky geometry provide the \"high-energy\" tech feel required for a global app.\n*   **The Chat Flow:** All message content uses `body-lg` (**Manrope**). It is optimized for rapid scanning.\n*   **Hierarchy as Identity:** Use `title-lg` for contact names to create an authoritative \"Editorial\" look. The contrast between a massive `display-sm` welcome message and a tight `label-sm` timestamp creates a sophisticated, non-template rhythm.\n\n---\n\n## 4. Elevation & Depth: Tonal Layering\nWe do not use shadows to simulate height; we use light.\n\n*   **The Layering Principle:** Stacking determines importance.\n    *   *Level 0:* `surface_container_lowest` (Background/Canvas)\n    *   *Level 1:* `surface_container` (Persistent Navigation/Input)\n    *   *Level 2:* `surface_container_high` (Message Bubbles/Cards)\n*   **Ambient Glow:** For floating \"New Message\" toasts, avoid black shadows. Instead, use a 12px blur shadow using `primary_dim` at 8% opacity to simulate the neon green light reflecting off the dark surface.\n*   **The Ghost Border Fallback:** If a bubble needs more definition against a similar background, use `outline_variant` (#484848) at **15% opacity**. Never use 100% opaque lines.\n\n---\n\n## 5. Components: The Kinetic Kit\n\n### Message Bubbles\n*   **Incoming:** `surface_container_highest` (#262626) with `on_surface` text. Corner radius: `md` (0.75rem), but `none` on the bottom-left to \"anchor\" the tail.\n*   **Outgoing:** `primary_fixed` (#00fd00) with `on_primary_fixed` (#014500) text. This provides the highest contrast in the UI. \n*   **Spacing:** Use `spacing-2.5` (0.5rem) between bubbles in a cluster, and `spacing-5` (1.1rem) between different speakers.\n\n### The Power-Input Dock\n*   **Container:** `surface_container` (#191919).\n*   **Styling:** A \"pill\" shape (`rounded-full`) text field using `surface_container_highest`. \n*   **Interaction:** Upon typing, the \"Send\" icon transitions from `on_surface_variant` to a glowing `primary` state.\n\n### Avatars & Indicators\n*   **Avatars:** Circular (`rounded-full`), strictly 40px or 32px. \n*   **Online State:** A 10px circle using `primary_fixed` with a 2px \"gap\" (using the background color) to separate it from the avatar image.\n\n### Interactive Elements (Buttons/Chips)\n*   **Primary Button:** `primary_fixed` background. Bold `label-md` text. No border.\n*   **Action Chips:** `surface_container_high` with a `Ghost Border` (10% opacity `outline`). Use for quick-reply suggestions.\n*   **Lists:** Forbid dividers. Use `spacing-6` (1.3rem) of vertical whitespace to separate conversation threads.\n\n---\n\n## 6. Do's and Don'ts\n\n### Do\n*   **DO** use `surface_bright` for micro-interactions (like a press state on a message).\n*   **DO** lean into the \"Neon Green.\" It should feel like the only light source in the room.\n*   **DO** use `error` (#ff7351) sparingly for destructive actions; its warmth provides a necessary counter-point to the cool green.\n\n### Don't\n*   **DON'T** use pure white (#ffffff) for long-form text. Use `on_surface_variant` (#ababab) for timestamps and secondary info to reduce eye strain.\n*   **DON'T** use standard Material/iOS shadows. If it doesn't \"glow,\" it doesn't belong.\n*   **DON'T** use 1px dividers. If you can't separate content with spacing or color shifts, the hierarchy is the problem, not the styling.",
+        "colorVariant": "VIBRANT",
+        "overridePrimaryColor": "#00FF00",
+        "overrideNeutralColor": "#000000",
+        "spacingScale": 1
+      },
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    },
+    {
+      "name": "projects/10973739328895318973",
+      "title": "Yeni proje",
+      "visibility": "PRIVATE",
+      "createTime": "2026-03-20T15:49:25.649270Z",
+      "updateTime": "2026-03-20T17:11:22.095823Z",
+      "projectType": "TEXT_TO_UI_PRO",
+      "thumbnailScreenshot": {
+        "name": "projects/10973739328895318973/files/3e32dafd9a1441098d1ad9c135f414ac",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0uhsh8LEYB6_LcqJwK1bCx7P3g5cSJBvmtNsgz67Iqp66bPWy4CMC_Rwnxm7eIlYuJtF8IBH6NxR11EZOOAvfFIGevR3yPHc2e561wsTbm3uPEPTq08BIu3aYSbScXtU9HA_iknMyrRXZgpjnB1xtGfHVD7Bh99bMPh6-FFZB5j8r1n7f_gfWaLPivCyeUNWEg-2UXm_ETBHcNowFr8oOalM-WIQzLMSFbnWlY-P_-NwSpj9m8au7RVWOjmr"
+      },
+      "origin": "STITCH",
+      "deviceType": "MOBILE",
+      "designTheme": {
+        "colorMode": "DARK",
+        "font": "MANROPE",
+        "roundness": "ROUND_EIGHT",
+        "customColor": "#39FF14",
+        "headlineFont": "MANROPE",
+        "bodyFont": "INTER",
+        "labelFont": "INTER",
+        "namedColors": {
+          "primary_container": "#2ff801",
+          "inverse_on_surface": "#55545a",
+          "on_surface_variant": "#acaab1",
+          "inverse_surface": "#fbf8ff",
+          "surface_container": "#19191f",
+          "on_tertiary_container": "#005458",
+          "secondary_container": "#006d2f",
+          "secondary_fixed": "#90f9a3",
+          "primary_fixed": "#2ff801",
+          "on_tertiary": "#005d62",
+          "on_background": "#f8f5fd",
+          "on_secondary_fixed": "#004a1e",
+          "error": "#ff7351",
+          "tertiary_container": "#17eefa",
+          "on_secondary_fixed_variant": "#006a2e",
+          "inverse_primary": "#106f00",
+          "tertiary_fixed": "#17eefa",
+          "on_secondary": "#005f28",
+          "primary_fixed_dim": "#2be800",
+          "tertiary": "#88f6ff",
+          "surface_container_high": "#1f1f26",
+          "outline": "#76747b",
+          "on_secondary_container": "#e4ffe2",
+          "on_primary_fixed": "#064200",
+          "tertiary_dim": "#00deea",
+          "outline_variant": "#48474d",
+          "secondary_dim": "#82ea96",
+          "surface_container_highest": "#25252c",
+          "error_container": "#b92902",
+          "on_primary_fixed_variant": "#0d6200",
+          "surface_dim": "#0e0e13",
+          "on_error": "#450900",
+          "surface": "#0e0e13",
+          "on_primary_container": "#0b5800",
+          "error_dim": "#d53d18",
+          "secondary": "#90f9a3",
+          "background": "#0e0e13",
+          "secondary_fixed_dim": "#82ea96",
+          "on_tertiary_fixed_variant": "#005e63",
+          "on_primary": "#0d6100",
+          "on_surface": "#f8f5fd",
+          "tertiary_fixed_dim": "#00deea",
+          "surface_container_lowest": "#000000",
+          "surface_container_low": "#131318",
+          "surface_variant": "#25252c",
+          "surface_tint": "#8eff71",
+          "on_error_container": "#ffd2c8",
+          "surface_bright": "#2c2b33",
+          "primary_dim": "#2be800",
+          "primary": "#8eff71",
+          "on_tertiary_fixed": "#003f43"
+        },
+        "designMd": "# Design System Document\n\n## 1. Overview & Creative North Star\n**Creative North Star: \"The Neon Core\"**\n\nThis design system is a sophisticated evolution of the Cyberpunk aesthetic, moving away from cluttered \"glitch\" tropes toward a refined, high-end digital editorial experience. It is designed to feel like a high-velocity, premium financial or social interface built for the near future.\n\nThe system rejects the \"standard app\" look by utilizing intentional asymmetry, deep tonal layering, and high-contrast neon accents. By adapting the provided visual identity to a mobile-first context, we emphasize a \"stacked glass\" metaphor where information isn't just displayed—it is illuminated. We break the rigid grid through varying card heights, overlapping translucent elements, and a typography scale that favors dramatic headlines against utilitarian body text.\n\n---\n\n## 2. Colors\nOur palette is anchored in deep obsidian and energized by high-chroma neon green.\n\n### Palette Highlights\n*   **Primary (#8eff71):** The \"Pulse.\" Used exclusively for high-intent actions, critical status indicators, and active states.\n*   **Surface Hierarchy:**\n    *   `background`: #0e0e13 (The Void)\n    *   `surface-container-low`: #131318 (Base Layer)\n    *   `surface-container-high`: #1f1f26 (Elevated Cards)\n    *   `surface-container-highest`: #25252c (Overlays & Modals)\n\n### The \"No-Line\" Rule\nTo maintain a premium feel, **1px solid borders are strictly prohibited for sectioning.** Boundaries must be defined through background color shifts or tonal transitions. For example, a `surface-container-high` card should sit on a `surface-container-low` background without a stroke.\n\n### Surface Hierarchy & Nesting\nTreat the UI as a physical stack. When nesting elements (e.g., an input field inside a card), the inner element must use a tonal tier that creates a \"sunken\" or \"raised\" effect relative to its parent. Use `surface-container-lowest` for input wells to create depth within a `surface-container-high` card.\n\n### The \"Glass & Gradient\" Rule\nFloating elements (like bottom navigation bars or FABs) must utilize **Glassmorphism**. Apply a semi-transparent surface color with a `backdrop-blur` (16px–24px). Main CTAs should use a subtle linear gradient from `primary` (#8eff71) to `primary-container` (#2ff801) at a 135° angle to add \"soul\" and dimension.\n\n---\n\n## 3. Typography\nThe typography system uses a high-contrast pairing: **Manrope** for editorial impact and **Inter** for functional clarity.\n\n*   **Display & Headlines (Manrope):** Large, bold, and authoritative. These should feel like magazine headers. Use `headline-lg` (2rem) for screen titles to establish a clear vertical rhythm.\n*   **Body & Labels (Inter):** Clean and modern. Inter is used for all transactional data and descriptions to ensure maximum readability against dark backgrounds.\n*   **Visual Hierarchy:** Use `label-md` in `on-surface-variant` (#acaab1) for metadata to create a \"dimmed\" secondary layer of information, allowing primary values (titles) to shine.\n\n---\n\n## 4. Elevation & Depth\nDepth in this system is achieved through **Tonal Layering** and **Luminescence** rather than traditional drop shadows.\n\n*   **The Layering Principle:** Stacking tiers (e.g., `surface-container-high` on `surface`) creates a soft, natural lift.\n*   **Neon Glow (Ambient Shadows):** When an element must \"float\" or signify high importance (like an active card), use an extra-diffused shadow. The shadow should be tinted with `primary` (#8eff71) at a 4-8% opacity with a large blur (20px+) to simulate a neon light spill.\n*   **The \"Ghost Border\" Fallback:** If containment is absolutely required for accessibility, use the `outline-variant` token at 15% opacity. Never use 100% opaque borders.\n*   **Glassmorphism:** Use semi-transparent surface colors to allow background content to bleed through, softening the layout and making it feel integrated with the \"Neon Core.\"\n\n---\n\n## 5. Components\n\n### Cards\n*   **Style:** Use `xl` (1.5rem) or `lg` (1rem) corner radius. No borders.\n*   **Background:** `surface-container-high`.\n*   **Depth:** Use a subtle neon \"outer glow\" for active or featured states (e.g., a \"Featured Referral\" card).\n\n### Buttons\n*   **Primary:** Gradient fill (`primary` to `primary-container`), black text (`on-primary`). `full` roundedness. Subtle neon shadow.\n*   **Secondary:** `surface-variant` background with `primary` text. No border.\n*   **Tertiary:** Transparent background, `primary` text, no border.\n\n### Input Fields\n*   **Background:** `surface-container-lowest` (pure black) to create a \"inset\" look.\n*   **Focus State:** A \"Ghost Border\" of 40% `primary` and a subtle inner glow.\n*   **Typography:** `body-md` for user input, `label-sm` for floating labels.\n\n### Lists & Transactions\n*   **Rule:** Forbid divider lines.\n*   **Structure:** Separate list items using `8px` (spacing-2) of vertical whitespace. Use a slightly different surface tone for alternating rows if necessary, though whitespace is preferred.\n\n### Chips & Badges\n*   **Action Chips:** High-pill shape (`full`). Use `secondary-container` for backgrounds with `on-secondary-container` text for a softer, tech-organic look.\n\n---\n\n## 6. Do's and Don'ts\n\n### Do\n*   **DO** use vertical whitespace (`spacing-8` or `spacing-10`) to separate major content sections.\n*   **DO** use `surface-bright` for hover or pressed states to provide instant tactile feedback.\n*   **DO** maintain high contrast for all text elements to meet accessibility standards on dark themes.\n*   **DO** use the `primary` green sparingly; it is a laser, not a paint bucket.\n\n### Don't\n*   **DON'T** use 1px solid white or grey borders; they break the \"Neon Core\" immersion.\n*   **DON'T** use standard grey drop shadows. Always tint shadows with the surface or accent color.\n*   **DON'T** overcrowd the mobile interface. The editorial look requires \"breathing room\"—if in doubt, increase the margin.\n*   **DON'T** use sharp corners. Every container must follow the Roundedness Scale to maintain the \"premium tech\" feel.",
+        "colorVariant": "VIBRANT",
+        "overridePrimaryColor": "#39FF14",
+        "overrideNeutralColor": "#0D0D12",
+        "spacingScale": 2
+      },
+      "screenInstances": [
+        {
+          "id": "021affdafbc5405f9a1a860476660657",
+          "sourceScreen": "projects/10973739328895318973/screens/021affdafbc5405f9a1a860476660657",
+          "x": 269,
+          "y": 11836,
+          "width": 390,
+          "height": 876,
+          "hidden": true
+        },
+        {
+          "id": "032004880d9647059e21df99da01feea",
+          "sourceScreen": "projects/10973739328895318973/screens/032004880d9647059e21df99da01feea",
+          "x": 6798,
+          "y": 9850,
+          "width": 390,
+          "height": 1033,
+          "hidden": true
+        },
+        {
+          "id": "054b2faa-3788-4160-afad-29ca4a947b21",
+          "sourceScreen": "projects/10973739328895318973/screens/2365803243247814785",
+          "y": 6826,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "14648c57-d1c5-433b-a3a5-91fda45631b6",
+          "sourceScreen": "projects/10973739328895318973/screens/16188007941874733031",
+          "x": 5218,
+          "y": 2010,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "147e94b96ac64b0d86efa016ccee29eb",
+          "sourceScreen": "projects/10973739328895318973/screens/147e94b96ac64b0d86efa016ccee29eb",
+          "x": 13154,
+          "y": 9850,
+          "width": 390,
+          "height": 900
+        },
+        {
+          "id": "14c5ac07-9ecf-42ce-86a1-3c1647ca6938",
+          "sourceScreen": "projects/10973739328895318973/screens/16188007941874729397",
+          "x": 2609,
+          "y": 2010,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "290a6d73cb09492fb315d1dc41f04036",
+          "sourceScreen": "projects/10973739328895318973/screens/290a6d73cb09492fb315d1dc41f04036",
+          "x": 10884,
+          "y": 9850,
+          "width": 390,
+          "height": 1465,
+          "hidden": true
+        },
+        {
+          "id": "3527c7d329914cc49e41427856d3a374",
+          "sourceScreen": "projects/10973739328895318973/screens/3527c7d329914cc49e41427856d3a374",
+          "x": 9068,
+          "y": 9850,
+          "width": 390,
+          "height": 1023,
+          "hidden": true
+        },
+        {
+          "id": "38c43f39-d1c3-481e-b129-916a8e8e3427",
+          "sourceScreen": "projects/10973739328895318973/screens/16188007941874731676",
+          "x": 1304,
+          "y": 2010,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "398a092de6aa4aaca45575616107c323",
+          "sourceScreen": "projects/10973739328895318973/screens/398a092de6aa4aaca45575616107c323",
+          "x": -1573,
+          "y": 9031,
+          "width": 390,
+          "height": 776,
+          "hidden": true
+        },
+        {
+          "id": "4342c746-24c1-41cd-b986-905d9dc6b53e",
+          "sourceScreen": "projects/10973739328895318973/screens/15370354976312289958",
+          "x": 5218,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "489ec8f6-fb5a-436d-9ac3-538fee63a62b",
+          "sourceScreen": "projects/10973739328895318973/screens/15370354976312287906",
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "4be404d4-f289-4938-9723-c32c4b5a7208",
+          "sourceScreen": "projects/10973739328895318973/screens/15370354976312288419",
+          "x": 1304,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "5275d58df104493589bf0a561aead137",
+          "sourceScreen": "projects/10973739328895318973/screens/5275d58df104493589bf0a561aead137",
+          "x": 5787,
+          "y": 9632,
+          "width": 390,
+          "height": 1688,
+          "hidden": true
+        },
+        {
+          "id": "53f6b391-8f52-4ff9-819e-6a07bc260d10",
+          "sourceScreen": "projects/10973739328895318973/screens/8684375495606904714",
+          "x": -173,
+          "y": 10313,
+          "width": 683,
+          "height": 604,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "5bfae98a995240e6bf8cf2ef47162889",
+          "sourceScreen": "projects/10973739328895318973/screens/5bfae98a995240e6bf8cf2ef47162889",
+          "x": 2609,
+          "y": 9632,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "61797ec2-b32e-4aec-9b2c-2644f1098a8d",
+          "sourceScreen": "projects/10973739328895318973/screens/2365803243247815252",
+          "x": 1304,
+          "y": 6826,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "62f365e4-4f31-47c0-8d2e-81b93a6ef3ed",
+          "sourceScreen": "projects/10973739328895318973/screens/2365803243247816186",
+          "x": 3913,
+          "y": 6826,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "62f5afa694d047ecbaabfdfc17bb946b",
+          "sourceScreen": "projects/10973739328895318973/screens/62f5afa694d047ecbaabfdfc17bb946b",
+          "x": 4425,
+          "y": 9632,
+          "width": 390,
+          "height": 1032,
+          "hidden": true
+        },
+        {
+          "id": "77de9d39-ec6f-4f87-ad10-86c2a0c38886",
+          "sourceScreen": "projects/10973739328895318973/screens/12434706960229381502",
+          "y": 9632,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "7b849ba24ffb41ec97628f51ee434751",
+          "sourceScreen": "projects/10973739328895318973/screens/7b849ba24ffb41ec97628f51ee434751",
+          "x": 7874,
+          "y": 9536,
+          "width": 390,
+          "height": 1192,
+          "hidden": true
+        },
+        {
+          "id": "80315e7a61ac483299a8cba359bf07f9",
+          "sourceScreen": "projects/10973739328895318973/screens/80315e7a61ac483299a8cba359bf07f9",
+          "x": -810,
+          "y": 8870,
+          "width": 390,
+          "height": 900,
+          "hidden": true
+        },
+        {
+          "id": "91ab879e-05df-4076-b7e7-bb3fbdbc6e14",
+          "sourceScreen": "projects/10973739328895318973/screens/12434706960229383655",
+          "x": 1304,
+          "y": 9632,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "9f0da90cdf414eea9fc225711b4a2da0",
+          "sourceScreen": "projects/10973739328895318973/screens/9f0da90cdf414eea9fc225711b4a2da0",
+          "x": 1672,
+          "y": 9278,
+          "width": 390,
+          "height": 1359,
+          "hidden": true
+        },
+        {
+          "id": "a1aed98f-7505-46e2-84ca-47c0b6e7cb23",
+          "sourceScreen": "projects/10973739328895318973/screens/2365803243247815719",
+          "x": 2609,
+          "y": 6826,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "a58c596b-bd18-4305-8119-f7372271421d",
+          "sourceScreen": "projects/10973739328895318973/screens/16188007941874731214",
+          "x": 3913,
+          "y": 2010,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "a5950a43-4bf0-48a3-ba16-0dd56c377f03",
+          "sourceScreen": "projects/10973739328895318973/screens/15370354976312288932",
+          "x": 2609,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "a5a420b6-d15c-4804-b69e-12fcad75e082",
+          "sourceScreen": "projects/10973739328895318973/screens/15370354976312289445",
+          "x": 3913,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "assets-1ca9dba57531464a89847cf437b63e17-1774021920702",
+          "x": 64,
+          "y": 8836,
+          "width": 960,
+          "height": 540,
+          "sourceAsset": "assets/1ca9dba57531464a89847cf437b63e17",
+          "type": "DESIGN_SYSTEM_INSTANCE"
+        },
+        {
+          "id": "assets-d8862bbf282d455bb68e46a187850955-1774021892773",
+          "x": 14621,
+          "y": 9892,
+          "width": 960,
+          "height": 540,
+          "sourceAsset": "assets/d8862bbf282d455bb68e46a187850955",
+          "type": "DESIGN_SYSTEM_INSTANCE"
+        },
+        {
+          "id": "b66ba5ba-e7ce-4537-b27a-3cd309fa663d",
+          "sourceScreen": "projects/10973739328895318973/screens/16188007941874729859",
+          "y": 2010,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "ba6e2ea10e62478a8098b1fada0e6d8c",
+          "sourceScreen": "projects/10973739328895318973/screens/ba6e2ea10e62478a8098b1fada0e6d8c",
+          "x": 3971,
+          "y": 9632,
+          "width": 390,
+          "height": 1515,
+          "hidden": true
+        },
+        {
+          "id": "bc3eaa48252449eba4495c550d4fadd3",
+          "sourceScreen": "projects/10973739328895318973/screens/bc3eaa48252449eba4495c550d4fadd3",
+          "x": -2000,
+          "y": 11836,
+          "width": 390,
+          "height": 769,
+          "hidden": true
+        },
+        {
+          "id": "d27facad85e24f5e95b1ba3d08264b1e",
+          "sourceScreen": "projects/10973739328895318973/screens/d27facad85e24f5e95b1ba3d08264b1e",
+          "x": 5333,
+          "y": 9632,
+          "width": 390,
+          "height": 1511,
+          "hidden": true
+        },
+        {
+          "id": "d37dde63-ab23-4240-8207-9296b95ab4a5",
+          "sourceScreen": "projects/10973739328895318973/screens/2365803243247816653",
+          "x": 5218,
+          "y": 6826,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "db2d1f58-2910-456c-a3d7-435eea6289d8",
+          "sourceScreen": "projects/10973739328895318973/screens/10325390425811402845",
+          "x": 1304,
+          "y": 4020,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "dcd36128b7514616a91c543b23edd140",
+          "sourceScreen": "projects/10973739328895318973/screens/dcd36128b7514616a91c543b23edd140",
+          "x": 12246,
+          "y": 9850,
+          "width": 390,
+          "height": 900
+        },
+        {
+          "id": "e5f12edc-c213-4207-82d0-12194680e427",
+          "sourceScreen": "projects/10973739328895318973/screens/10325390425811406495",
+          "x": 3913,
+          "y": 4020,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "ec7df7b9-4c5b-4052-8335-0453bf74766f",
+          "sourceScreen": "projects/10973739328895318973/screens/10325390425811406272",
+          "x": 5218,
+          "y": 4020,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "ed85f76e-5eb6-492f-b005-e5923c93cc7c",
+          "sourceScreen": "projects/10973739328895318973/screens/10325390425811403068",
+          "y": 4020,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "f5138042-316d-4f9a-9ff9-65f40942009c",
+          "sourceScreen": "projects/10973739328895318973/screens/10325390425811406718",
+          "x": 2609,
+          "y": 4020,
+          "width": 1240,
+          "height": 1754,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "f5161b7481cb4e9ebf4121cb2950d5fd",
+          "sourceScreen": "projects/10973739328895318973/screens/f5161b7481cb4e9ebf4121cb2950d5fd",
+          "x": -638,
+          "y": 11836,
+          "width": 390,
+          "height": 900,
+          "hidden": true
+        }
+      ],
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    },
+    {
+      "name": "projects/12538622344452408908",
+      "title": "Login Screen",
+      "visibility": "PRIVATE",
+      "createTime": "2026-03-20T15:31:58.979628Z",
+      "updateTime": "2026-03-20T15:34:36.467112Z",
+      "projectType": "TEXT_TO_UI_PRO",
+      "thumbnailScreenshot": {
+        "name": "projects/12538622344452408908/files/3f4b0868ebe44cb9b876ca4e12c5a3a7",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0uh6aSDLgQBRqZiJYOu4ML5LL4_xQFzY7cpb-wm-UZVA4nsKELkTMqIX8FD3Ru6x7BRHac3CvHOhwmx2JBSKb1ENEPmyhNh6eq_rS4XVIYk4pFqTclbqGgF09FnjVJ4q9YxgM0-yT8-EZSmDHzfOQCgaVnjHc0OAGgKQOqBiOH_viw_tS-BJ5xMkPacP0sLlAE1ZAQRkTy2PSELdKAZXLrZMiBB95HiHTM57GAPjwBJTKQ5yyp2byyKFVJ7F"
+      },
+      "origin": "STITCH",
+      "deviceType": "MOBILE",
+      "designTheme": {
+        "colorMode": "DARK",
+        "font": "SPACE_GROTESK",
+        "roundness": "ROUND_EIGHT",
+        "customColor": "#39FF14",
+        "headlineFont": "SPACE_GROTESK",
+        "bodyFont": "MANROPE",
+        "labelFont": "SPACE_GROTESK",
+        "namedColors": {
+          "secondary_dim": "#00deec",
+          "outline_variant": "#484847",
+          "surface_container_highest": "#262626",
+          "error_container": "#b92902",
+          "on_primary_fixed_variant": "#0d6200",
+          "surface_dim": "#0e0e0e",
+          "on_error": "#450900",
+          "surface": "#0e0e0e",
+          "on_primary_container": "#0b5800",
+          "error_dim": "#d53d18",
+          "secondary": "#00eefc",
+          "background": "#0e0e0e",
+          "on_surface": "#ffffff",
+          "on_primary": "#0d6100",
+          "tertiary_fixed_dim": "#ff7989",
+          "secondary_fixed_dim": "#00deec",
+          "on_tertiary_fixed_variant": "#780023",
+          "surface_tint": "#8eff71",
+          "surface_container_lowest": "#000000",
+          "surface_variant": "#262626",
+          "surface_container_low": "#131313",
+          "surface_bright": "#2c2c2c",
+          "on_error_container": "#ffd2c8",
+          "primary_dim": "#2be800",
+          "primary": "#8eff71",
+          "on_tertiary_fixed": "#39000c",
+          "primary_container": "#2ff801",
+          "inverse_on_surface": "#565555",
+          "surface_container": "#1a1919",
+          "on_surface_variant": "#adaaaa",
+          "inverse_surface": "#fcf9f8",
+          "on_tertiary_container": "#000000",
+          "secondary_container": "#006970",
+          "on_background": "#ffffff",
+          "secondary_fixed": "#00eefc",
+          "primary_fixed": "#2ff801",
+          "on_tertiary": "#490012",
+          "error": "#ff7351",
+          "tertiary_container": "#ff0355",
+          "on_secondary_fixed": "#003f43",
+          "on_secondary_fixed_variant": "#005e64",
+          "tertiary_fixed": "#ff909b",
+          "inverse_primary": "#106f00",
+          "on_secondary": "#005359",
+          "tertiary": "#ff6e81",
+          "outline": "#767575",
+          "surface_container_high": "#201f1f",
+          "primary_fixed_dim": "#2be800",
+          "on_primary_fixed": "#064200",
+          "on_secondary_container": "#e3fdff",
+          "tertiary_dim": "#e7004c"
+        },
+        "designMd": "# Design System Strategy: The Synthetic Pulse\n\n## 1. Overview & Creative North Star\nThe Creative North Star for this design system is **\"The Synthetic Pulse.\"** \n\nWe are moving away from the generic \"Neon-on-Black\" trope and toward a high-end, digital-architectural experience. This system is designed to feel like a premium, encrypted terminal—sleek, high-precision, and undeniably high-tech. We achieve this not through clutter, but through **intentional depth and atmospheric light.** \n\nThe layout breaks the standard mobile grid by utilizing **asymmetrical focal points** and **overlapping glass layers.** Instead of a flat list of items, treat the UI as a series of physical, illuminated panels floating in a pressurized digital void. The goal is a signature editorial look that feels bespoke to the 'Birlikte Paylas' platform, prioritizing breathing room and high-contrast moments.\n\n---\n\n## 2. Colors: Luminance & Atmosphere\nOur palette is rooted in the contrast between absolute darkness and hyper-saturated light.\n\n### The \"No-Line\" Rule\n**Borders are prohibited for structural sectioning.** 1px solid lines create visual noise and look \"out-of-the-box.\" Instead, define boundaries through:\n- **Tonal Shifts:** Placing a `surface-container-low` component against a `surface` background.\n- **Luminous Shifts:** Using a subtle glow or a slight change in background saturation to denote a new section.\n\n### Surface Hierarchy & Nesting\nTreat the background as a physical space. \n- Use `surface` (#0e0e0e) as your base canvas.\n- Use `surface-container-low` (#131313) for large layout blocks.\n- Use `surface-container-highest` (#262626) for interactive cards or floating elements.\n- **Nesting:** An inner element (like a chip) should always be a step higher in the surface tier than its parent container to create a \"lifted\" effect.\n\n### The \"Glass & Gradient\" Rule\nTo achieve a \"Synthetic\" feel, use **Glassmorphism** for navigation bars and modal overlays. Use the `surface` color at 70% opacity with a `backdrop-blur` of 20px-40px. \n**Signature Textures:** Apply a 2% \"digital noise\" texture over the background to prevent color banding and add a premium tactile feel. For main CTAs, use a gradient from `primary` (#8eff71) to `primary-container` (#2ff801) to simulate a glowing light tube.\n\n---\n\n## 3. Typography: The Engineered Editorial\nWe use two distinct typefaces to balance \"High-Tech\" with \"High-Legibility.\"\n\n- **Space Grotesk (Display & Headlines):** This is our \"Engineered\" voice. Its wide apertures and geometric construction feel like data readouts. Use `display-lg` for hero moments to create an editorial, oversized impact.\n- **Manrope (Body & Titles):** This is our \"Human\" voice. It is used for all long-form content and UI labels to ensure the interface remains accessible and sophisticated.\n\n**Hierarchy Strategy:** \nUse extreme scale. Pair a large `headline-lg` in Space Grotesk with a very small, all-caps `label-sm` in Manrope (letter-spaced at 0.05rem) to create a sense of technical precision.\n\n---\n\n## 4. Elevation & Depth: Tonal Layering\nIn \"The Synthetic Pulse,\" we do not use traditional drop shadows. We use **Ambient Light.**\n\n- **The Layering Principle:** Depth is achieved by stacking. A `surface-container-highest` card sitting on a `surface` background provides all the separation needed.\n- **Ambient Glows:** For floating elements, replace shadows with a \"Neon Halo.\" Use the `primary` color at 10-15% opacity with a blur of 32px to 64px. This mimics the light spill of a neon sign.\n- **The \"Ghost Border\" Fallback:** If a container needs more definition, use a \"Ghost Border\"—the `outline-variant` token at **15% opacity**. Never use 100% opacity for lines.\n- **Glassmorphism:** All floating action buttons (FABs) or top-tier overlays must use `surface-variant` with a backdrop blur to maintain the \"translucent tech\" aesthetic.\n\n---\n\n## 5. Components: Precision Elements\n\n### Buttons\n- **Primary:** Full rounded (`full`). Gradient from `primary` to `primary_dim`. Text is `on_primary_fixed` (#064200). Add a subtle `primary` outer glow on hover/active states.\n- **Secondary:** Transparent background with a `Ghost Border`. Text is `primary`.\n- **Tertiary:** No border, no background. `primary` text. Use for low-priority actions.\n\n### Cards & Lists\n- **Rule:** Absolute prohibition of divider lines.\n- **Implementation:** Separate list items using `8` (1.75rem) or `10` (2.25rem) spacing from our scale. Use `surface-container-high` for the card background with a `xl` (1.5rem) corner radius.\n- **Interaction:** On press, the card should transition from `surface-container-high` to `surface-bright`.\n\n### Input Fields\n- **Base:** `surface-container-lowest` background with a `Ghost Border`.\n- **Focus State:** The border opacity increases to 100% using the `primary` token, and a subtle glow is applied to the container.\n- **Typography:** Placeholder text must use `on_surface_variant` at 50% opacity.\n\n### Chips\n- Use `md` (0.75rem) roundedness. \n- **Selected:** `primary` background with `on_primary` text.\n- **Unselected:** `surface-variant` background.\n\n---\n\n## 6. Do's and Don'ts\n\n### Do:\n- **Use Intentional Asymmetry:** Align text to the left but place secondary data or decorative \"data-bits\" (label-sm) on the far right to create a wide, cinematic feel.\n- **Embrace Negative Space:** Use our spacing scale (specifically `12` and `16`) to let elements breathe. Cyberpunk doesn't mean \"cluttered\"—it means \"precise.\"\n- **Layer Color:** Use the `secondary` (#00eefc) and `tertiary` (#ff6e81) tokens sparingly for status indicators or high-energy accents.\n\n### Don't:\n- **Don't use 1px solid gray lines.** This is the fastest way to make a premium system look like a template.\n- **Don't use standard Drop Shadows.** If it doesn't look like light is emitting from the screen, it doesn't belong in this system.\n- **Don't crowd the edges.** Maintain a minimum of `5` (1.1rem) padding from the mobile screen edges at all times.\n- **Don't use \"Pure White\" for body text.** Use `on_surface` (which is #ffffff) but at 85-90% opacity for long-form body text to reduce eye strain in dark mode.",
+        "colorVariant": "VIBRANT",
+        "overridePrimaryColor": "#39FF14",
+        "overrideSecondaryColor": "#00F0FF",
+        "overrideTertiaryColor": "#FF0055",
+        "overrideNeutralColor": "#0D0D0D",
+        "spacingScale": 1
+      },
+      "screenInstances": [
+        {
+          "id": "2e80b57ecfde4af6a5aee1e1cb9b7a94",
+          "sourceScreen": "projects/12538622344452408908/screens/2e80b57ecfde4af6a5aee1e1cb9b7a94",
+          "x": 2934,
+          "width": 390,
+          "height": 900
+        },
+        {
+          "id": "2ec7eb5cbbef4c668d6e5fe20df4123c",
+          "sourceScreen": "projects/12538622344452408908/screens/2ec7eb5cbbef4c668d6e5fe20df4123c",
+          "x": 2026,
+          "width": 390,
+          "height": 1274
+        },
+        {
+          "id": "4b0db689-bf81-4a43-8658-c182dc1d08b0",
+          "sourceScreen": "projects/12538622344452408908/screens/1439880385389815328",
+          "width": 600,
+          "height": 900,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "6677163335fc4068899cee6b313633a6",
+          "sourceScreen": "projects/12538622344452408908/screens/6677163335fc4068899cee6b313633a6",
+          "x": 664,
+          "width": 390,
+          "height": 1340
+        },
+        {
+          "id": "assets-a4fb73f8b87a4afeba2fc3e4c5bc7679-1774020763070",
+          "x": 64,
+          "y": 1156,
+          "width": 960,
+          "height": 540,
+          "sourceAsset": "assets/a4fb73f8b87a4afeba2fc3e4c5bc7679",
+          "type": "DESIGN_SYSTEM_INSTANCE"
+        }
+      ],
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    },
+    {
+      "name": "projects/14787710588031736428",
+      "title": "Paylaşım Talebi Oluştur - Modern & Eğlenceli",
+      "visibility": "PRIVATE",
+      "createTime": "2026-03-17T12:39:42.762579Z",
+      "updateTime": "2026-03-17T12:41:28.700853Z",
+      "projectType": "TEXT_TO_UI_PRO",
+      "thumbnailScreenshot": {
+        "name": "projects/14787710588031736428/files/39342176a2e5443b8c293210e67cae30",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0ug36Cpx2WojDqixKq-OKp3PaqtpkUqNYQjfZ3uy_0sxbHLEMkHCkN_drIigi74NwhYHbTX8vMVVXGbN-klyGh3fVXY27u352hKmR0N7SG8Xoa8YWaPHxt0niraD00o7DQY7bJylQ04eAmFM42b-2Zqie2yLp8Dvlt3eT-t5DhJkOPenaDPLx7sNe1HNm7fn-JRfoJp18fgNwVl1ybGlJ2mfAIKXDQt3rHl0t3g_twUQxnS2pSFUINZmsFAv"
+      },
+      "origin": "STITCH",
+      "deviceType": "DESKTOP",
+      "designTheme": {
+        "colorMode": "DARK",
+        "font": "SPACE_GROTESK",
+        "roundness": "ROUND_TWELVE",
+        "customColor": "#4caeaa",
+        "saturation": 2
+      },
+      "screenInstances": [
+        {
+          "id": "c684aae78253493a89045e0d28fe3dda",
+          "sourceScreen": "projects/14787710588031736428/screens/c684aae78253493a89045e0d28fe3dda",
+          "x": 747,
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "id": "fc571f6a-6623-4a40-94bb-6def6e300edd",
+          "sourceScreen": "projects/14787710588031736428/screens/8420294379157303573",
+          "width": 683,
+          "height": 384,
+          "type": "SCREEN_INSTANCE"
+        }
+      ],
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    },
+    {
+      "name": "projects/2383117411060950653",
+      "title": "sohbet modülü",
+      "visibility": "PRIVATE",
+      "createTime": "2026-03-14T10:26:25.790773Z",
+      "updateTime": "2026-03-14T13:07:19.939194Z",
+      "projectType": "TEXT_TO_UI_PRO",
+      "thumbnailScreenshot": {
+        "name": "projects/2383117411060950653/files/8c86afba4fde4c509f6ee55d680505c3",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0ujvzX3bqjmOSIcoCE_7AKNpjFIDxRCblrAL69yfUBRzQs-tLV3yyvw0qqtmai5ZN2g1RlDywSHVz3lsn58vlb6h3ZLAqQ3vNXeuvhLuWBWrlYfBoQLGr0H5328XIJX0NM2zkxS-w9jlLIS94FKlW5ZRfJtvnQPMV7iAhDgOBlvycHQjqtqM5YyOTfh-5ux7OBJlmj8xPiN0brhMYco5TN4KF41YQitpVyYfGbmu6eArd7WsDqOfjdbI3Uw"
+      },
+      "origin": "STITCH",
+      "deviceType": "MOBILE",
+      "designTheme": {
+        "colorMode": "DARK",
+        "font": "PLUS_JAKARTA_SANS",
+        "roundness": "ROUND_TWELVE",
+        "customColor": "#f20d80",
+        "saturation": 2
+      },
+      "screenInstances": [
+        {
+          "id": "2877fd16eeca4528bd0aad2368a7ed22",
+          "sourceScreen": "projects/2383117411060950653/screens/2877fd16eeca4528bd0aad2368a7ed22",
+          "x": 317,
+          "y": -102,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "30e192c72a39409ea89e3e57cc63a1fc",
+          "sourceScreen": "projects/2383117411060950653/screens/30e192c72a39409ea89e3e57cc63a1fc",
+          "x": 723,
+          "y": 1003,
+          "width": 390,
+          "height": 884
+        },
+        {
+          "id": "3eee9a384d924177b5a4807f411d9d68",
+          "sourceScreen": "projects/2383117411060950653/screens/3eee9a384d924177b5a4807f411d9d68",
+          "x": 2688,
+          "y": 1177,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "42634f6deb4448c8ac3f750850f1ae7e",
+          "sourceScreen": "projects/2383117411060950653/screens/42634f6deb4448c8ac3f750850f1ae7e",
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "51c44657e67745b490df0e38605eeed2",
+          "sourceScreen": "projects/2383117411060950653/screens/51c44657e67745b490df0e38605eeed2",
+          "x": 4056,
+          "y": 27,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "794026bb93464d45ab579010f5b355d8",
+          "sourceScreen": "projects/2383117411060950653/screens/794026bb93464d45ab579010f5b355d8",
+          "x": 1659,
+          "y": -73,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "7c052c1b-f1d6-4117-a9c3-d848ab596be6",
+          "sourceScreen": "projects/2383117411060950653/screens/11387624632285367425",
+          "x": 2688,
+          "y": 1199,
+          "width": 683,
+          "height": 384,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "a0018bd4b39946438dc71337cd714f8d",
+          "sourceScreen": "projects/2383117411060950653/screens/a0018bd4b39946438dc71337cd714f8d",
+          "x": -620,
+          "y": 1003,
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "id": "a15e1ae72abc4cd7b3bae3e7d1b39ddc",
+          "sourceScreen": "projects/2383117411060950653/screens/a15e1ae72abc4cd7b3bae3e7d1b39ddc",
+          "x": 1602,
+          "y": -80,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "aaaae6ccf239412189bae0c1d62bb8dc",
+          "sourceScreen": "projects/2383117411060950653/screens/aaaae6ccf239412189bae0c1d62bb8dc",
+          "x": 908,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "aced56c3-3d12-4161-80a9-0213e694bd85",
+          "sourceScreen": "projects/2383117411060950653/screens/2604367204733506981",
+          "x": 2688,
+          "y": 1839,
+          "width": 862,
+          "height": 607,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "c844fea1bfce4ddcb0396b344a2dfc6f",
+          "sourceScreen": "projects/2383117411060950653/screens/c844fea1bfce4ddcb0396b344a2dfc6f",
+          "x": 4050,
+          "y": 1177,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "c9e97296ac6a47e4bab8d56eb62811cf",
+          "sourceScreen": "projects/2383117411060950653/screens/c9e97296ac6a47e4bab8d56eb62811cf",
+          "x": 454,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "d4cca1acf6cc480e9a706a8e4b366406",
+          "sourceScreen": "projects/2383117411060950653/screens/d4cca1acf6cc480e9a706a8e4b366406",
+          "x": 1661,
+          "y": -102,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "e1786b985faf422ab95b7cd866c17c20",
+          "sourceScreen": "projects/2383117411060950653/screens/e1786b985faf422ab95b7cd866c17c20",
+          "x": 3142,
+          "y": 1177,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "f332d5439e3648e88f012b1d0ad6b753",
+          "sourceScreen": "projects/2383117411060950653/screens/f332d5439e3648e88f012b1d0ad6b753",
+          "x": 3596,
+          "y": 1177,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "f89fa330f0744286b7dcb850d173c345",
+          "sourceScreen": "projects/2383117411060950653/screens/f89fa330f0744286b7dcb850d173c345",
+          "x": -1964,
+          "y": 1003,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "fa21245b9a124fe1908ab2ac902826ce",
+          "sourceScreen": "projects/2383117411060950653/screens/fa21245b9a124fe1908ab2ac902826ce",
+          "x": 2092,
+          "y": 1003,
+          "width": 390,
+          "height": 884
+        }
+      ],
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    },
+    {
+      "name": "projects/14580838526581089330",
+      "title": "Workigom Landing Page Redesign",
+      "visibility": "PRIVATE",
+      "createTime": "2026-03-08T20:17:16.499927Z",
+      "updateTime": "2026-03-09T07:37:01.092472Z",
+      "projectType": "PROJECT_DESIGN",
+      "thumbnailScreenshot": {
+        "name": "projects/14580838526581089330/files/e6ba19466d6a49189af7f52d7ea5c71f",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0uigb4tmPQEhE8-Q3Yn7u3NHzCYbSidWGvKccpKVwOQyWMJAKSauovhvRVthRfvT_84t_RJdbJVK40_WYYShmvXe95IZ0uganjkrdh2yYbHbM8UET7-Jye5uRLUzhixwSi56TY1ubd4MsjTf8mPtp8uDKhn3Dpwd0PLjs-_HncZzj7QkzVNTfPiQVf8Y5VMlotfhFse-s2fGRc56sdybvNaGx9PIFRmyiumRm7-l20WIKuAfz7Sl-2liXcU"
+      },
+      "origin": "STITCH",
+      "deviceType": "MOBILE",
+      "designTheme": {
+        "colorMode": "DARK",
+        "font": "PLUS_JAKARTA_SANS",
+        "roundness": "ROUND_TWELVE",
+        "customColor": "#13ec5b",
+        "saturation": 2
+      },
+      "screenInstances": [
+        {
+          "id": "00249a7eb0de4ba8bf49a5e1c5c60500",
+          "sourceScreen": "projects/14580838526581089330/screens/00249a7eb0de4ba8bf49a5e1c5c60500",
+          "x": 1538,
+          "y": 42260,
+          "width": 1517,
+          "height": 4236,
+          "hidden": true
+        },
+        {
+          "id": "091e719d1ec0422097ccdfbcd6f4eb40",
+          "sourceScreen": "projects/14580838526581089330/screens/091e719d1ec0422097ccdfbcd6f4eb40",
+          "x": 3383,
+          "y": 42180,
+          "width": 1434,
+          "height": 4319,
+          "hidden": true
+        },
+        {
+          "id": "13512400a1e74a2fbdd524c96a50bf49",
+          "sourceScreen": "projects/14580838526581089330/screens/13512400a1e74a2fbdd524c96a50bf49",
+          "x": -1007,
+          "y": 42162,
+          "width": 2203,
+          "height": 5567,
+          "hidden": true
+        },
+        {
+          "id": "13aaefb6e7d64ae69a74346b78de2846",
+          "sourceScreen": "projects/14580838526581089330/screens/13aaefb6e7d64ae69a74346b78de2846",
+          "x": -13074,
+          "y": 3546,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "1d1672f9aaed4b139109b67a0891fdfc",
+          "sourceScreen": "projects/14580838526581089330/screens/1d1672f9aaed4b139109b67a0891fdfc",
+          "x": -17800,
+          "y": 2401,
+          "width": 2028,
+          "height": 7953,
+          "hidden": true
+        },
+        {
+          "id": "2a47bb62-710d-4d6b-ae3d-fc0d2300677d",
+          "sourceScreen": "projects/14580838526581089330/screens/17365278661346446058",
+          "x": -16011,
+          "y": 2570,
+          "width": 683,
+          "height": 384,
+          "hidden": true
+        },
+        {
+          "id": "45c968ee66d64575a1203e7228ac2eb1",
+          "sourceScreen": "projects/14580838526581089330/screens/45c968ee66d64575a1203e7228ac2eb1",
+          "x": 619,
+          "width": 1569,
+          "height": 2467,
+          "label": "Workigom Playful Social Landing",
+          "hidden": true
+        },
+        {
+          "id": "4cb7a579e18e4d7aa1c82f54c21b1389",
+          "sourceScreen": "projects/14580838526581089330/screens/4cb7a579e18e4d7aa1c82f54c21b1389",
+          "x": -742,
+          "y": 2723,
+          "width": 4274,
+          "height": 4521,
+          "hidden": true
+        },
+        {
+          "id": "4d7f4ab1bcdf4801a92e4955d80a9c19",
+          "sourceScreen": "projects/14580838526581089330/screens/4d7f4ab1bcdf4801a92e4955d80a9c19",
+          "x": 908,
+          "width": 1518,
+          "height": 2659,
+          "hidden": true
+        },
+        {
+          "id": "55455e01-2183-4be1-90ee-4afdc02c7ac2",
+          "sourceScreen": "projects/14580838526581089330/screens/5451533307732461591",
+          "y": 46255,
+          "width": 683,
+          "height": 384,
+          "hidden": true
+        },
+        {
+          "id": "5cf6605cf7ab4b9aaab146a11dc4f3e4",
+          "sourceScreen": "projects/14580838526581089330/screens/5cf6605cf7ab4b9aaab146a11dc4f3e4",
+          "x": -23707,
+          "y": 2401,
+          "width": 2108,
+          "height": 2471,
+          "hidden": true
+        },
+        {
+          "id": "64849e04345f47a7b4de2e6c6b957d0b",
+          "sourceScreen": "projects/14580838526581089330/screens/64849e04345f47a7b4de2e6c6b957d0b",
+          "x": -256,
+          "y": 42417,
+          "width": 1536,
+          "height": 6538,
+          "hidden": true
+        },
+        {
+          "id": "79e17984-3fe2-44a7-b036-e0b1e8ccc9ea",
+          "sourceScreen": "projects/14580838526581089330/screens/1267371356088028624",
+          "y": 48003,
+          "width": 683,
+          "height": 384,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "9efc84aa27dc48c4b81dac18114dcfdc",
+          "sourceScreen": "projects/14580838526581089330/screens/9efc84aa27dc48c4b81dac18114dcfdc",
+          "x": -14537,
+          "y": 2902,
+          "width": 399,
+          "height": 1292,
+          "hidden": true
+        },
+        {
+          "id": "a0de7e0fcfb246dcb2d1b8f0d1030ac8",
+          "sourceScreen": "projects/14580838526581089330/screens/a0de7e0fcfb246dcb2d1b8f0d1030ac8",
+          "x": -48185,
+          "y": 32093,
+          "width": 1334,
+          "height": 2759
+        },
+        {
+          "id": "e232a671416e41c88a50fdd884e3e94b",
+          "sourceScreen": "projects/14580838526581089330/screens/e232a671416e41c88a50fdd884e3e94b",
+          "x": 1263,
+          "y": 4547,
+          "width": 1514,
+          "height": 4975,
+          "hidden": true
+        },
+        {
+          "id": "eabbacfe87e44d87b367a32d09010aed",
+          "sourceScreen": "projects/14580838526581089330/screens/eabbacfe87e44d87b367a32d09010aed",
+          "x": 764,
+          "y": 2723,
+          "width": 1424,
+          "height": 2088,
+          "hidden": true
+        },
+        {
+          "id": "fba4932d418f4e54a08d06f670e7b342",
+          "sourceScreen": "projects/14580838526581089330/screens/fba4932d418f4e54a08d06f670e7b342",
+          "x": -21535,
+          "y": 2401,
+          "width": 3671,
+          "height": 39760,
+          "hidden": true
+        },
+        {
+          "id": "ff5759f61450408b89b76fb0407da2d5",
+          "sourceScreen": "projects/14580838526581089330/screens/ff5759f61450408b89b76fb0407da2d5",
+          "x": 908,
+          "y": 3242,
+          "width": 1423,
+          "height": 1950,
+          "hidden": true
+        }
+      ],
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    },
+    {
+      "name": "projects/12495411846912626700",
+      "title": "Create New Sharing Request",
+      "visibility": "PRIVATE",
+      "createTime": "2026-03-02T22:07:26.804689Z",
+      "updateTime": "2026-03-05T01:36:51.813441Z",
+      "projectType": "TEXT_TO_UI_PRO",
+      "thumbnailScreenshot": {
+        "name": "projects/12495411846912626700/files/42d61acca45f46988b1448106a6d6896",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0uh1OLzxQl34lKQ6QqdL06EWkFbuSpYZ6_VA-srV3XXNxq_A0y_1U7U0IpgmlQ6rzBc4OgU_6e7WcnSh9zE6hbZyF672C_sM0A12uYcxKpsMVl5E5oKkh3Wwk6iJbE6bBHtrkIvydkJxEJwsCaVA9SzkWyZYKpjfjFRdtITJpEA5LUF2RpXtMd9_MfpK9qEvo69nsEL6tyxykm8lBLNQTVXc1POcw8MArDz78bXqa8WHi3Iz8qVmJZ4Z3SJF"
+      },
+      "origin": "STITCH",
+      "deviceType": "MOBILE",
+      "designTheme": {
+        "colorMode": "DARK",
+        "font": "INTER",
+        "roundness": "ROUND_FULL",
+        "customColor": "#38ff14",
+        "saturation": 3
+      },
+      "screenInstances": [
+        {
+          "id": "161268b513844bfc916fd10a63d4c797",
+          "sourceScreen": "projects/12495411846912626700/screens/161268b513844bfc916fd10a63d4c797",
+          "x": -7086,
+          "y": -110,
+          "width": 390,
+          "height": 884
+        },
+        {
+          "id": "19a910108593409caf04c26ba1d5c339",
+          "sourceScreen": "projects/12495411846912626700/screens/19a910108593409caf04c26ba1d5c339",
+          "x": -1488,
+          "y": 49,
+          "width": 390,
+          "height": 1077
+        },
+        {
+          "id": "22ab0da9415d41ce986850d904a09e6f",
+          "sourceScreen": "projects/12495411846912626700/screens/22ab0da9415d41ce986850d904a09e6f",
+          "x": -7540,
+          "y": -110,
+          "width": 390,
+          "height": 1951
+        },
+        {
+          "id": "4c6078233d6b47189f86c875442fb873",
+          "sourceScreen": "projects/12495411846912626700/screens/4c6078233d6b47189f86c875442fb873",
+          "x": -5120,
+          "y": 49,
+          "width": 390,
+          "height": 1086
+        },
+        {
+          "id": "519b75a04022488f9a1ecde9fb699496",
+          "sourceScreen": "projects/12495411846912626700/screens/519b75a04022488f9a1ecde9fb699496",
+          "x": 4515,
+          "y": 18,
+          "width": 390,
+          "height": 884
+        },
+        {
+          "id": "52cb67d2fc984d3ea6dba536dcf8a285",
+          "sourceScreen": "projects/12495411846912626700/screens/52cb67d2fc984d3ea6dba536dcf8a285",
+          "x": -1034,
+          "y": 49,
+          "width": 390,
+          "height": 1315
+        },
+        {
+          "id": "55eb09ff70fa441d9211f87343b9afe9",
+          "sourceScreen": "projects/12495411846912626700/screens/55eb09ff70fa441d9211f87343b9afe9",
+          "x": 5423,
+          "y": 18,
+          "width": 390,
+          "height": 1042
+        },
+        {
+          "id": "5913a5b09cf64672ba753967df99dd06",
+          "sourceScreen": "projects/12495411846912626700/screens/5913a5b09cf64672ba753967df99dd06",
+          "x": 7239,
+          "y": 18,
+          "width": 390,
+          "height": 1303
+        },
+        {
+          "id": "643b84f6e56e4d89b68db60038a11ae9",
+          "sourceScreen": "projects/12495411846912626700/screens/643b84f6e56e4d89b68db60038a11ae9",
+          "x": -2845,
+          "y": 54,
+          "width": 390,
+          "height": 1042
+        },
+        {
+          "id": "65eaf7e0a05b4dbe8de8a02f34ff9b27",
+          "sourceScreen": "projects/12495411846912626700/screens/65eaf7e0a05b4dbe8de8a02f34ff9b27",
+          "x": -4212,
+          "y": 49,
+          "width": 390,
+          "height": 884
+        },
+        {
+          "id": "690502c77fe1479baaee99ada8da6a40",
+          "sourceScreen": "projects/12495411846912626700/screens/690502c77fe1479baaee99ada8da6a40",
+          "x": -3758,
+          "y": 49,
+          "width": 390,
+          "height": 884
+        },
+        {
+          "id": "829eb10bf66e487fa127ef5d96ccc328",
+          "sourceScreen": "projects/12495411846912626700/screens/829eb10bf66e487fa127ef5d96ccc328",
+          "x": 908,
+          "width": 390,
+          "height": 937
+        },
+        {
+          "id": "853fa03c6ea14272a22b178ebdc5cd35",
+          "sourceScreen": "projects/12495411846912626700/screens/853fa03c6ea14272a22b178ebdc5cd35",
+          "x": 454,
+          "width": 390,
+          "height": 979
+        },
+        {
+          "id": "856f1e084de948208c8cde717f83a73f",
+          "sourceScreen": "projects/12495411846912626700/screens/856f1e084de948208c8cde717f83a73f",
+          "x": -4666,
+          "y": 49,
+          "width": 390,
+          "height": 884
+        },
+        {
+          "id": "9087221ad9304e38b2aae8bcd8463564",
+          "sourceScreen": "projects/12495411846912626700/screens/9087221ad9304e38b2aae8bcd8463564",
+          "x": 3607,
+          "y": 18,
+          "width": 390,
+          "height": 1020
+        },
+        {
+          "id": "93918a917a1a4ffa9ac97bc8cb1fa1e0",
+          "sourceScreen": "projects/12495411846912626700/screens/93918a917a1a4ffa9ac97bc8cb1fa1e0",
+          "x": 1816,
+          "width": 390,
+          "height": 884
+        },
+        {
+          "id": "93b134737260485d939b1129125c1c80",
+          "sourceScreen": "projects/12495411846912626700/screens/93b134737260485d939b1129125c1c80",
+          "x": -7994,
+          "y": -110,
+          "width": 390,
+          "height": 1003
+        },
+        {
+          "id": "a2fee9e762534d7bb4f2dc50a00d259b",
+          "sourceScreen": "projects/12495411846912626700/screens/a2fee9e762534d7bb4f2dc50a00d259b",
+          "x": 2270,
+          "width": 390,
+          "height": 1149
+        },
+        {
+          "id": "afe8de7bf0564852a88543c8f222edf6",
+          "sourceScreen": "projects/12495411846912626700/screens/afe8de7bf0564852a88543c8f222edf6",
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "id": "b28826c8f1d84d0a80e5f97f034b53bb",
+          "sourceScreen": "projects/12495411846912626700/screens/b28826c8f1d84d0a80e5f97f034b53bb",
+          "x": 6331,
+          "y": 18,
+          "width": 390,
+          "height": 884
+        },
+        {
+          "id": "b3266ed47a5647f8ad39e5cc5f35c01f",
+          "sourceScreen": "projects/12495411846912626700/screens/b3266ed47a5647f8ad39e5cc5f35c01f",
+          "x": 3153,
+          "y": 18,
+          "width": 1280,
+          "height": 1024,
+          "label": "Workigom Command Center Dashboard"
+        },
+        {
+          "id": "b84461592c32450fafec9b5b797105d4",
+          "sourceScreen": "projects/12495411846912626700/screens/b84461592c32450fafec9b5b797105d4",
+          "x": 6785,
+          "y": 18,
+          "width": 390,
+          "height": 1318
+        },
+        {
+          "id": "b9e0e6700d3e46a0835edec89eaf1f3e",
+          "sourceScreen": "projects/12495411846912626700/screens/b9e0e6700d3e46a0835edec89eaf1f3e",
+          "x": 4061,
+          "y": 18,
+          "width": 390,
+          "height": 884
+        },
+        {
+          "id": "bb8937d1db254312873323609bd34787",
+          "sourceScreen": "projects/12495411846912626700/screens/bb8937d1db254312873323609bd34787",
+          "x": 5877,
+          "y": 18,
+          "width": 390,
+          "height": 1951
+        },
+        {
+          "id": "c0908db95e1841319e8ae8a9851cbb5b",
+          "sourceScreen": "projects/12495411846912626700/screens/c0908db95e1841319e8ae8a9851cbb5b",
+          "x": -6632,
+          "y": -110,
+          "width": 390,
+          "height": 1316
+        },
+        {
+          "id": "c26e28e56ac04c20b818a0e31a664a79",
+          "sourceScreen": "projects/12495411846912626700/screens/c26e28e56ac04c20b818a0e31a664a79",
+          "x": 4969,
+          "y": 18,
+          "width": 390,
+          "height": 1270
+        },
+        {
+          "id": "c8449969413b43d29bb657cf7bf6a9c6",
+          "sourceScreen": "projects/12495411846912626700/screens/c8449969413b43d29bb657cf7bf6a9c6",
+          "x": -2396,
+          "y": 49,
+          "width": 390,
+          "height": 1589
+        },
+        {
+          "id": "d41e23f4953c41d581251beac9204202",
+          "sourceScreen": "projects/12495411846912626700/screens/d41e23f4953c41d581251beac9204202",
+          "x": -3304,
+          "y": 49,
+          "width": 390,
+          "height": 1190
+        },
+        {
+          "id": "e206b99659bd4fa8889efd6409907c39",
+          "sourceScreen": "projects/12495411846912626700/screens/e206b99659bd4fa8889efd6409907c39",
+          "x": 1362,
+          "width": 390,
+          "height": 884
+        },
+        {
+          "id": "e4b27fb5962a4c48bf48d8450acb0d42",
+          "sourceScreen": "projects/12495411846912626700/screens/e4b27fb5962a4c48bf48d8450acb0d42",
+          "x": -6178,
+          "y": -110,
+          "width": 390,
+          "height": 1299
+        },
+        {
+          "id": "e6caa48e71a74b8a97fdd8fb23350365",
+          "sourceScreen": "projects/12495411846912626700/screens/e6caa48e71a74b8a97fdd8fb23350365",
+          "x": -1942,
+          "y": 49,
+          "width": 407,
+          "height": 948,
+          "label": "Desktop Transaction Journey Track"
+        },
+        {
+          "id": "f4dab630039945619eb5247dfc9e2fff",
+          "sourceScreen": "projects/12495411846912626700/screens/f4dab630039945619eb5247dfc9e2fff",
+          "x": -5574,
+          "y": 49,
+          "width": 390,
+          "height": 1089
+        }
+      ],
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    },
+    {
+      "name": "projects/2296250673450015725",
+      "title": "Workigom Dashboard V2",
+      "visibility": "PRIVATE",
+      "createTime": "2026-03-04T01:11:27.281783Z",
+      "updateTime": "2026-03-04T20:35:42.914915Z",
+      "projectType": "PROJECT_DESIGN",
+      "thumbnailScreenshot": {
+        "name": "projects/2296250673450015725/files/a3cbb25aece040d085270d2309be23a9",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0uizTAk2Xj5BFR43DZcceDQVLzocmsXBY6cFJOU9nPiwOYVTw0TaJeWtKfO5S5hR4oFQvY79ufL2hRZy6JDwsTs16vfQBKnWWnpCx8wlvw2Q8aE81IgGL2sACxkIfttH2ionSeEERb9uTlBjW_-kxx17nfvF8fTbAsczzbFt7qABIR2DYZkr-ydtWfs7rpFt3LwQvidIpyg081lgQb1_eh2iMWI-dtNOzS-6Xswr85G1X5zcAgmrWNBNx1k"
+      },
+      "origin": "STITCH",
+      "deviceType": "MOBILE",
+      "designTheme": {
+        "colorMode": "DARK",
+        "font": "SPACE_GROTESK",
+        "roundness": "ROUND_FULL",
+        "customColor": "#38ff14",
+        "saturation": 2
+      },
+      "screenInstances": [
+        {
+          "id": "87fc54481a84414e9d8eb6fe5aea6e96",
+          "sourceScreen": "projects/2296250673450015725/screens/87fc54481a84414e9d8eb6fe5aea6e96",
+          "width": 390,
+          "height": 895
+        }
+      ],
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    },
+    {
+      "name": "projects/14570420270537786192",
+      "title": "Workigom sayfa dizayn",
+      "visibility": "PRIVATE",
+      "createTime": "2026-03-04T00:48:49.650022Z",
+      "updateTime": "2026-03-04T05:03:04.816809Z",
+      "projectType": "PROJECT_DESIGN",
+      "thumbnailScreenshot": {
+        "name": "projects/14570420270537786192/files/08387025d29c4bb58935413bd06731af",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0uibeqJ3_2luqM9VuqxirXNjOV8EXIja56xq7e6Z0PWlgmf73lNaeVGB_pziuheROpxupNqjexzuuSyagsvTGSclMuHjCtAHo29LbSzIRKJz4XJzWqmTBxaRQX64IQ61g5wDWk7ANhmfBFSLc_nxl6yLJjXUDJtGNjT24pMr9pg8J6o7ZN8xh5sa6UGlWT5646WBXD0q8dr5AyYmGGnD-vXBfCoWtPflOMz_gZvIuiL7B12sWYi0Z5-9em99"
+      },
+      "origin": "STITCH",
+      "deviceType": "MOBILE",
+      "designTheme": {
+        "colorMode": "DARK",
+        "font": "SPACE_GROTESK",
+        "roundness": "ROUND_EIGHT",
+        "customColor": "#3cff14",
+        "saturation": 3
+      },
+      "screenInstances": [
+        {
+          "id": "0d1eb096a8ff41cf927eeeec275baf4d",
+          "sourceScreen": "projects/14570420270537786192/screens/0d1eb096a8ff41cf927eeeec275baf4d",
+          "x": 3178,
+          "y": 1619,
+          "width": 390,
+          "height": 1157,
+          "hidden": true
+        },
+        {
+          "id": "0da75cbe07864008973f8ebefd2d2bc7",
+          "sourceScreen": "projects/14570420270537786192/screens/0da75cbe07864008973f8ebefd2d2bc7",
+          "x": 5752,
+          "y": 307,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "0e148cddb2c145be857da6a1fa0d7fbe",
+          "sourceScreen": "projects/14570420270537786192/screens/0e148cddb2c145be857da6a1fa0d7fbe",
+          "x": 908,
+          "y": 1619,
+          "width": 390,
+          "height": 1139,
+          "hidden": true
+        },
+        {
+          "id": "134ef6037a394f79bec1b40d00141fb1",
+          "sourceScreen": "projects/14570420270537786192/screens/134ef6037a394f79bec1b40d00141fb1",
+          "x": -2371,
+          "y": 87,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "1554beb299864f06a40146265978b5a6",
+          "sourceScreen": "projects/14570420270537786192/screens/1554beb299864f06a40146265978b5a6",
+          "x": 4086,
+          "width": 390,
+          "height": 1122,
+          "hidden": true
+        },
+        {
+          "id": "1ff503d316f6474db7785021793a77d4",
+          "sourceScreen": "projects/14570420270537786192/screens/1ff503d316f6474db7785021793a77d4",
+          "x": 984,
+          "y": -241,
+          "width": 390,
+          "height": 1051,
+          "hidden": true
+        },
+        {
+          "id": "29392e82e7f9429a8f2db628211030b2",
+          "sourceScreen": "projects/14570420270537786192/screens/29392e82e7f9429a8f2db628211030b2",
+          "x": 133,
+          "y": -94,
+          "width": 390,
+          "height": 1059,
+          "hidden": true
+        },
+        {
+          "id": "2ca7cfca023b46f6aa572c12d41a49b0",
+          "sourceScreen": "projects/14570420270537786192/screens/2ca7cfca023b46f6aa572c12d41a49b0",
+          "x": -2258,
+          "y": -74,
+          "width": 390,
+          "height": 884,
+          "label": "login"
+        },
+        {
+          "id": "2d306ef3-d98e-4b9d-a694-939dd164daa5",
+          "sourceScreen": "projects/14570420270537786192/screens/17188266137624906193",
+          "x": 870,
+          "y": 4229,
+          "width": 200,
+          "height": 424,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "306f35f28ff7432486209c542a8f58b6",
+          "sourceScreen": "projects/14570420270537786192/screens/306f35f28ff7432486209c542a8f58b6",
+          "x": 3632,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "35c633a34861455c8f3d27a10d719d88",
+          "sourceScreen": "projects/14570420270537786192/screens/35c633a34861455c8f3d27a10d719d88",
+          "x": 1075,
+          "y": -66,
+          "width": 390,
+          "height": 1051,
+          "hidden": true
+        },
+        {
+          "id": "3f780549b61c478ba575a41e78793329",
+          "sourceScreen": "projects/14570420270537786192/screens/3f780549b61c478ba575a41e78793329",
+          "x": 1467,
+          "y": 7299,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "42a8463e0dbd495e86cc82563f68ec69",
+          "sourceScreen": "projects/14570420270537786192/screens/42a8463e0dbd495e86cc82563f68ec69",
+          "x": 454,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "4ae9c8875f0f4a019de5398bb91ea866",
+          "sourceScreen": "projects/14570420270537786192/screens/4ae9c8875f0f4a019de5398bb91ea866",
+          "x": 454,
+          "width": 390,
+          "height": 980,
+          "hidden": true
+        },
+        {
+          "id": "4f4668eec5b6411085ae86438d276831",
+          "sourceScreen": "projects/14570420270537786192/screens/4f4668eec5b6411085ae86438d276831",
+          "x": -4344,
+          "y": 22,
+          "width": 429,
+          "height": 2003
+        },
+        {
+          "id": "619e76b6499e4633b808bc1f2ebffb65",
+          "sourceScreen": "projects/14570420270537786192/screens/619e76b6499e4633b808bc1f2ebffb65",
+          "x": 1816,
+          "y": 1619,
+          "width": 390,
+          "height": 1115,
+          "hidden": true
+        },
+        {
+          "id": "7e49eaaba4e54257990c5ab2e3b4433f",
+          "sourceScreen": "projects/14570420270537786192/screens/7e49eaaba4e54257990c5ab2e3b4433f",
+          "y": 9430,
+          "width": 390,
+          "height": 1253,
+          "hidden": true
+        },
+        {
+          "id": "83c10bc4a3914dc7a84876386927eaca",
+          "sourceScreen": "projects/14570420270537786192/screens/83c10bc4a3914dc7a84876386927eaca",
+          "x": -103,
+          "y": 22,
+          "width": 1280,
+          "height": 1024,
+          "label": "profil"
+        },
+        {
+          "id": "855ceb4007e845de9bc7efba1d231fb9",
+          "sourceScreen": "projects/14570420270537786192/screens/855ceb4007e845de9bc7efba1d231fb9",
+          "x": -1023,
+          "y": 4185,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "8c0b936e8834422cb25406e13dcf881b",
+          "sourceScreen": "projects/14570420270537786192/screens/8c0b936e8834422cb25406e13dcf881b",
+          "x": -4843,
+          "y": 49,
+          "width": 453,
+          "height": 908
+        },
+        {
+          "id": "8e0b9a9f3fcc4419a73a059acea0d9ea",
+          "sourceScreen": "projects/14570420270537786192/screens/8e0b9a9f3fcc4419a73a059acea0d9ea",
+          "x": 2270,
+          "y": 1619,
+          "width": 390,
+          "height": 1139,
+          "hidden": true
+        },
+        {
+          "id": "901a431313624214823c48d9c3bd081d",
+          "sourceScreen": "projects/14570420270537786192/screens/901a431313624214823c48d9c3bd081d",
+          "x": 752,
+          "y": -87,
+          "width": 390,
+          "height": 1083,
+          "hidden": true
+        },
+        {
+          "id": "93921336f6404ff999a70d3d02a1cb03",
+          "sourceScreen": "projects/14570420270537786192/screens/93921336f6404ff999a70d3d02a1cb03",
+          "x": 718,
+          "y": 6060,
+          "width": 1280,
+          "height": 1024,
+          "label": "Mobil Takas Pazarı",
+          "hidden": true
+        },
+        {
+          "id": "976ffe7e3ffe4bd2a4adb04a3e458aa6",
+          "sourceScreen": "projects/14570420270537786192/screens/976ffe7e3ffe4bd2a4adb04a3e458aa6",
+          "x": 5030,
+          "y": -26,
+          "width": 390,
+          "height": 1363,
+          "hidden": true
+        },
+        {
+          "id": "978ee7d4cc294f908ec7ac505735511d",
+          "sourceScreen": "projects/14570420270537786192/screens/978ee7d4cc294f908ec7ac505735511d",
+          "x": -780,
+          "y": -89,
+          "width": 390,
+          "height": 919,
+          "label": "Talepler"
+        },
+        {
+          "id": "a0aa1af9-738d-4cc0-ba14-0c105e5b6c9e",
+          "sourceScreen": "projects/14570420270537786192/screens/13469100021870002088",
+          "y": 4780,
+          "width": 680,
+          "height": 302,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "a877f45cf77843808c4b24b390598027",
+          "sourceScreen": "projects/14570420270537786192/screens/a877f45cf77843808c4b24b390598027",
+          "x": 3920,
+          "y": 26,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "b3950cede0c3473a85811c66877350fb",
+          "sourceScreen": "projects/14570420270537786192/screens/b3950cede0c3473a85811c66877350fb",
+          "x": 997,
+          "y": 1817,
+          "width": 390,
+          "height": 1139,
+          "hidden": true
+        },
+        {
+          "id": "b996628d24f94aec813a3ff0b9bd5746",
+          "sourceScreen": "projects/14570420270537786192/screens/b996628d24f94aec813a3ff0b9bd5746",
+          "x": 1529,
+          "y": -66,
+          "width": 390,
+          "height": 951,
+          "hidden": true
+        },
+        {
+          "id": "bbb60216298d4c4ab3335929a6da21c8",
+          "sourceScreen": "projects/14570420270537786192/screens/bbb60216298d4c4ab3335929a6da21c8",
+          "x": 264,
+          "y": 6060,
+          "width": 390,
+          "height": 932,
+          "hidden": true
+        },
+        {
+          "id": "c8452da741a6479589b126a4560a7693",
+          "sourceScreen": "projects/14570420270537786192/screens/c8452da741a6479589b126a4560a7693",
+          "x": 1378,
+          "y": 7296,
+          "width": 430,
+          "height": 946,
+          "hidden": true
+        },
+        {
+          "id": "d1bab301e4aa494e94b2dc164928dce5",
+          "sourceScreen": "projects/14570420270537786192/screens/d1bab301e4aa494e94b2dc164928dce5",
+          "x": -2921,
+          "y": -54,
+          "width": 390,
+          "height": 1275,
+          "label": "Anasayfa"
+        },
+        {
+          "id": "d3e830b715b64b049f26bc2399b19a75",
+          "sourceScreen": "projects/14570420270537786192/screens/d3e830b715b64b049f26bc2399b19a75",
+          "x": -252,
+          "y": -107,
+          "width": 390,
+          "height": 1019,
+          "label": "Talepler",
+          "hidden": true
+        },
+        {
+          "id": "d4c4ed3c-3169-4329-a294-5b154c09ad04",
+          "sourceScreen": "projects/14570420270537786192/screens/1459429383550878327",
+          "x": -2819,
+          "y": -79,
+          "width": 706,
+          "height": 1600,
+          "label": "swapmarket.png",
+          "hidden": true
+        },
+        {
+          "id": "dd4cd0c4cd274cbcb5d8ff4f51116c07",
+          "sourceScreen": "projects/14570420270537786192/screens/dd4cd0c4cd274cbcb5d8ff4f51116c07",
+          "x": 1474,
+          "y": -43,
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "id": "e432e005e712414082a1c1d054b9169e",
+          "sourceScreen": "projects/14570420270537786192/screens/e432e005e712414082a1c1d054b9169e",
+          "x": -577,
+          "y": 1,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "e4a18145-155c-41ab-9379-b265cc17e2a0",
+          "sourceScreen": "projects/14570420270537786192/screens/8201406559264583547",
+          "y": 7340,
+          "width": 683,
+          "height": 384,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "ea14416f-e684-425f-84b0-d01000bc0195",
+          "sourceScreen": "projects/14570420270537786192/screens/15498581678422533045",
+          "x": 1064,
+          "y": 4400,
+          "width": 671,
+          "height": 303,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        },
+        {
+          "id": "ebc996c1c694433d9d0d4de79e718492",
+          "sourceScreen": "projects/14570420270537786192/screens/ebc996c1c694433d9d0d4de79e718492",
+          "x": -832,
+          "y": -107,
+          "width": 390,
+          "height": 981,
+          "hidden": true
+        },
+        {
+          "id": "f5512dcd0a664640a931a0e260de1c29",
+          "sourceScreen": "projects/14570420270537786192/screens/f5512dcd0a664640a931a0e260de1c29",
+          "x": 4540,
+          "width": 390,
+          "height": 1029,
+          "hidden": true
+        },
+        {
+          "id": "f71bdc72beaa4df29f76c5fc76e14f85",
+          "sourceScreen": "projects/14570420270537786192/screens/f71bdc72beaa4df29f76c5fc76e14f85",
+          "x": 4994,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "f9479ec53fd64faba3bd36b63dcfa4e2",
+          "sourceScreen": "projects/14570420270537786192/screens/f9479ec53fd64faba3bd36b63dcfa4e2",
+          "x": -1524,
+          "y": 22,
+          "width": 390,
+          "height": 884,
+          "label": "Talep oluştur"
+        },
+        {
+          "id": "fe6a1b0a-737e-45b7-a709-89c440e6f0e6",
+          "sourceScreen": "projects/14570420270537786192/screens/13469100021869999651",
+          "x": 1198,
+          "y": 4780,
+          "width": 678,
+          "height": 301,
+          "hidden": true,
+          "type": "SCREEN_INSTANCE"
+        }
+      ],
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    },
+    {
+      "name": "projects/6225967210198139369",
+      "title": "workigom1",
+      "visibility": "PRIVATE",
+      "createTime": "2026-03-02T21:57:50.170110Z",
+      "updateTime": "2026-03-02T22:05:53.954951Z",
+      "projectType": "TEXT_TO_UI_PRO",
+      "thumbnailScreenshot": {
+        "name": "projects/6225967210198139369/files/129d99f0022f432cbf6ceda877d6135e",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0ui1ucXKe12E4QbQluRrJ6mJLssqjxMDsCB8f-ZhSYTHUF_bBfCZqBJyuRlRawFx4QIbvrl72m6MnLqVm8hRRcosqeIisK8S9b9vwnti-mhYnTJDRUtT--bIc1ni4nH9BLxr4eQbcGnHesKy7vqwgsilQOE2ZdkZn0DCp1Soz8ClpiJCNE2gpLBkVpcEgRUTqpFOl42JBTG8i3xHFNgwb0BejcS44Kq8Dm-72oN7-z3nZj_KCv6oqj-YSZA"
+      },
+      "origin": "STITCH",
+      "deviceType": "MOBILE",
+      "designTheme": {
+        "colorMode": "DARK",
+        "font": "INTER",
+        "roundness": "ROUND_FULL",
+        "customColor": "#3cff14",
+        "saturation": 2
+      },
+      "screenInstances": [
+        {
+          "id": "0901d7c699494ad3be54896308cceb20",
+          "sourceScreen": "projects/6225967210198139369/screens/0901d7c699494ad3be54896308cceb20",
+          "x": 1362,
+          "width": 390,
+          "height": 884
+        },
+        {
+          "id": "3b40cf3755764429aedd61092b36097c",
+          "sourceScreen": "projects/6225967210198139369/screens/3b40cf3755764429aedd61092b36097c",
+          "x": 454,
+          "width": 390,
+          "height": 991
+        },
+        {
+          "id": "732d39c5ec6c4b658165cc090cff0950",
+          "sourceScreen": "projects/6225967210198139369/screens/732d39c5ec6c4b658165cc090cff0950",
+          "width": 390,
+          "height": 1004
+        },
+        {
+          "id": "a40ddaf13ad0476da938f3241854e074",
+          "sourceScreen": "projects/6225967210198139369/screens/a40ddaf13ad0476da938f3241854e074",
+          "x": 908,
+          "width": 390,
+          "height": 884
+        },
+        {
+          "id": "be7bf12599584982a17dd18c419052f6",
+          "sourceScreen": "projects/6225967210198139369/screens/be7bf12599584982a17dd18c419052f6",
+          "x": 1816,
+          "width": 390,
+          "height": 884
+        }
+      ],
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    },
+    {
+      "name": "projects/10732600041310331924",
+      "title": "Mobile QR Payment Screen",
+      "visibility": "PRIVATE",
+      "createTime": "2026-02-15T19:46:19.896969Z",
+      "updateTime": "2026-03-02T20:37:36.542059Z",
+      "projectType": "TEXT_TO_UI_PRO",
+      "thumbnailScreenshot": {
+        "name": "projects/10732600041310331924/files/1d676178197e4b44a8f8644257cf000d",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0ujlI_szA7UnKHHCkPzDL_RaiIBpTHoVbiyusUO7DmkdO784DAMjBe8m5YadWdE-YiuY-eDvxSQ13ZfSsET68H33q2pUw2v1-qePtgQt9F48rAkwOzwHhbOOD42VKU9X2lf-_VewzVnhat54NANBnAuBCArLne8jqGJenBt-OEJXswJE_BEkT-xAtQsLkic3UcXootCMp9x9I4V9fMmZS0w05fu9MRnEz7VxuJXmel3KAfCSFeh75bTgpDJC"
+      },
+      "origin": "STITCH",
+      "deviceType": "DESKTOP",
+      "designTheme": {
+        "colorMode": "LIGHT",
+        "font": "MANROPE",
+        "roundness": "ROUND_EIGHT",
+        "customColor": "#0f1729",
+        "saturation": 3
+      },
+      "screenInstances": [
+        {
+          "id": "511db687638b4f51bb66dce4ec03ec61",
+          "sourceScreen": "projects/10732600041310331924/screens/511db687638b4f51bb66dce4ec03ec61",
+          "x": 5376,
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "id": "6f2c99f2245c435f939f34a0e3acb633",
+          "sourceScreen": "projects/10732600041310331924/screens/6f2c99f2245c435f939f34a0e3acb633",
+          "x": 4032,
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "id": "9212353efe8e48078d1ffed4f54fe563",
+          "sourceScreen": "projects/10732600041310331924/screens/9212353efe8e48078d1ffed4f54fe563",
+          "x": 6720,
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "id": "93af9e5e47ef4b22b6de3be5031af0af",
+          "sourceScreen": "projects/10732600041310331924/screens/93af9e5e47ef4b22b6de3be5031af0af",
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "d21f5bd179884c82871a191d139c5099",
+          "sourceScreen": "projects/10732600041310331924/screens/d21f5bd179884c82871a191d139c5099",
+          "x": 1209,
+          "y": -81,
+          "width": 1280,
+          "height": 1445,
+          "hidden": true
+        },
+        {
+          "id": "e25d8da6b07f4f408fbff5d8fe0da052",
+          "sourceScreen": "projects/10732600041310331924/screens/e25d8da6b07f4f408fbff5d8fe0da052",
+          "x": 1344,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        }
+      ],
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    },
+    {
+      "name": "projects/7603762953000453100",
+      "title": "Community Leaderboard & Impact Dashboard",
+      "visibility": "PRIVATE",
+      "createTime": "2026-01-20T17:57:53.618257Z",
+      "updateTime": "2026-01-25T01:57:14.288055Z",
+      "projectType": "TEXT_TO_UI_PRO",
+      "thumbnailScreenshot": {
+        "name": "projects/7603762953000453100/files/0e190d3300334684959df9abd7175bdc",
+        "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0uiU1VdWFfrziXu-ciOJ_zPoeu7QZgTjeGLkhAsdjon4U22GFxGQb7DUrSfNf9wxJJQYzshSWloDHfBmB37tiPP1bP66X3mTbtVIa_Dp5IRtvnGjbn7EBKs5lNghlEC3n88Zx1hUWUUhVLWVQT7A9iImkNmsPBRBrULj0068__HxwishUPvo0CY8gK87Xaww5xLh8cgrUx1RQFOQTxk-0KHbBEGBOxGz5wYIfTi378FqEBXW2CQcvOnAaHc"
+      },
+      "origin": "STITCH",
+      "deviceType": "DESKTOP",
+      "designTheme": {
+        "colorMode": "LIGHT",
+        "font": "INTER",
+        "roundness": "ROUND_FULL",
+        "customColor": "#10b77f",
+        "saturation": 2
+      },
+      "screenInstances": [
+        {
+          "id": "017431d1ad6643c394dcf96ade2ae334",
+          "sourceScreen": "projects/7603762953000453100/screens/017431d1ad6643c394dcf96ade2ae334",
+          "x": 11420,
+          "y": 109,
+          "width": 1280,
+          "height": 1054,
+          "hidden": true
+        },
+        {
+          "id": "0a8cddec40684bbb9683f170faf5eb77",
+          "sourceScreen": "projects/7603762953000453100/screens/0a8cddec40684bbb9683f170faf5eb77",
+          "x": 2090,
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "id": "0bff8cc9-4713-49da-9405-50ba2f2268a7",
+          "sourceScreen": "projects/7603762953000453100/screens/17382800278810702450",
+          "y": 1957,
+          "width": 683,
+          "height": 384,
+          "hidden": true
+        },
+        {
+          "id": "2a924ec947cd422e90fe942f0c48d48f",
+          "sourceScreen": "projects/7603762953000453100/screens/2a924ec947cd422e90fe942f0c48d48f",
+          "x": 10752,
+          "width": 1280,
+          "height": 1701,
+          "label": "Swap Market Grid",
+          "hidden": true
+        },
+        {
+          "id": "2d332aa032f74450a11ffe8315edea6c",
+          "sourceScreen": "projects/7603762953000453100/screens/2d332aa032f74450a11ffe8315edea6c",
+          "x": 7388,
+          "y": 109,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "374b416fdf424ecc984432ef4326cb62",
+          "sourceScreen": "projects/7603762953000453100/screens/374b416fdf424ecc984432ef4326cb62",
+          "x": -2342,
+          "y": -838,
+          "width": 1434,
+          "height": 1225,
+          "hidden": true
+        },
+        {
+          "id": "4f47fbaf-f9d7-4777-a89b-58071aef5ccb",
+          "sourceScreen": "projects/7603762953000453100/screens/1232131639591829145",
+          "y": 3877,
+          "width": 683,
+          "height": 384,
+          "hidden": true
+        },
+        {
+          "id": "4ffcceeaf1bb40a38a3c64f8ffcc4d57",
+          "sourceScreen": "projects/7603762953000453100/screens/4ffcceeaf1bb40a38a3c64f8ffcc4d57",
+          "x": 14108,
+          "y": 109,
+          "width": 1280,
+          "height": 1144,
+          "hidden": true
+        },
+        {
+          "id": "57af9fc3c1d44cf0903ed27e7c767030",
+          "sourceScreen": "projects/7603762953000453100/screens/57af9fc3c1d44cf0903ed27e7c767030",
+          "x": 747,
+          "y": 2676,
+          "width": 1280,
+          "height": 1186,
+          "hidden": true
+        },
+        {
+          "id": "5ed06f3d950942fb8d50e9852857a977",
+          "sourceScreen": "projects/7603762953000453100/screens/5ed06f3d950942fb8d50e9852857a977",
+          "x": 8528,
+          "y": -127,
+          "width": 1280,
+          "height": 1215,
+          "hidden": true
+        },
+        {
+          "id": "5fa47eb1148146b291b6bf1a74cb4716",
+          "sourceScreen": "projects/7603762953000453100/screens/5fa47eb1148146b291b6bf1a74cb4716",
+          "x": 17339,
+          "y": -8,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "603d68782056437cab48e56330e9fa65",
+          "sourceScreen": "projects/7603762953000453100/screens/603d68782056437cab48e56330e9fa65",
+          "x": 8732,
+          "y": 109,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "6b17b005359f415a8d69303d35855b23",
+          "sourceScreen": "projects/7603762953000453100/screens/6b17b005359f415a8d69303d35855b23",
+          "x": 17070,
+          "y": 13,
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "893f096a-d860-425e-b676-ff8c12626928",
+          "sourceScreen": "projects/7603762953000453100/screens/12715415042563532843",
+          "width": 682,
+          "height": 338,
+          "hidden": true
+        },
+        {
+          "id": "8e3b1515cc434b3cbcbe398fcc13bd84",
+          "sourceScreen": "projects/7603762953000453100/screens/8e3b1515cc434b3cbcbe398fcc13bd84",
+          "x": 747,
+          "y": 1637,
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "id": "9e7e32aa45e24cd3a1819b90113cb663",
+          "sourceScreen": "projects/7603762953000453100/screens/9e7e32aa45e24cd3a1819b90113cb663",
+          "x": 3573,
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "id": "a5fcd7313c7f4a689b30e765c495a677",
+          "sourceScreen": "projects/7603762953000453100/screens/a5fcd7313c7f4a689b30e765c495a677",
+          "x": 14108,
+          "y": 109,
+          "width": 1280,
+          "height": 2311,
+          "hidden": true
+        },
+        {
+          "id": "ab638d18a5704a929db1a5b5fcb2aed1",
+          "sourceScreen": "projects/7603762953000453100/screens/ab638d18a5704a929db1a5b5fcb2aed1",
+          "x": 4245,
+          "y": 13,
+          "width": 1280,
+          "height": 1034,
+          "hidden": true
+        },
+        {
+          "id": "ac4e319ca1a34131903830e226e856d5",
+          "sourceScreen": "projects/7603762953000453100/screens/ac4e319ca1a34131903830e226e856d5",
+          "x": 746,
+          "width": 1280,
+          "height": 1024,
+          "label": "Modern Mobile Dashboard Redesign",
+          "hidden": true
+        },
+        {
+          "id": "af5437d85d22434cb5e6a6c23bf98de3",
+          "sourceScreen": "projects/7603762953000453100/screens/af5437d85d22434cb5e6a6c23bf98de3",
+          "x": 3637,
+          "width": 1280,
+          "height": 1024
+        },
+        {
+          "id": "af5cb7aab2b44eb7ab31740803d8ce14",
+          "sourceScreen": "projects/7603762953000453100/screens/af5cb7aab2b44eb7ab31740803d8ce14",
+          "x": 17472,
+          "width": 390,
+          "height": 884,
+          "hidden": true
+        },
+        {
+          "id": "b6ab5e63ad28420587f1090a29971e4e",
+          "sourceScreen": "projects/7603762953000453100/screens/b6ab5e63ad28420587f1090a29971e4e",
+          "x": 6720,
+          "width": 1280,
+          "height": 1034,
+          "hidden": true
+        },
+        {
+          "id": "c34164cf868d4b77ae50ed39a6fd7e7d",
+          "sourceScreen": "projects/7603762953000453100/screens/c34164cf868d4b77ae50ed39a6fd7e7d",
+          "width": 1280,
+          "height": 1024,
+          "hidden": true
+        },
+        {
+          "id": "d7a8895615514326a75ec31805d754c0",
+          "sourceScreen": "projects/7603762953000453100/screens/d7a8895615514326a75ec31805d754c0",
+          "x": 4943,
+          "y": 95,
+          "width": 1406,
+          "height": 1286
+        },
+        {
+          "id": "e16f3830-445e-41bb-a7bb-46af86da9f65",
+          "sourceScreen": "projects/7603762953000453100/screens/9642909214566847692",
+          "y": 2676,
+          "width": 683,
+          "height": 384,
+          "hidden": true
+        },
+        {
+          "id": "e265fa44ed07492f94471ffa91531f33",
+          "sourceScreen": "projects/7603762953000453100/screens/e265fa44ed07492f94471ffa91531f33",
+          "x": 10076,
+          "y": 109,
+          "width": 1280,
+          "height": 1164,
+          "hidden": true
+        },
+        {
+          "id": "feb0a3be-3c11-4e73-86df-e955b8784c3a",
+          "sourceScreen": "projects/7603762953000453100/screens/10592188219367292960",
+          "y": 1637,
+          "width": 683,
+          "height": 384
+        }
+      ],
+      "metadata": {
+        "userRole": "OWNER"
+      }
+    }
+  ]
+}

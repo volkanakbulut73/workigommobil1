@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Süreç Takibi - CyberNetica</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "surface-dim": "#0c0e16",
+                "on-secondary-container": "#e4ffe2",
+                "surface-container": "#171923",
+                "on-tertiary": "#005d62",
+                "on-surface": "#ededf9",
+                "secondary-container": "#006d2f",
+                "background": "#0c0e16",
+                "secondary-dim": "#82ea96",
+                "surface-container-high": "#1d1f2a",
+                "primary-dim": "#2be800",
+                "tertiary-container": "#17eefa",
+                "on-primary-fixed-variant": "#0d6200",
+                "tertiary-fixed-dim": "#00deea",
+                "primary": "#39FF14",
+                "on-error-container": "#ffd2c8",
+                "secondary-fixed-dim": "#82ea96",
+                "primary-fixed-dim": "#2be800",
+                "on-tertiary-fixed-variant": "#005e63",
+                "inverse-primary": "#106f00",
+                "outline-variant": "#464751",
+                "on-secondary-fixed": "#004a1e",
+                "on-secondary-fixed-variant": "#006a2e",
+                "outline": "#74757f",
+                "surface-variant": "#222531",
+                "on-background": "#ededf9",
+                "on-primary": "#0d6100",
+                "surface-bright": "#292c38",
+                "surface-container-low": "#11131c",
+                "primary-fixed": "#2ff801",
+                "inverse-on-surface": "#53545e",
+                "surface": "#0c0e16",
+                "on-error": "#450900",
+                "error-container": "#b92902",
+                "surface-container-lowest": "#000000",
+                "error": "#ff7351",
+                "tertiary": "#88f6ff",
+                "inverse-surface": "#faf8ff",
+                "surface-tint": "#39FF14",
+                "secondary-fixed": "#90f9a3",
+                "on-primary-container": "#0b5800",
+                "tertiary-dim": "#00deea",
+                "error-dim": "#d53d18",
+                "on-tertiary-fixed": "#003f43",
+                "on-secondary": "#005f28",
+                "primary-container": "#2ff801",
+                "secondary": "#90f9a3",
+                "surface-container-highest": "#222531",
+                "on-surface-variant": "#aaaab6",
+                "tertiary-fixed": "#17eefa",
+                "on-tertiary-container": "#005458",
+                "on-primary-fixed": "#064200"
+              },
+              fontFamily: {
+                "headline": ["Space Grotesk"],
+                "body": ["Manrope"],
+                "label": ["Manrope"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        @keyframes pulse-neon {
+            0%, 100% { box-shadow: 0 0 15px rgba(57, 255, 20, 0.4), 0 0 5px rgba(57, 255, 20, 0.2); transform: scale(1); }
+            50% { box-shadow: 0 0 30px rgba(57, 255, 20, 0.8), 0 0 15px rgba(57, 255, 20, 0.4); transform: scale(1.05); }
+        }
+        
+        .active-pulse {
+            animation: pulse-neon 2s infinite ease-in-out;
+        }
+
+        @keyframes flow-gradient {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 0% 200%; }
+        }
+
+        .flowing-line {
+            background: linear-gradient(to bottom, #39FF14 0%, #171923 50%, #39FF14 100%);
+            background-size: 100% 200%;
+            animation: flow-gradient 3s linear infinite;
+        }
+
+        .icon-glow:hover, .icon-active-glow {
+            filter: drop-shadow(0 0 8px #39FF14);
+            transition: all 0.3s ease;
+        }
+
+        .step-entry {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30 min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex items-center px-4 h-16 bg-[#0c0e16]/90 backdrop-blur-md">
+<div class="flex items-center gap-4 w-full">
+<button class="active:scale-95 transition-transform text-[#39FF14]">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="font-['Space_Grotesk'] uppercase tracking-widest text-sm font-bold text-[#39FF14]">SÜREÇ TAKİBİ</h1>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-24 pb-32 px-6 max-w-md mx-auto w-full">
+<!-- Vertical Progress Tracker -->
+<section class="px-2">
+<div class="relative">
+<!-- Timeline Line -->
+<div class="absolute left-[15px] top-4 bottom-4 w-[3px] bg-surface-variant/30 rounded-full overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-full flowing-line opacity-50"></div>
+</div>
+<div class="space-y-12">
+<!-- Step 1: Active -->
+<div class="relative flex items-center gap-8 group step-entry">
+<div class="z-10 w-8 h-8 rounded-full bg-primary flex items-center justify-center active-pulse icon-active-glow">
+<span class="material-symbols-outlined text-on-primary text-lg font-bold">sync_alt</span>
+</div>
+<div class="flex-grow">
+<p class="text-primary font-bold text-base font-headline uppercase tracking-wider">EŞLEŞME BEKLENİYOR</p>
+<p class="text-xs text-on-surface-variant mt-1 leading-relaxed">Yapay zeka ağ üzerinde en güvenli partneri arıyor...</p>
+</div>
+</div>
+<!-- Step 2: Pending -->
+<div class="relative flex items-center gap-8 opacity-30 grayscale step-entry group">
+<div class="z-10 w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">payments</span>
+</div>
+<div>
+<p class="text-on-surface font-bold text-sm font-headline uppercase tracking-wide">Ödeme Bekleniyor</p>
+</div>
+</div>
+<!-- Step 3: Pending -->
+<div class="relative flex items-center gap-8 opacity-30 grayscale step-entry group">
+<div class="z-10 w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">qr_code_2</span>
+</div>
+<div>
+<p class="text-on-surface font-bold text-sm font-headline uppercase tracking-wide">QR Kod Hazırlanıyor</p>
+</div>
+</div>
+<!-- Step 4: Pending -->
+<div class="relative flex items-center gap-8 opacity-30 grayscale step-entry group">
+<div class="z-10 w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">upload_file</span>
+</div>
+<div>
+<p class="text-on-surface font-bold text-sm font-headline uppercase tracking-wide">QR Yüklendi</p>
+</div>
+</div>
+<!-- Step 5: Pending -->
+<div class="relative flex items-center gap-8 opacity-30 grayscale step-entry group">
+<div class="z-10 w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">check_circle</span>
+</div>
+<div>
+<p class="text-on-surface font-bold text-sm font-headline uppercase tracking-wide">Tamamlandı</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Action Button Section -->
+<section class="mt-20 text-center space-y-6">
+<button class="w-full py-4 rounded-xl bg-error/5 border border-error/20 text-error font-headline font-bold uppercase tracking-[0.2em] text-xs active:scale-95 transition-all duration-300 hover:bg-error/10 hover:border-error/40">
+                İŞLEMİ İPTAL ET
+            </button>
+<div class="flex items-center justify-center gap-2 opacity-50">
+<span class="material-symbols-outlined text-sm text-error">info</span>
+<p class="text-[10px] text-on-surface font-medium uppercase tracking-widest">Geri dönüşü olmayan eylem</p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-6 pt-2 bg-[#0c0e16]/90 backdrop-blur-xl border-t border-surface-variant/20">
+<a class="flex flex-col items-center justify-center text-[#ededf9]/40 hover:text-primary transition-all duration-200 rounded-xl px-2 py-1" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-['Manrope'] text-[9px] font-bold uppercase tracking-tighter">Ana Sayfa</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#39FF14] bg-[#39FF14]/10 rounded-xl px-2 py-1 shadow-[0_0_10px_rgba(57,255,20,0.1)]" href="#">
+<span class="material-symbols-outlined mb-1">sync_alt</span>
+<span class="font-['Manrope'] text-[9px] font-bold uppercase tracking-tighter">Talepler</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#ededf9]/40 hover:text-primary transition-all duration-200 rounded-xl px-2 py-1" href="#">
+<span class="material-symbols-outlined mb-1">storefront</span>
+<span class="font-['Manrope'] text-[9px] font-bold uppercase tracking-tighter">Market</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#ededf9]/40 hover:text-primary transition-all duration-200 rounded-xl px-2 py-1" href="#">
+<span class="material-symbols-outlined mb-1">chat</span>
+<span class="font-['Manrope'] text-[9px] font-bold uppercase tracking-tighter">Mesajlarım</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#ededf9]/40 hover:text-primary transition-all duration-200 rounded-xl px-2 py-1" href="#">
+<span class="material-symbols-outlined mb-1">forum</span>
+<span class="font-['Manrope'] text-[9px] font-bold uppercase tracking-tighter">Muhabbet</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#ededf9]/40 hover:text-primary transition-all duration-200 rounded-xl px-2 py-1" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-['Manrope'] text-[9px] font-bold uppercase tracking-tighter">Profil</span>
+</a>
+</nav>
+</body></html>

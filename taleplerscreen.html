@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&amp;family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#8eff71",
+              "on-secondary-fixed-variant": "#006a2e",
+              "error-dim": "#d53d18",
+              "primary": "#8eff71",
+              "on-primary": "#0d6100",
+              "on-surface": "#ededf9",
+              "inverse-surface": "#faf8ff",
+              "tertiary-dim": "#00deea",
+              "on-surface-variant": "#aaaab6",
+              "surface-container-highest": "#222531",
+              "tertiary-fixed-dim": "#00deea",
+              "outline": "#74757f",
+              "surface-variant": "#222531",
+              "background": "#0c0e16",
+              "on-primary-container": "#0b5800",
+              "tertiary": "#88f6ff",
+              "primary-fixed": "#2ff801",
+              "outline-variant": "#464751",
+              "on-error-container": "#ffd2c8",
+              "surface-container-high": "#1d1f2a",
+              "error": "#ff7351",
+              "surface": "#0c0e16",
+              "on-secondary-fixed": "#004a1e",
+              "error-container": "#b92902",
+              "secondary-fixed": "#90f9a3",
+              "tertiary-fixed": "#17eefa",
+              "surface-container": "#171923",
+              "primary-fixed-dim": "#2be800",
+              "inverse-primary": "#106f00",
+              "on-primary-fixed-variant": "#0d6200",
+              "surface-container-lowest": "#000000",
+              "inverse-on-surface": "#53545e",
+              "secondary-dim": "#82ea96",
+              "secondary-container": "#006d2f",
+              "on-tertiary-fixed-variant": "#005e63",
+              "on-tertiary-container": "#005458",
+              "secondary": "#90f9a3",
+              "surface-dim": "#0c0e16",
+              "on-secondary-container": "#e4ffe2",
+              "primary-dim": "#2be800",
+              "on-error": "#450900",
+              "surface-bright": "#292c38",
+              "secondary-fixed-dim": "#82ea96",
+              "tertiary-container": "#17eefa",
+              "on-secondary": "#005f28",
+              "on-tertiary-fixed": "#003f43",
+              "on-tertiary": "#005d62",
+              "surface-container-low": "#11131c",
+              "on-background": "#ededf9",
+              "primary-container": "#2ff801",
+              "on-primary-fixed": "#064200"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-primary {
+            box-shadow: 0 0 15px rgba(142, 255, 113, 0.3);
+        }
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            background: rgba(17, 19, 28, 0.7);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 min-h-screen pb-32">
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 w-full flex justify-between items-center px-6 h-16 bg-[#0c0e16] bg-opacity-90 backdrop-blur-xl z-50 shadow-[0_4px_20px_rgba(142,255,113,0.05)] border-none">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#8eff71] text-2xl active:scale-95 duration-200 cursor-pointer">menu</span>
+<h1 class="font-['Space_Grotesk'] font-bold tracking-tight text-2xl font-black tracking-tighter text-[#8eff71] drop-shadow-[0_0_8px_rgba(142,255,113,0.4)]">Workigom</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary/20">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Professional male user profile avatar photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfar9-El8msPF-OnOJJb2lZYzd4WTiPOuj-rVr30iheCslj-7r7gZYUV-JFrlUOLhRHjrGmQKcw3omGm8GTFe6GPhquVNIShhGzB2lD7ZlnrzA2nSeKSUqTLf12m3MF-p5FN28TXaaR3dUbIIUFrlP4kS6Vz_hFgQut6OcNhOuf7R_U55b_lSjg8catwhC1dYbouyhHH9kDk89g4G6A819yfAuoHlY3bNMLoky0qmseqz5w9L_DQIIU2GdxnMn1ibLXgf4-6rTIQ"/>
+</div>
+</div>
+</header>
+<main class="mt-20 px-4">
+<!-- Main Screen Header -->
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-headline text-3xl font-bold tracking-tight uppercase text-on-surface">TALEPLER</h2>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 glow-primary active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'wght' 700">add</span>
+                Talep Oluştur
+            </button>
+</div>
+<!-- Horizontal Tabs -->
+<div class="flex items-center gap-6 mb-8 border-b border-outline-variant/10 overflow-x-auto whitespace-nowrap scrollbar-hide">
+<button class="pb-3 px-1 border-b-2 border-primary text-primary font-bold text-sm transition-all">Paylaşım Bekleyenler</button>
+<button class="pb-3 px-1 border-b-2 border-transparent text-on-surface-variant font-medium text-sm transition-all hover:text-on-surface">Paylaşımlarım</button>
+</div>
+<!-- Stats Section -->
+<div class="mb-8">
+<div class="bg-surface-container-low p-4 rounded-xl flex items-center gap-4 border border-outline-variant/5">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">assignment_turned_in</span>
+</div>
+<div>
+<p class="text-on-surface-variant text-xs font-label uppercase tracking-wider">Mevcut Durum</p>
+<p class="font-headline text-lg font-bold">AKTİF TALEPLER: 1</p>
+</div>
+</div>
+</div>
+<!-- Requests List -->
+<div class="space-y-6">
+<!-- Request Card 1 -->
+<div class="bg-surface-container rounded-[32px] overflow-hidden border border-outline-variant/5 shadow-xl">
+<!-- Card Header/User -->
+<div class="p-5 flex justify-between items-start">
+<div class="flex gap-4">
+<div class="relative">
+<img alt="Hasan Iki" class="w-14 h-14 rounded-2xl object-cover" data-alt="Smiling male user portrait with beard" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWiAOfXxX1Bk0D20dRoVkDxcrDQ2PtwE8snegSVUpAs62wBOfX0jg_Rr6A9uti6r7WtvU46m4-DO3bsh-K2NqOzZ9XgtmyA7lvfpiny-LQbhhYoOHHEyfo-jGrDw33v3YkGE3ltfaVIgWJ3RXK9r7qmTah0ijsW4trrlxzX7ecW8npAVatuQQW09VeDp6irZhGyszDxKAkca1vPxYOVFCUWIEMR-RlzfMBiXCb2sjEz_ujN7C0cfqFVVM0c__osn6owqq6sF1csQ"/>
+<div class="absolute -bottom-1 -right-1 bg-surface-container-highest p-1 rounded-lg border border-outline-variant/20">
+<span class="material-symbols-outlined text-primary text-[14px]" style="font-variation-settings: 'FILL' 1">verified</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline text-lg font-bold leading-none mb-1">hasan iki</h3>
+<div class="inline-flex items-center gap-1.5 bg-tertiary/10 px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-tertiary text-[12px]" style="font-variation-settings: 'FILL' 1">stars</span>
+<span class="text-tertiary text-[10px] font-bold uppercase tracking-tight">Gümüş Kalpli Üye</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">Menü Tutarı</p>
+<p class="text-primary font-headline text-xl font-black">1.500₺</p>
+</div>
+</div>
+<!-- Card Content -->
+<div class="px-5 pb-4">
+<div class="bg-surface-container-highest/50 rounded-2xl p-4 mb-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">restaurant</span>
+<span class="text-on-surface-variant text-xs font-bold uppercase tracking-widest">Açıklama</span>
+</div>
+<p class="text-on-surface font-medium italic">"aksam yemeği"</p>
+</div>
+<!-- Features/Chips -->
+<div class="flex flex-wrap gap-2 mb-6">
+<div class="bg-surface-container-low px-3 py-1.5 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">security</span>
+<span class="text-[11px] font-bold text-on-surface">Escrow</span>
+</div>
+<div class="bg-surface-container-low px-3 py-1.5 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">qr_code_2</span>
+<span class="text-[11px] font-bold text-on-surface">QR ile Ödeme</span>
+</div>
+<div class="bg-surface-container-low px-3 py-1.5 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">bolt</span>
+<span class="text-[11px] font-bold text-on-surface">Anında Transfer</span>
+</div>
+</div>
+<!-- Main CTA -->
+<button class="w-full bg-gradient-to-r from-primary to-[#2ff801] text-on-primary py-4 rounded-2xl font-black text-lg uppercase tracking-widest glow-primary active:scale-95 transition-all">
+                        Paylaş &amp; Kazan
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 backdrop-blur-2xl bg-[#0c0e16]/80 border-none bg-gradient-to-b from-[#161925] to-[#0c0e16] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] rounded-t-[32px]">
+<a class="flex flex-col items-center justify-center text-[#ededf9] opacity-50 hover:text-[#90f9a3] transition-all active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Manrope'] text-[10px] font-bold uppercase tracking-widest mt-1">Ana Sayfa</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8eff71] bg-[#8eff71]/10 rounded-full px-4 py-1 shadow-[0_0_15px_rgba(142,255,113,0.2)] active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="Assignment">assignment</span>
+<span class="font-['Manrope'] text-[10px] font-bold uppercase tracking-widest mt-1">Talepler</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#ededf9] opacity-50 hover:text-[#90f9a3] transition-all active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="storefront">storefront</span>
+<span class="font-['Manrope'] text-[10px] font-bold uppercase tracking-widest mt-1">Market</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#ededf9] opacity-50 hover:text-[#90f9a3] transition-all active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-['Manrope'] text-[10px] font-bold uppercase tracking-widest mt-1">Mesajlarım</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#ededf9] opacity-50 hover:text-[#90f9a3] transition-all active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Manrope'] text-[10px] font-bold uppercase tracking-widest mt-1">Profil</span>
+</a>
+</nav>
+</body></html>

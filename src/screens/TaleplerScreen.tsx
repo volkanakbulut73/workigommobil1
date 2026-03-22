@@ -2,8 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, RefreshControl, ActivityIndicator, Modal, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Layout } from '../components/Layout';
-import { Card } from '../components/Card';
-import { Plus, BarChart2, Shield, QrCode, X, Trash2 } from 'lucide-react-native';
+import { Plus, ClipboardList, CheckCircle2, Shield, QrCode, Zap, X, Trash2, Star, Utensils } from 'lucide-react-native';
 import { useAuthStore } from '../store/useAuthStore';
 import { useRequestStore } from '../store/useRequestStore';
 
@@ -12,73 +11,94 @@ const TalepCardItem = React.memo(({ item, isMine, profile, onAccept, onCancel, o
   const avatar = item.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${fullName.replace(' ', '+')}&background=33f20d&color=0a0b1e&rounded=true`;
 
   return (
-    <Card style={[styles.requestCard, isMine && styles.myRequestCard] as any}>
-      {isMine && (
-        <View style={styles.myBadge}>
-          <Text style={styles.myBadgeText}>SENİN PAYLAŞIMIN</Text>
-        </View>
-      )}
-
-      {/* Top Header */}
+    <View style={styles.requestCard}>
+      {/* Card Header / User Info */}
       <View style={styles.cardHeader}>
-        <View style={styles.userInfo}>
-          <Image source={{ uri: avatar }} style={[styles.avatar, isMine && { opacity: 0.7 }]} />
-          <Text style={[styles.userName, isMine && { opacity: 0.7 }]}>{fullName}</Text>
-        </View>
-        <View style={styles.amountContainer}>
-          <Text style={styles.amountText}>{Number(item.amount).toLocaleString('tr-TR')}₺</Text>
-          <Text style={styles.amountLabel}>MENÜ TUTARI</Text>
-        </View>
-      </View>
-
-      {/* Title */}
-      <View style={styles.titleContainer}>
-        <View style={styles.titleDot} />
-        <Text style={styles.titleText} numberOfLines={2}>{item.listing_title}</Text>
-      </View>
-
-      <View style={styles.divider} />
-
-      {/* Features / Actions */}
-      {isMine ? (
-        <View style={styles.actionRow}>
-          <TouchableOpacity 
-            style={[styles.btn, styles.btnFollow]} 
-            onPress={() => onFollow(item.id)}
-          >
-            <Text style={styles.btnFollowText}>Takip Et</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.btn, styles.btnCancel]} 
-            onPress={() => onCancel(item.id)}
-          >
-             <Trash2 color="#ef4444" size={14} style={{ marginRight: 4 }} />
-            <Text style={styles.btnCancelText}>İptal Et</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View>
-          <View style={styles.featuresRow}>
-            <View style={styles.featureItem}>
-              <Shield color="#666" size={12} style={{ marginRight: 4 }} />
-              <Text style={styles.featureText}>Escrow Güvencesi</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <QrCode color="#666" size={12} style={{ marginRight: 4 }} />
-              <Text style={styles.featureText}>QR ile Ödeme</Text>
+        <View style={styles.userInfoLeft}>
+          <View style={styles.avatarWrapper}>
+            <Image source={{ uri: avatar }} style={styles.avatar} />
+            <View style={styles.verifiedBadge}>
+              <CheckCircle2 color="#8eff71" size={14} fill="#171923" />
             </View>
           </View>
-
-          <TouchableOpacity 
-            style={styles.btnAccept}
-            onPress={() => onAccept(item)}
-          >
-            <Text style={styles.btnAcceptText}>Paylaş & Kazan</Text>
-          </TouchableOpacity>
+          <View>
+            <Text style={styles.userName}>{fullName}</Text>
+            {isMine ? (
+               <View style={styles.userBadge}>
+                 <Star color="#88f6ff" size={12} fill="#88f6ff" />
+                 <Text style={styles.userBadgeText}>SENİN PAYLAŞIMIN</Text>
+               </View>
+            ) : (
+               <View style={styles.userBadge}>
+                 <Star color="#88f6ff" size={12} fill="#88f6ff" />
+                 <Text style={styles.userBadgeText}>GÜMÜŞ KALPLİ ÜYE</Text>
+               </View>
+            )}
+          </View>
         </View>
-      )}
-    </Card>
+        <View style={styles.amountBox}>
+          <Text style={styles.amountLabel}>MENÜ TUTARI</Text>
+          <Text style={styles.amountValue}>{Number(item.amount).toLocaleString('tr-TR')}₺</Text>
+        </View>
+      </View>
+
+      {/* Card Content / Description */}
+      <View style={styles.cardContent}>
+        <View style={styles.descBox}>
+          <View style={styles.descHeader}>
+            <Utensils color="#aaaab6" size={14} />
+            <Text style={styles.descLabel}>AÇIKLAMA</Text>
+          </View>
+          <Text style={styles.descText}>"{item.listing_title}"</Text>
+        </View>
+
+        {/* Features / Chips */}
+        <View style={styles.featuresRow}>
+          <View style={styles.featureChip}>
+            <Shield color="#8eff71" size={14} />
+            <Text style={styles.featureChipText}>Escrow</Text>
+          </View>
+          <View style={styles.featureChip}>
+            <QrCode color="#8eff71" size={14} />
+            <Text style={styles.featureChipText}>QR ile Ödeme</Text>
+          </View>
+          <View style={styles.featureChip}>
+            <Zap color="#8eff71" size={14} />
+            <Text style={styles.featureChipText}>Anında Transfer</Text>
+          </View>
+        </View>
+
+        {/* CTA Buttons */}
+        {isMine ? (
+          <View style={styles.myActionsRow}>
+            <TouchableOpacity 
+              style={[styles.btn, styles.btnFollow]} 
+              onPress={() => onFollow(item.id)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.btnFollowText}>TAKİP ET</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.btn, styles.btnCancel]} 
+              onPress={() => onCancel(item.id)}
+              activeOpacity={0.8}
+            >
+               <Trash2 color="#ef4444" size={16} />
+              <Text style={styles.btnCancelText}>İPTAL ET</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity 
+            style={styles.mainCtaBtn}
+            onPress={() => onAccept(item)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.mainCtaBtnText}>PAYLAŞ & KAZAN</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
   );
 });
 
@@ -157,48 +177,53 @@ export function TaleplerScreen() {
   return (
     <Layout>
       <View style={styles.container}>
-        {/* Header Options */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>TALEPLER</Text>
+        
+        {/* Main Screen Header */}
+        <View style={styles.headerRow}>
+          <Text style={styles.screenTitle}>TALEPLER</Text>
           <TouchableOpacity 
             style={styles.addBtn}
             onPress={() => navigation.navigate('TaleplerCreate')}
+            activeOpacity={0.8}
           >
-            <Plus color="#0A0B1E" size={20} fontWeight="bold" />
+            <Plus color="#0d6100" size={16} strokeWidth={3} />
+            <Text style={styles.addBtnText}>Talep Oluştur</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Tabs */}
+        {/* Horizontal Tabs */}
         <View style={styles.tabsContainer}>
           <TouchableOpacity 
             style={[styles.tab, activeTab === 'other' && styles.activeTab]}
             onPress={() => setActiveTab('other')}
           >
-            <Text style={[styles.tabText, activeTab === 'other' && styles.activeTabText]}>PAYLAŞIM BEKLEYENLER</Text>
+            <Text style={[styles.tabText, activeTab === 'other' && styles.activeTabText]}>Paylaşım Bekleyenler</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tab, activeTab === 'my' && styles.activeTab]}
             onPress={() => setActiveTab('my')}
           >
-            <Text style={[styles.tabText, activeTab === 'my' && styles.activeTabText]}>PAYLAŞIMLARIM</Text>
+            <Text style={[styles.tabText, activeTab === 'my' && styles.activeTabText]}>Paylaşımlarım</Text>
           </TouchableOpacity>
         </View>
 
         {/* Stats Section */}
         <View style={styles.statsContainer}>
-          <View style={styles.statsContent}>
-            <Text style={styles.statsLabel}>AKTİF TALEPLER</Text>
-            <Text style={styles.statsValue}>{currentData.length}</Text>
-          </View>
-          <View style={styles.statsIconBox}>
-            <BarChart2 color="#33f20d" size={24} />
+          <View style={styles.statsBox}>
+            <View style={styles.statsIconWrapper}>
+              <ClipboardList color="#8eff71" size={24} />
+            </View>
+            <View>
+              <Text style={styles.statsLabel}>MEVCUT DURUM</Text>
+              <Text style={styles.statsValue}>AKTİF TALEPLER: {currentData.length}</Text>
+            </View>
           </View>
         </View>
 
-        {/* List */}
+        {/* Requests List */}
         {loading && currentData.length === 0 ? (
           <View style={styles.centerContainer}>
-            <ActivityIndicator color="#00FF00" size="large" />
+            <ActivityIndicator color="#8eff71" size="large" />
           </View>
         ) : (
           <FlatList
@@ -212,7 +237,7 @@ export function TaleplerScreen() {
             maxToRenderPerBatch={10}
             removeClippedSubviews={true}
             refreshControl={
-              <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor="#00FF00" />
+              <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor="#8eff71" />
             }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
@@ -237,7 +262,7 @@ export function TaleplerScreen() {
                    <Text style={styles.modalSubtitle}>{selectedTx?.profiles?.full_name || 'Kullanıcı'} için paylaşım oranını seçin</Text>
                 </View>
                 <TouchableOpacity onPress={() => setIsModalOpen(false)} style={styles.modalCloseBtn}>
-                  <X color="#aaa" size={24} />
+                  <X color="#aaaab6" size={24} />
                 </TouchableOpacity>
               </View>
 
@@ -273,7 +298,7 @@ export function TaleplerScreen() {
                     <Text style={styles.modalOptionEarnSub}>Yararlanıcı {((selectedTx?.amount || 0) * 0.90).toLocaleString('tr-TR')}₺ ödeyecek</Text>
                  </View>
                  <View style={styles.modalSelectBtn}>
-                   <Text style={styles.modalSelectBtnText}>Bunu Seç</Text>
+                   <Text style={styles.modalSelectBtnText}>BUNU SEÇ</Text>
                  </View>
               </TouchableOpacity>
 
@@ -307,248 +332,125 @@ export function TaleplerScreen() {
                     </View>
                  </View>
                  <View style={styles.modalSelectBtnGold}>
-                   <Text style={styles.modalSelectBtnTextGold}>Bunu Seç</Text>
+                   <Text style={styles.modalSelectBtnTextGold}>BUNU SEÇ</Text>
                  </View>
               </TouchableOpacity>
             </View>
           </View>
         </Modal>
+
       </View>
     </Layout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: {
+  container: {
+    flex: 1,
+    backgroundColor: '#0c0e16',
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingTop: 80, // Because Layout usually puts content at top under absolute headers
+    marginBottom: 24,
   },
-  headerTitle: {
-    color: '#33f20d',
-    fontSize: 14,
+  screenTitle: {
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 28,
     fontWeight: 'bold',
-    letterSpacing: 2,
+    color: '#ededf9',
+    textTransform: 'uppercase',
+    letterSpacing: -0.5,
   },
   addBtn: {
-    backgroundColor: '#33f20d',
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    justifyContent: 'center',
+    backgroundColor: '#8eff71',
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 9999,
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  addBtnText: {
+    color: '#0d6100',
+    fontFamily: 'Manrope-Bold',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   tabsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    marginHorizontal: 16,
+    marginBottom: 24,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(51, 242, 13, 0.1)',
+    borderBottomColor: 'rgba(70, 71, 81, 0.4)', // outline_variant with opacity
+    gap: 24,
   },
   tab: {
-    flex: 1,
     paddingVertical: 12,
-    alignItems: 'center',
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#33f20d',
+    borderBottomColor: '#8eff71',
   },
   tabText: {
-    color: '#666',
-    fontSize: 12,
-    fontWeight: 'bold',
+    color: '#aaaab6', // on-surface-variant
+    fontSize: 14,
+    fontFamily: 'Manrope-Medium',
+    fontWeight: '500',
   },
   activeTabText: {
-    color: '#33f20d',
+    color: '#8eff71',
+    fontFamily: 'Manrope-Bold',
+    fontWeight: 'bold',
   },
   statsContainer: {
-    marginHorizontal: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 16,
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+  statsBox: {
+    backgroundColor: '#11131c', // surface-container-low
     padding: 16,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    borderLeftWidth: 3,
-    borderLeftColor: '#33f20d',
-    marginBottom: 16,
+    gap: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(70, 71, 81, 0.2)',
   },
-  statsContent: {},
-  statsLabel: {
-    color: '#aaa',
-    fontSize: 10,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  statsValue: {
-    color: '#fff',
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  statsIconBox: {
+  statsIconWrapper: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(51, 242, 13, 0.1)',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(51, 242, 13, 0.2)',
+    justifyContent: 'center',
+  },
+  statsLabel: {
+    color: '#aaaab6',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+  statsValue: {
+    color: '#ededf9',
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 40,
-  },
-  requestCard: {
-    backgroundColor: '#12142d',
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-    overflow: 'hidden',
-  },
-  myRequestCard: {
-    opacity: 0.9,
-  },
-  myBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
-    zIndex: 10,
-  },
-  myBadgeText: {
-    color: '#aaa',
-    fontSize: 8,
-    fontWeight: 'bold',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-    paddingTop: 8,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-  userName: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  amountContainer: {
-    backgroundColor: '#1a471e',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  amountText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  amountLabel: {
-    color: 'rgba(51, 242, 13, 0.8)',
-    fontSize: 8,
-    fontWeight: 'bold',
-    marginTop: 2,
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  titleDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#666',
-    marginRight: 8,
-  },
-  titleText: {
-    color: '#ccc',
-    fontSize: 14,
-    flex: 1,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    marginBottom: 16,
-  },
-  featuresRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  featureText: {
-    color: '#aaa',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  btnAccept: {
-    backgroundColor: '#1b5e20',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  btnAcceptText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  btn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  btnFollow: {
-    backgroundColor: '#334155',
-  },
-  btnFollowText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
-  btnCancel: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-  },
-  btnCancelText: {
-    color: '#ef4444',
-    fontWeight: 'bold',
-    fontSize: 12,
+    gap: 24,
   },
   centerContainer: {
     flex: 1,
@@ -560,47 +462,243 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: '#666',
+    color: '#aaaab6',
     fontSize: 14,
+    fontFamily: 'Manrope-Regular',
   },
+  /* Card Styles */
+  requestCard: {
+    backgroundColor: '#171923', // surface-container
+    borderRadius: 32,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(70, 71, 81, 0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+    marginBottom: 24,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    padding: 20,
+  },
+  userInfoLeft: {
+    flexDirection: 'row',
+    gap: 16,
+    alignItems: 'center',
+  },
+  avatarWrapper: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: '#222531',
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    backgroundColor: '#222531',
+    borderRadius: 8,
+    padding: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(70, 71, 81, 0.4)',
+  },
+  userName: {
+    color: '#ededf9',
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  userBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(136, 246, 255, 0.1)', // tertiary/10
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 9999,
+    alignSelf: 'flex-start',
+    gap: 4,
+  },
+  userBadgeText: {
+    color: '#88f6ff', // tertiary
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: -0.5,
+  },
+  amountBox: {
+    alignItems: 'flex-end',
+  },
+  amountLabel: {
+    color: '#aaaab6', // on-surface-variant
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  amountValue: {
+    color: '#8eff71', // primary
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  cardContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  descBox: {
+    backgroundColor: 'rgba(34, 37, 49, 0.5)', // surface-container-highest/50
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+  },
+  descHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  descLabel: {
+    color: '#aaaab6',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+  descText: {
+    color: '#ededf9',
+    fontFamily: 'Manrope-Medium',
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+  featuresRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 24,
+  },
+  featureChip: {
+    backgroundColor: '#11131c', // surface-container-low
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 9999,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  featureChipText: {
+    color: '#ededf9',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  mainCtaBtn: {
+    backgroundColor: '#8eff71',
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  mainCtaBtnText: {
+    color: '#0d6100', // on-primary
+    fontFamily: 'Manrope-Black',
+    fontSize: 16,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+  myActionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  btn: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  btnFollow: {
+    backgroundColor: '#222531', // outline-variant kind of
+  },
+  btnFollowText: {
+    color: '#ededf9',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  btnCancel: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+  },
+  btnCancelText: {
+    color: '#ef4444',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  /* Modal Styles */
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.8)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#1a1d36',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
+    backgroundColor: '#171923',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
     maxHeight: '90%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   modalTitle: {
-    color: '#fff',
-    fontSize: 20,
+    color: '#ededf9',
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 24,
     fontWeight: 'bold',
   },
   modalSubtitle: {
-    color: '#aaa',
-    fontSize: 12,
+    color: '#aaaab6',
+    fontFamily: 'Manrope-Medium',
+    fontSize: 14,
     marginTop: 4,
   },
   modalCloseBtn: {
-    padding: 8,
+    padding: 12,
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: 20,
   },
   modalOptionContainer: {
-    backgroundColor: '#222542',
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: '#1d1f2a', // surface-container-high
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 20,
     borderWidth: 2,
     borderColor: '#3b82f6',
   },
@@ -612,55 +710,61 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   modalOptionTitle: {
     color: '#3b82f6',
-    fontSize: 18,
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 20,
     fontWeight: '900',
   },
   modalOptionTitleGold: {
     color: '#fbbf24',
-    fontSize: 18,
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 20,
     fontWeight: '900',
   },
   modalBadgeStandart: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingVertical: 6,
+    borderRadius: 9999,
   },
   modalBadgeTextStandart: {
-    color: '#fff',
-    fontSize: 10,
+    color: '#93c5fd',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
     fontWeight: 'bold',
   },
   modalBadgeGold: {
-    backgroundColor: '#fbbf24',
+    backgroundColor: 'rgba(251, 191, 36, 0.2)',
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingVertical: 6,
+    borderRadius: 9999,
   },
   modalBadgeTextGold: {
-    color: '#78350f',
-    fontSize: 10,
+    color: '#fde68a',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
     fontWeight: 'bold',
   },
   modalOptionDetails: {
-    marginBottom: 12,
-    gap: 8,
+    marginBottom: 16,
+    gap: 12,
   },
   modalOptionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   modalOptionRowLabel: {
-    color: '#888',
+    color: '#aaaab6',
+    fontFamily: 'Manrope-Medium',
     fontSize: 14,
   },
   modalOptionRowValue: {
-    color: '#ddd',
-    fontSize: 14,
+    color: '#ededf9',
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 16,
     fontWeight: 'bold',
   },
   modalOptionTotalRow: {
@@ -668,93 +772,103 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.1)',
-    paddingTop: 12,
-    marginBottom: 12,
+    paddingTop: 16,
+    marginBottom: 16,
   },
   modalOptionTotalLabel: {
-    color: '#3b82f6',
+    color: '#60a5fa',
+    fontFamily: 'Manrope-Bold',
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 16,
   },
   modalOptionTotalValue: {
-    color: '#3b82f6',
+    color: '#60a5fa',
+    fontFamily: 'SpaceGrotesk-Bold',
     fontWeight: '900',
-    fontSize: 18,
+    fontSize: 20,
   },
   modalOptionEarnBox: {
     backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   modalOptionEarnLabel: {
-    color: '#60a5fa',
+    color: '#93c5fd',
+    fontFamily: 'Manrope-Bold',
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   modalOptionEarnValue: {
-    color: '#3b82f6',
-    fontSize: 28,
+    color: '#60a5fa',
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 32,
     fontWeight: '900',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   modalOptionEarnSub: {
-    color: '#93c5fd',
-    fontSize: 10,
-    fontWeight: 'bold',
+    color: '#bfdbfe',
+    fontFamily: 'Manrope-Medium',
+    fontSize: 12,
   },
   modalSelectBtn: {
     backgroundColor: '#3b82f6',
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: 'center',
   },
   modalSelectBtnText: {
     color: '#fff',
+    fontFamily: 'Manrope-Bold',
     fontWeight: 'bold',
     fontSize: 14,
+    letterSpacing: 1,
   },
   modalOptionEarnBoxGold: {
     backgroundColor: 'rgba(251, 191, 36, 0.1)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
   },
   modalOptionEarnLabelGold: {
-    color: '#fcd34d',
-    fontSize: 12,
+    color: '#fde68a',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: 16,
     textAlign: 'center',
   },
   modalOptionGoldRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    padding: 16,
+    borderRadius: 12,
   },
   modalOptionGoldRowLabel: {
-    color: '#fde68a',
-    fontSize: 12,
-    fontWeight: 'bold',
+    color: '#fef3c7',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
   },
   modalOptionGoldRowValue: {
     color: '#fbbf24',
-    fontSize: 20,
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontSize: 24,
     fontWeight: '900',
   },
   modalSelectBtnGold: {
     backgroundColor: '#fbbf24',
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: 'center',
   },
   modalSelectBtnTextGold: {
     color: '#78350f',
+    fontFamily: 'Manrope-Bold',
     fontWeight: 'bold',
     fontSize: 14,
+    letterSpacing: 1,
   },
 });

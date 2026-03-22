@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, ScrollView, Alert, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { DBService } from '../services/dbService';
 import { useAuthStore } from '../store/useAuthStore';
 import { AnalyticsService } from '../services/analyticsService';
-import { ChevronLeft, Wallet, FileText, CheckCircle2 } from 'lucide-react-native';
+import { ChevronLeft, Wallet, FileText, CheckCircle2, Send, Users, Zap, ShieldCheck } from 'lucide-react-native';
 
 export function TaleplerCreateScreen() {
   const navigation = useNavigation<any>();
@@ -40,7 +40,6 @@ export function TaleplerCreateScreen() {
         description.trim()
       );
       AnalyticsService.trackEvent('talep_created', { amount: Number(amount) });
-      // Navigate to tracker
       navigation.replace('Tracker', { id: tx.id });
     } catch (error: any) {
       Alert.alert('Hata', error.message || 'Bir hata oluştu');
@@ -49,83 +48,111 @@ export function TaleplerCreateScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <SafeAreaView style={styles.container}>
+      {/* Header - normal flex, NOT absolute */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => step === 2 ? setStep(1) : navigation.goBack()} style={styles.backBtn}>
-          <ChevronLeft color="#fff" size={24} />
-          <Text style={styles.backText}>Geri</Text>
+        <TouchableOpacity 
+          style={styles.backBtn} 
+          onPress={() => step === 2 ? setStep(1) : navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <ChevronLeft color="#8eff71" size={20} strokeWidth={3} />
+          <Text style={styles.backText}>GERİ DÖN</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>TALEP OLUŞTUR</Text>
-        <View style={styles.headerRight} />
+        <Text style={styles.headerTitle}>Paylaşım Talebi</Text>
+        <View style={{ width: 80 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {/* Wizard Progress */}
-        <View style={styles.progressContainer}>
-          <View style={[styles.progressStep, step >= 1 && styles.progressActive]} />
-          <View style={[styles.progressStep, step >= 2 && styles.progressActive]} />
-        </View>
-
-        {step === 1 && (
+      {/* Scrollable Content */}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.content} 
+        keyboardShouldPersistTaps="handled" 
+        showsVerticalScrollIndicator={false}
+      >
+        {step === 1 ? (
           <View style={styles.stepContainer}>
-            <Text style={styles.title}>Paylaşım Detayları</Text>
-            <Text style={styles.subtitle}>Birlikte paylaşmak hem ekonomik hem eğlenceli!</Text>
-
+            
+            {/* MENÜ TUTARI */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>MENÜ TUTARI (TL)</Text>
-              <View style={styles.inputWrapper}>
-                <Wallet color="#39ff14" size={20} style={styles.inputIcon} />
+              <View style={styles.inputRow}>
+                <Wallet color="#8eff71" size={20} style={{ opacity: 0.5 }} />
                 <TextInput
-                  style={styles.input}
-                  placeholder="Örn: 150.00"
-                  placeholderTextColor="#666"
+                  style={styles.inputLarge}
+                  placeholder="0.00"
+                  placeholderTextColor="rgba(170, 170, 182, 0.3)"
                   keyboardType="numeric"
                   value={amount}
                   onChangeText={setAmount}
                 />
-                <Text style={styles.currency}>₺</Text>
+                <Text style={styles.currencySymbol}>₺</Text>
               </View>
+
+              {/* Discount Info */}
+              {Number(amount) > 0 && (
+                <View style={styles.discountBox}>
+                  <Text style={styles.discountText}>
+                    %15 düşülerek sizin nakit olarak ödeyeceğiniz tutar{' '}
+                    <Text style={styles.discountHighlight}>
+                      {Math.round(Number(amount) * 0.85).toLocaleString('tr-TR')} TL
+                    </Text>
+                  </Text>
+                  <Text style={styles.discountSub}>
+                    Eşleşme sonrası ödeme sayfasına yönlendirileceksiniz.
+                  </Text>
+                </View>
+              )}
             </View>
 
-            {Number(amount) > 0 && (
-              <View style={styles.alertBox}>
-                <Text style={styles.alertText}>
-                  Sizin ödeyeceğiniz tutar <Text style={styles.alertTextHighlight}>{Math.round(Number(amount) * 0.90)} TL</Text>'dir.
-                </Text>
-              </View>
-            )}
-
+            {/* AÇIKLAMA */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>AÇIKLAMA</Text>
-              <View style={[styles.inputWrapper, { height: 100, alignItems: 'flex-start' }]}>
-                <FileText color="#39ff14" size={20} style={[styles.inputIcon, { marginTop: 12 }]} />
+              <View style={styles.textAreaRow}>
+                <FileText color="#8eff71" size={20} style={{ opacity: 0.5, marginTop: 4 }} />
                 <TextInput
-                  style={[styles.input, { height: '100%', textAlignVertical: 'top', paddingTop: 14 }]}
-                  placeholder="Hadi bu paylaşımı efsane yapalım..."
-                  placeholderTextColor="#666"
+                  style={styles.textArea}
+                  placeholder="Hadi bu paylaşımı efsane yapalım!"
+                  placeholderTextColor="rgba(170, 170, 182, 0.3)"
                   multiline
+                  numberOfLines={4}
                   value={description}
                   onChangeText={setDescription}
                 />
               </View>
             </View>
 
-            <TouchableOpacity style={styles.btnPrimary} onPress={handleNext}>
-              <Text style={styles.btnPrimaryText}>Devam Et</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+            {/* Info Card */}
+            <View style={styles.infoCard}>
+              <View style={styles.infoHeader}>
+                <View style={styles.infoIconBox}>
+                  <Users color="#8eff71" size={24} />
+                </View>
+                <Text style={styles.infoTitle}>Birlikten Kuvvet Doğar</Text>
+              </View>
+              <Text style={styles.infoDesc}>
+                Paylaşım yaparak toplam tutarın yarısını tasarruf edebilir ve yeni insanlarla tanışabilirsin.
+              </Text>
+              <View style={styles.badgesRow}>
+                <View style={styles.badge}>
+                  <Zap color="#8eff71" size={14} fill="#8eff71" />
+                  <Text style={styles.badgeTextPrimary}>HIZLI EŞLEŞME</Text>
+                </View>
+                <View style={styles.badgeTertiary}>
+                  <ShieldCheck color="#88f6ff" size={14} />
+                  <Text style={styles.badgeTextTertiary}>GÜVENLİ</Text>
+                </View>
+              </View>
+            </View>
 
-        {step === 2 && (
+          </View>
+        ) : (
           <View style={styles.stepContainer}>
             <View style={styles.summaryIconBox}>
-              <CheckCircle2 color="#39ff14" size={48} />
+              <CheckCircle2 color="#8eff71" size={64} />
             </View>
-            <Text style={styles.title}>Özet</Text>
-            <Text style={styles.subtitle}>Talebinizi onaylamadan önce son kez göz atın.</Text>
+            <Text style={styles.summaryStepTitle}>Özet</Text>
+            <Text style={styles.summaryStepSubtitle}>Talebinizi onaylamadan önce son kez göz atın.</Text>
 
             <View style={styles.summaryCard}>
               <View style={styles.summaryRow}>
@@ -138,216 +165,302 @@ export function TaleplerCreateScreen() {
                 <Text style={styles.summaryValue}>{Number(amount).toLocaleString('tr-TR')} ₺</Text>
               </View>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Senin Payın (%90)</Text>
-                <Text style={styles.summaryHighlight}>{Math.round(Number(amount) * 0.90).toLocaleString('tr-TR')} ₺</Text>
+                <Text style={styles.summaryLabel}>Senin Payın (%85)</Text>
+                <Text style={styles.summaryHighlight}>{Math.round(Number(amount) * 0.85).toLocaleString('tr-TR')} ₺</Text>
               </View>
             </View>
-
-            <TouchableOpacity 
-              style={[styles.btnPrimary, loading && { opacity: 0.7 }]} 
-              onPress={handleSubmit}
-              disabled={loading}
-            >
-              <Text style={styles.btnPrimaryText}>
-                {loading ? 'Oluşturuluyor...' : 'Talebi Yayınla'}
-              </Text>
-            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
-    </KeyboardAvoidingView>
+
+      {/* Bottom CTA - normal flex, NOT absolute */}
+      <View style={styles.bottomFixed}>
+        {step === 1 ? (
+          <TouchableOpacity 
+            style={styles.mainCtaBtn} 
+            onPress={handleNext}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.mainCtaBtnText}>Devam Et</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity 
+            style={[styles.mainCtaBtn, loading && { opacity: 0.7 }]} 
+            onPress={handleSubmit}
+            disabled={loading}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.mainCtaBtnText}>
+              {loading ? 'Oluşturuluyor...' : 'TALEBİ OLUŞTUR'}
+            </Text>
+            {!loading && <Send color="#0d6100" size={24} />}
+          </TouchableOpacity>
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0b1e',
+    backgroundColor: '#0c0e16',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    paddingBottom: 16,
-    backgroundColor: 'rgba(10, 11, 30, 0.9)',
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? 40 : 8,
+    paddingBottom: 12,
+    backgroundColor: '#0c0e16',
   },
   backBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: 60,
+    gap: 8,
+    width: 100,
   },
   backText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    color: '#39ff14',
-    fontSize: 14,
+    color: 'rgba(237, 237, 249, 0.7)',
+    fontSize: 12,
     fontWeight: 'bold',
     letterSpacing: 2,
   },
-  headerRight: {
-    width: 60,
+  headerTitle: {
+    color: '#8eff71',
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 32,
-  },
-  progressStep: {
-    flex: 1,
-    height: 4,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 2,
-  },
-  progressActive: {
-    backgroundColor: '#39ff14',
-    shadowColor: '#39ff14',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
   },
   stepContainer: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#aaa',
-    marginBottom: 32,
+    gap: 24,
   },
   inputGroup: {
-    marginBottom: 24,
+    gap: 8,
   },
   label: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#666',
-    marginBottom: 8,
-    letterSpacing: 1,
+    color: '#aaaab6',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: -0.5,
+    marginLeft: 8,
   },
-  inputWrapper: {
+  inputRow: {
+    backgroundColor: '#222531',
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    position: 'relative',
-    overflow: 'hidden',
+    paddingHorizontal: 16,
   },
-  inputIcon: {
-    position: 'absolute',
-    left: 16,
-    zIndex: 1,
-    opacity: 0.7,
-  },
-  input: {
+  inputLarge: {
     flex: 1,
     paddingVertical: 18,
-    paddingLeft: 48,
-    paddingRight: 40,
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  currency: {
-    position: 'absolute',
-    right: 20,
-    color: '#666',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  alertBox: {
-    backgroundColor: 'rgba(57, 255, 20, 0.1)',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(57, 255, 20, 0.2)',
-  },
-  alertText: {
-    color: '#ccc',
-    fontSize: 13,
-  },
-  alertTextHighlight: {
-    color: '#39ff14',
-    fontWeight: 'bold',
-  },
-  btnPrimary: {
-    backgroundColor: '#39ff14',
-    paddingVertical: 18,
-    borderRadius: 16,
-    alignItems: 'center',
-    marginTop: 16,
-    shadowColor: '#39ff14',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-  },
-  btnPrimaryText: {
-    color: '#0a0b1e',
-    fontSize: 16,
+    paddingHorizontal: 12,
+    color: '#8eff71',
+    fontSize: 24,
     fontWeight: '900',
   },
-  summaryIconBox: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(57, 255, 20, 0.1)',
-    justifyContent: 'center',
+  currencySymbol: {
+    color: '#aaaab6',
+    fontSize: 22,
+    fontWeight: 'bold',
+    opacity: 0.5,
+  },
+  discountBox: {
+    backgroundColor: 'rgba(142, 255, 113, 0.08)',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#8eff71',
+  },
+  discountText: {
+    color: '#aaaab6',
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  discountHighlight: {
+    color: '#8eff71',
+    fontWeight: '900',
+    fontSize: 16,
+  },
+  discountSub: {
+    color: '#88f6ff',
+    fontSize: 12,
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  textAreaRow: {
+    backgroundColor: '#222531',
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  textArea: {
+    flex: 1,
+    paddingHorizontal: 12,
+    color: '#ededf9',
+    fontSize: 16,
+    textAlignVertical: 'top',
+    minHeight: 80,
+  },
+  infoCard: {
+    backgroundColor: '#11131c',
+    borderRadius: 24,
+    padding: 20,
+    overflow: 'hidden',
+  },
+  infoHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    gap: 12,
+    marginBottom: 12,
+  },
+  infoIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoTitle: {
+    color: '#ededf9',
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  infoDesc: {
+    color: '#aaaab6',
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 9999,
+  },
+  badgeTextPrimary: {
+    color: '#8eff71',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  badgeTertiary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(136, 246, 255, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 9999,
+  },
+  badgeTextTertiary: {
+    color: '#88f6ff',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  summaryIconBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
     alignSelf: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(57, 255, 20, 0.3)',
+    marginTop: 20,
+    marginBottom: 16,
+  },
+  summaryStepTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#ededf9',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  summaryStepSubtitle: {
+    fontSize: 14,
+    color: '#aaaab6',
+    textAlign: 'center',
+    marginBottom: 24,
   },
   summaryCard: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: '#11131c',
     borderRadius: 20,
     padding: 20,
-    marginBottom: 32,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(142, 255, 113, 0.1)',
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   summaryLabel: {
-    color: '#888',
+    color: '#aaaab6',
     fontSize: 14,
     fontWeight: 'bold',
     flex: 1,
   },
   summaryValue: {
-    color: '#fff',
+    color: '#ededf9',
     fontSize: 14,
     fontWeight: 'bold',
     flex: 2,
     textAlign: 'right',
   },
   summaryHighlight: {
-    color: '#39ff14',
-    fontSize: 18,
+    color: '#8eff71',
+    fontSize: 20,
     fontWeight: '900',
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    marginVertical: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    marginVertical: 12,
+  },
+  bottomFixed: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'android' ? 20 : 32,
+    backgroundColor: '#0c0e16',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.05)',
+  },
+  mainCtaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    backgroundColor: '#8eff71',
+    paddingVertical: 18,
+    borderRadius: 16,
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  mainCtaBtnText: {
+    color: '#0d6100',
+    fontSize: 16,
+    fontWeight: '900',
   },
 });
