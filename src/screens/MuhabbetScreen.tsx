@@ -1,9 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Modal } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, Dimensions } from 'react-native';
 import { useMuhabbetStore } from '../store/useMuhabbetStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { Layout } from '../components/Layout';
-import { Send, Globe, Users as UsersIcon, X } from 'lucide-react-native';
+import { supabase } from '../lib/supabase';
+import { Send, Globe, Users as UsersIcon, X, Bot } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
 
 export default function MuhabbetScreen() {
   const { profile } = useAuthStore();
@@ -17,8 +20,11 @@ export default function MuhabbetScreen() {
   } = useMuhabbetStore();
   
   const [inputText, setInputText] = useState('');
-  const [showUsersModal, setShowUsersModal] = useState(false);
+  const [showUsersSidebar, setShowUsersSidebar] = useState(false);
+  const [isBotTyping, setIsBotTyping] = useState(false);
+  
   const flatListRef = useRef<FlatList>(null);
+  const slideAnim = useRef(new Animated.Value(-width)).current;
   
   const ROOM_NAME = 'genel';
 
@@ -32,18 +38,64 @@ export default function MuhabbetScreen() {
     return () => leaveRoom();
   }, [profile?.id]);
 
+  // Sidebar Slide Animation
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: showUsersSidebar ? 0 : -width,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [showUsersSidebar]);
+
   const handleSend = async () => {
     if (!inputText.trim() || !profile) return;
     
     const content = inputText.trim();
-    setInputText('');
+    setInputText(''); // Optimistic UI clear
     
+    // Normal message handling
     await sendMessage(ROOM_NAME, {
       sender_id: profile.id,
       sender_name: profile.full_name || 'Anonim',
       avatar_url: profile.avatar_url || '',
       content: content
     });
+
+    // Check for bot trigger
+    const isBotTriggered = content.toLowerCase().includes('@workigom') || content.toLowerCase().includes('/workigom');
+    
+    if (isBotTriggered) {
+      setIsBotTyping(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('gemini-bot', {
+          body: { message: content, user_name: profile.full_name || 'Anonim' }
+        });
+
+        if (error) {
+          console.error("Supabase Edge Function Error:", error);
+          throw error;
+        }
+
+        const botReply = data?.response || data?.error || "Sanırım sistemlerimde bir arıza var...";
+
+        await sendMessage(ROOM_NAME, {
+          sender_id: 'bot-1',
+          sender_name: 'Workigom AI',
+          avatar_url: '',
+          content: botReply
+        });
+      } catch (err) {
+        console.error("Bot error details:", err);
+        await sendMessage(ROOM_NAME, {
+          sender_id: 'bot-1',
+          sender_name: 'Workigom AI',
+          avatar_url: '',
+          content: "Bağlantı hatası oluştu, Workigom AI'a ulaşılamıyor."
+        });
+      } finally {
+        setIsBotTyping(false);
+      }
+    }
   };
 
   const formatTime = (timestamp: string | undefined) => {
@@ -58,24 +110,29 @@ export default function MuhabbetScreen() {
 
   const renderMessage = ({ item }: { item: any }) => {
     const isMine = item.sender_id === profile?.id;
+    const isBot = item.sender_id === 'bot-1';
     
     return (
       <View style={[styles.messageRow, isMine ? styles.messageRowMine : styles.messageRowTheirs]}>
         {/* Avatar */}
         {!isMine && (
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarLetter}>{item.sender_name?.[0] || 'U'}</Text>
+          <View style={[styles.avatarCircle, isBot && styles.botAvatarCircle]}>
+            {isBot ? (
+              <Bot color="#FF007F" size={16} />
+            ) : (
+              <Text style={styles.avatarLetter}>{item.sender_name?.[0] || 'U'}</Text>
+            )}
           </View>
         )}
         
         <View style={[styles.messageContent, isMine && styles.messageContentMine]}>
           {/* Sender Name */}
-          <Text style={[styles.senderLabel, isMine && styles.senderLabelMine]}>
+          <Text style={[styles.senderLabel, isMine && styles.senderLabelMine, isBot && { color: '#FF007F' }]}>
             {isMine ? 'SİZ' : (item.sender_name || 'Anonim')}
           </Text>
           
           {/* Message Bubble */}
-          <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs]}>
+          <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs, isBot && styles.bubbleBot]}>
             <Text style={[styles.messageText, isMine ? styles.messageTextMine : styles.messageTextTheirs]}>
               {item.content}
             </Text>
@@ -98,119 +155,168 @@ export default function MuhabbetScreen() {
     );
   };
 
+  const renderTypingIndicator = () => {
+    if (!isBotTyping) return null;
+    return (
+      <View style={[styles.messageRow, styles.messageRowTheirs, { marginBottom: 12 }]}>
+         <View style={[styles.avatarCircle, styles.botAvatarCircle]}>
+            <Bot color="#FF007F" size={16} />
+         </View>
+         <View style={styles.messageContent}>
+           <Text style={[styles.senderLabel, { color: '#FF007F' }]}>WORKIGOM AI</Text>
+           <View style={[styles.bubble, styles.bubbleBot]}>
+              <Text style={[styles.messageText, styles.messageTextTheirs, { opacity: 0.6 }]}>
+                Workigom AI düşünüyor...
+              </Text>
+           </View>
+         </View>
+      </View>
+    );
+  };
+
   return (
     <Layout>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Globe color="#8eff71" size={22} />
-          <View>
-            <Text style={styles.headerTitle}>MUHABBET</Text>
-            <Text style={styles.headerSubtitle}>Global Chat</Text>
+      <View style={styles.screenContainer}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Globe color="#8eff71" size={22} />
+            <View>
+              <Text style={styles.headerTitle}>MUHABBET</Text>
+              <Text style={styles.headerSubtitle}>Global Chat</Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity 
-            style={styles.onlineBadge}
-            onPress={() => setShowUsersModal(true)}
-          >
-            <View style={styles.onlineDot} />
-            <Text style={styles.onlineText}>{onlineUsers}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowUsersModal(true)}>
-            <UsersIcon color="#8eff71" size={20} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
-        style={styles.keyboardContainer}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
-        {/* Welcome Banner */}
-        <View style={styles.welcomeBanner}>
-          <View style={styles.welcomeDivider} />
-          <View style={styles.welcomeBox}>
-            <Text style={styles.welcomeTitle}>GENEL SOHBET. ŞİFRELİ OTURUMA HOŞ GELDİNİZ.</Text>
-            <Text style={styles.welcomeSub}>WORKIGOM{'<'}CHAT{'>'}</Text>
-          </View>
-          <View style={styles.welcomeDivider} />
-        </View>
-
-        {/* Messages */}
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={renderMessage}
-          inverted
-          contentContainerStyle={styles.listContent}
-        />
-
-        {/* Input Dock — floating pill */}
-        <View style={styles.inputDock}>
-          <View style={styles.inputPill}>
-            <TextInput
-              style={styles.input}
-              placeholder="Bir mesaj yazın..."
-              placeholderTextColor="#aaaab6"
-              value={inputText}
-              onChangeText={setInputText}
-              multiline
-              maxLength={500}
-            />
+          <View style={styles.headerRight}>
             <TouchableOpacity 
-              onPress={handleSend} 
-              disabled={!inputText.trim()}
-              style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+              style={styles.onlineBadge}
+              onPress={() => setShowUsersSidebar(true)}
             >
-              <Send color={inputText.trim() ? "#0d6100" : "#aaaab6"} size={18} />
+              <View style={styles.onlineDot} />
+              <Text style={styles.onlineText}>{onlineUsers}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowUsersSidebar(true)}>
+              <UsersIcon color="#8eff71" size={20} />
             </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAvoidingView>
 
-      {/* Online Users Modal */}
-      <Modal
-        visible={showUsersModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowUsersModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>ÇEVRİMİÇİ KULLANICILAR</Text>
-              <TouchableOpacity onPress={() => setShowUsersModal(false)} style={styles.modalCloseButton}>
-                <X color="#aaaab6" size={20} />
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+          style={styles.keyboardContainer}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        >
+          {/* Welcome Banner */}
+          <View style={styles.welcomeBanner}>
+            <View style={styles.welcomeDivider} />
+            <View style={styles.welcomeBox}>
+              <Text style={styles.welcomeTitle}>GENEL SOHBET. ŞİFRELİ OTURUMA HOŞ GELDİNİZ.</Text>
+              <Text style={styles.welcomeSub}>WORKIGOM{'<'}CHAT{'>'}</Text>
+            </View>
+            <View style={styles.welcomeDivider} />
+          </View>
+
+          {/* Messages */}
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={renderMessage}
+            ListHeaderComponent={renderTypingIndicator} // Renders at bottom due to inverted
+            inverted
+            contentContainerStyle={styles.listContent}
+          />
+
+          {/* Input Dock */}
+          <View style={styles.inputDock}>
+            <View style={styles.inputPill}>
+              <TextInput
+                style={styles.input}
+                placeholder="@workigom yazarak çağırın..."
+                placeholderTextColor="#aaaab6"
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
+                maxLength={500}
+              />
+              <TouchableOpacity 
+                onPress={handleSend} 
+                disabled={!inputText.trim()}
+                style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+              >
+                <Send color={inputText.trim() ? "#0d6100" : "#aaaab6"} size={18} />
               </TouchableOpacity>
             </View>
-            <View style={styles.modalDivider} />
-            <FlatList
-              data={presenceList}
-              keyExtractor={(item, index) => item?.id || index.toString()}
-              renderItem={({ item }) => (
-                <View style={styles.userRow}>
-                  <View style={styles.userAvatar}>
-                    <Text style={styles.userAvatarText}>
-                      {(item?.name || 'U')[0].toUpperCase()}
-                    </Text>
-                  </View>
-                  <Text style={styles.userName}>{item?.name || 'Anonim'}</Text>
-                  <View style={styles.onlineDot} />
-                </View>
-              )}
-              contentContainerStyle={styles.usersListContainer}
-            />
           </View>
-        </View>
-      </Modal>
+        </KeyboardAvoidingView>
+
+        {/* --- Side Drawer Overlay --- */}
+        {showUsersSidebar && (
+          <TouchableOpacity 
+            style={styles.drawerOverlay} 
+            activeOpacity={1} 
+            onPress={() => setShowUsersSidebar(false)} 
+          />
+        )}
+
+        {/* --- Side Drawer Content --- */}
+        <Animated.View style={[styles.drawerContainer, { transform: [{ translateX: slideAnim }] }]}>
+          <View style={styles.drawerHeader}>
+            <View style={styles.drawerHeaderTitleRow}>
+              <View style={styles.onlineDot} />
+              <Text style={styles.drawerTitle}>ÇEVRİMİÇİ KULLANICILAR</Text>
+            </View>
+            <TouchableOpacity onPress={() => setShowUsersSidebar(false)}>
+              <X color="#aaaab6" size={20} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.drawerDivider} />
+          
+          <FlatList
+            data={presenceList}
+            keyExtractor={(item, index) => item?.id || index.toString()}
+            contentContainerStyle={styles.drawerList}
+            renderItem={({ item }) => (
+              <View style={styles.drawerUserRow}>
+                <View style={[styles.drawerAvatar, item?.id === profile?.id && { backgroundColor: '#39FF14', borderColor: '#39FF14' }]}>
+                  <Text style={[styles.drawerAvatarText, item?.id === profile?.id && { color: '#0d6100' }]}>
+                    {(item?.name || 'U')[0].toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.drawerUserInfo}>
+                  <Text style={styles.drawerUserName}>
+                    {item?.id === profile?.id ? `${item?.name} (Siz)` : (item?.name || 'Anonim')}
+                  </Text>
+                  <Text style={styles.drawerUserSub}>Online</Text>
+                </View>
+              </View>
+            )}
+            ListHeaderComponent={() => (
+              <View style={{ marginBottom: 16 }}>
+                <Text style={styles.drawerSectionTitle}>DROIDS (Yapay Zeka)</Text>
+                <View style={[styles.drawerUserRow, { marginTop: 8 }]}>
+                  <View style={[styles.drawerAvatar, { backgroundColor: '#0a0b1e', borderColor: 'rgba(255, 0, 127, 0.4)' }]}>
+                    <Bot color="#FF007F" size={16} />
+                  </View>
+                  <View style={styles.drawerUserInfo}>
+                    <Text style={[styles.drawerUserName, { color: '#FF007F' }]}>Workigom AI</Text>
+                    <Text style={styles.drawerUserSub}>Geçerli Oda: Global Chat</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+          />
+        </Animated.View>
+
+      </View>
     </Layout>
   );
 }
 
 const styles = StyleSheet.create({
+  screenContainer: {
+    flex: 1,
+    position: 'relative',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -333,6 +439,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(142, 255, 113, 0.3)',
   },
+  botAvatarCircle: {
+    backgroundColor: '#0a0b1e',
+    borderColor: 'rgba(255, 0, 127, 0.3)',
+  },
   avatarLetter: {
     color: '#8eff71',
     fontSize: 14,
@@ -396,6 +506,15 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(70, 71, 81, 0.1)',
+  },
+  bubbleBot: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 0, 127, 0.2)',
+    shadowColor: '#FF007F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
   messageText: {
     fontSize: 14,
@@ -465,68 +584,90 @@ const styles = StyleSheet.create({
     backgroundColor: '#222531',
     shadowOpacity: 0,
   },
-  modalOverlay: {
-    flex: 1,
+  
+  // Drawer Styles
+  drawerOverlay: {
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    zIndex: 99,
   },
-  modalContent: {
-    backgroundColor: '#11141e',
-    width: '100%',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(142, 255, 113, 0.2)',
-    maxHeight: '70%',
+  drawerContainer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    width: width * 0.75, // 75% of screen
+    backgroundColor: '#1C2541',
+    zIndex: 100,
+    borderRightWidth: 1,
+    borderColor: 'rgba(142, 255, 113, 0.1)',
   },
-  modalHeader: {
+  drawerHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(11, 19, 43, 0.5)',
   },
-  modalTitle: {
-    color: '#8eff71',
-    fontSize: 14,
+  drawerHeaderTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  drawerTitle: {
+    color: '#aaaab6',
+    fontSize: 10,
     fontWeight: 'bold',
     letterSpacing: 2,
   },
-  modalCloseButton: {
-    padding: 4,
-  },
-  modalDivider: {
+  drawerDivider: {
     height: 1,
     backgroundColor: 'rgba(142, 255, 113, 0.1)',
   },
-  usersListContainer: {
-    padding: 16,
-    gap: 12,
+  drawerList: {
+    padding: 20,
   },
-  userRow: {
+  drawerSectionTitle: {
+    color: '#aaaab6',
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  drawerUserRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    marginBottom: 16,
   },
-  userAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+  drawerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(28, 37, 65, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(142, 255, 113, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(142, 255, 113, 0.3)',
   },
-  userAvatarText: {
+  drawerAvatarText: {
     color: '#8eff71',
-    fontWeight: 'bold',
     fontSize: 16,
+    fontWeight: 'bold',
   },
-  userName: {
+  drawerUserInfo: {
     flex: 1,
+  },
+  drawerUserName: {
     color: '#ededf9',
     fontSize: 14,
     fontWeight: '600',
+  },
+  drawerUserSub: {
+    color: '#aaaab6',
+    fontSize: 10,
+    marginTop: 2,
   },
 });
