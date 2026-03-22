@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, RefreshControl, ActivityIndicator, Modal, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Layout } from '../components/Layout';
 import { Plus, ClipboardList, CheckCircle2, Shield, QrCode, Zap, X, Trash2, Star, Utensils } from 'lucide-react-native';
 import { useAuthStore } from '../store/useAuthStore';
@@ -136,12 +136,14 @@ export function TaleplerScreen() {
   const [selectedTx, setSelectedTx] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    const userId = profile?.id || user?.id;
-    if (userId) {
-      fetchTransactions(userId);
-    }
-  }, [profile?.id, user?.id]);
+  useFocusEffect(
+    useCallback(() => {
+      const userId = profile?.id || user?.id;
+      if (userId) {
+        fetchTransactions(userId);
+      }
+    }, [profile?.id, user?.id, fetchTransactions])
+  );
 
   const onRefresh = useCallback(() => {
     const userId = profile?.id || user?.id;
