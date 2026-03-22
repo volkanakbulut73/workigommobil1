@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Keyboard
 import { useMuhabbetStore } from '../store/useMuhabbetStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { Layout } from '../components/Layout';
-import { Send } from 'lucide-react-native';
+import { Send, Globe, Users as UsersIcon } from 'lucide-react-native';
 
 export default function MuhabbetScreen() {
   const { profile } = useAuthStore();
@@ -44,41 +44,94 @@ export default function MuhabbetScreen() {
     });
   };
 
+  const formatTime = (timestamp: string | undefined) => {
+    if (!timestamp) return '';
+    try {
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return '';
+    }
+  };
+
   const renderMessage = ({ item }: { item: any }) => {
     const isMine = item.sender_id === profile?.id;
     
     return (
-      <View style={[styles.messageWrapper, isMine ? styles.myMessageWrapper : styles.theirMessageWrapper]}>
+      <View style={[styles.messageRow, isMine ? styles.messageRowMine : styles.messageRowTheirs]}>
+        {/* Avatar */}
         {!isMine && (
-          <View style={styles.avatarPlaceholder}>
-             <Text style={styles.avatarText}>{item.sender_name?.[0] || 'U'}</Text>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarLetter}>{item.sender_name?.[0] || 'U'}</Text>
           </View>
         )}
-        <View style={[styles.messageBubble, isMine ? styles.myBubble : styles.theirBubble]}>
-          {!isMine && <Text style={styles.senderName}>{item.sender_name}</Text>}
-          <Text style={[styles.messageText, isMine ? styles.myText : styles.theirText]}>
-            {item.content}
+        
+        <View style={[styles.messageContent, isMine && styles.messageContentMine]}>
+          {/* Sender Name */}
+          <Text style={[styles.senderLabel, isMine && styles.senderLabelMine]}>
+            {isMine ? 'SİZ' : (item.sender_name || 'Anonim')}
           </Text>
+          
+          {/* Message Bubble */}
+          <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs]}>
+            <Text style={[styles.messageText, isMine ? styles.messageTextMine : styles.messageTextTheirs]}>
+              {item.content}
+            </Text>
+          </View>
+          
+          {/* Time */}
+          {item.created_at && (
+            <Text style={[styles.timeLabel, isMine && styles.timeLabelMine]}>
+              {formatTime(item.created_at)}
+            </Text>
+          )}
         </View>
+
+        {isMine && (
+          <View style={styles.avatarCircleMine}>
+            <Text style={styles.avatarLetterMine}>{profile?.full_name?.[0] || 'U'}</Text>
+          </View>
+        )}
       </View>
     );
   };
 
   return (
     <Layout>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Muhabbet</Text>
-        <View style={styles.onlineBadge}>
-          <View style={styles.onlineDot} />
-          <Text style={styles.onlineText}>{onlineUsers} Online</Text>
+        <View style={styles.headerLeft}>
+          <Globe color="#8eff71" size={22} />
+          <View>
+            <Text style={styles.headerTitle}>MUHABBET</Text>
+            <Text style={styles.headerSubtitle}>Global Chat</Text>
+          </View>
+        </View>
+        <View style={styles.headerRight}>
+          <View style={styles.onlineBadge}>
+            <View style={styles.onlineDot} />
+            <Text style={styles.onlineText}>{onlineUsers}</Text>
+          </View>
+          <UsersIcon color="#8eff71" size={20} />
         </View>
       </View>
-      
+
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
         style={styles.keyboardContainer}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
+        {/* Welcome Banner */}
+        <View style={styles.welcomeBanner}>
+          <View style={styles.welcomeDivider} />
+          <View style={styles.welcomeBox}>
+            <Text style={styles.welcomeTitle}>GENEL SOHBET. ŞİFRELİ OTURUMA HOŞ GELDİNİZ.</Text>
+            <Text style={styles.welcomeSub}>WORKIGOM{'<'}CHAT{'>'}</Text>
+          </View>
+          <View style={styles.welcomeDivider} />
+        </View>
+
+        {/* Messages */}
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -88,23 +141,26 @@ export default function MuhabbetScreen() {
           contentContainerStyle={styles.listContent}
         />
 
+        {/* Input Dock — floating pill */}
         <View style={styles.inputDock}>
-          <TextInput
-            style={styles.input}
-            placeholder="Sosyalleş..."
-            placeholderTextColor="#ababab"
-            value={inputText}
-            onChangeText={setInputText}
-            multiline
-            maxLength={500}
-          />
-          <TouchableOpacity 
-            onPress={handleSend} 
-            disabled={!inputText.trim()}
-            style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
-          >
-            <Send color={inputText.trim() ? "#00fd00" : "#484848"} size={20} />
-          </TouchableOpacity>
+          <View style={styles.inputPill}>
+            <TextInput
+              style={styles.input}
+              placeholder="Bir mesaj yazın..."
+              placeholderTextColor="#aaaab6"
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+              maxLength={500}
+            />
+            <TouchableOpacity 
+              onPress={handleSend} 
+              disabled={!inputText.trim()}
+              style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+            >
+              <Send color={inputText.trim() ? "#0d6100" : "#aaaab6"} size={18} />
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </Layout>
@@ -116,142 +172,254 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#000',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    backgroundColor: '#0c0e16',
     borderBottomWidth: 1,
-    borderBottomColor: '#191919'
+    borderBottomColor: 'rgba(70, 71, 81, 0.1)',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   headerTitle: {
-    fontSize: 24,
+    color: '#8eff71',
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+  },
+  headerSubtitle: {
+    color: '#aaaab6',
+    fontSize: 10,
     fontWeight: 'bold',
-    color: '#fff',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   onlineBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#191919',
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 4,
+    borderRadius: 9999,
+    gap: 6,
   },
   onlineDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#00fd00',
-    marginRight: 6,
-    shadowColor: '#01ed00',
+    backgroundColor: '#8eff71',
+    shadowColor: '#8eff71',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 4,
-    elevation: 4
+    elevation: 4,
   },
   onlineText: {
-    color: '#fff',
+    color: '#8eff71',
     fontSize: 12,
-    fontWeight: '600'
+    fontWeight: '900',
   },
   keyboardContainer: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#0c0e16',
   },
-  listContent: {
-    padding: 16,
+  welcomeBanner: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    alignItems: 'center',
     gap: 8,
   },
-  messageWrapper: {
+  welcomeDivider: {
+    height: 1,
+    width: '100%',
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+  },
+  welcomeBox: {
+    backgroundColor: 'rgba(142, 255, 113, 0.05)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  welcomeTitle: {
+    color: '#8eff71',
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  welcomeSub: {
+    color: '#aaaab6',
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 3,
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+    gap: 16,
+  },
+  messageRow: {
     flexDirection: 'row',
-    marginBottom: 8,
-    alignItems: 'flex-end',
+    maxWidth: '85%',
+    gap: 10,
   },
-  myMessageWrapper: {
-    justifyContent: 'flex-end',
+  messageRowMine: {
+    alignSelf: 'flex-end',
+    flexDirection: 'row-reverse',
   },
-  theirMessageWrapper: {
-    justifyContent: 'flex-start',
+  messageRowTheirs: {
+    alignSelf: 'flex-start',
   },
-  avatarPlaceholder: {
+  avatarCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#191919',
+    backgroundColor: 'rgba(142, 255, 113, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(142, 255, 113, 0.3)',
   },
-  avatarText: {
-    color: '#00fd00',
+  avatarLetter: {
+    color: '#8eff71',
     fontSize: 14,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
-  messageBubble: {
-    maxWidth: '78%',
+  avatarCircleMine: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#8eff71',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#8eff71',
+  },
+  avatarLetterMine: {
+    color: '#0d6100',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  messageContent: {
+    flexShrink: 1,
+    gap: 4,
+  },
+  messageContentMine: {
+    alignItems: 'flex-end',
+  },
+  senderLabel: {
+    color: 'rgba(142, 255, 113, 0.7)',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginLeft: 4,
+  },
+  senderLabelMine: {
+    marginLeft: 0,
+    marginRight: 4,
+  },
+  bubble: {
     paddingHorizontal: 16,
     paddingVertical: 12,
+    maxWidth: '100%',
   },
-  myBubble: {
-    backgroundColor: '#00fd00', // primary_fixed
+  bubbleMine: {
+    backgroundColor: '#8eff71',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 0,
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
   },
-  theirBubble: {
-    backgroundColor: '#262626', // surface_container_highest
-    borderTopLeftRadius: 16,
+  bubbleTheirs: {
+    backgroundColor: '#1d1f2a',
+    borderTopLeftRadius: 0,
     borderTopRightRadius: 16,
+    borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
-    borderBottomLeftRadius: 0,
-  },
-  senderName: {
-    color: '#ababab', // on_surface_variant
-    fontSize: 12,
-    marginBottom: 4,
-    fontWeight: '700'
+    borderWidth: 1,
+    borderColor: 'rgba(70, 71, 81, 0.1)',
   },
   messageText: {
-    fontSize: 16,
+    fontSize: 14,
     lineHeight: 22,
   },
-  myText: {
-    color: '#014500', // on_primary_fixed
-    fontWeight: '500'
+  messageTextMine: {
+    color: '#0d6100',
+    fontWeight: 'bold',
   },
-  theirText: {
-    color: '#ffffff',
+  messageTextTheirs: {
+    color: '#ededf9',
+    fontWeight: '500',
+  },
+  timeLabel: {
+    color: '#aaaab6',
+    fontSize: 9,
+    fontWeight: 'bold',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginLeft: 4,
+    marginTop: 2,
+  },
+  timeLabelMine: {
+    marginLeft: 0,
+    marginRight: 4,
   },
   inputDock: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+    backgroundColor: '#0c0e16',
+  },
+  inputPill: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#191919',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    paddingBottom: Platform.OS === 'ios' ? 32 : 12,
+    backgroundColor: 'rgba(34, 37, 49, 0.8)',
+    borderRadius: 9999,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(70, 71, 81, 0.3)',
   },
   input: {
     flex: 1,
-    backgroundColor: '#262626',
-    borderRadius: 24,
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
-    color: '#ffffff',
-    fontSize: 16,
-    maxHeight: 120,
-    minHeight: 48,
+    paddingTop: 10,
+    paddingBottom: 10,
+    color: '#ededf9',
+    fontSize: 14,
+    fontWeight: '500',
+    maxHeight: 100,
+    minHeight: 40,
   },
   sendButton: {
-    marginLeft: 12,
-    marginBottom: 4,
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#262626',
+    backgroundColor: '#8eff71',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   sendButtonDisabled: {
-    opacity: 0.5,
-  }
+    backgroundColor: '#222531',
+    shadowOpacity: 0,
+  },
 });
