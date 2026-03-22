@@ -6,6 +6,10 @@ import { AnalyticsService } from './src/services/analyticsService';
 import * as Sentry from '@sentry/react-native';
 import Toast from 'react-native-toast-message';
 import NetInfo from '@react-native-community/netinfo';
+import * as SplashScreen from 'expo-splash-screen';
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const FallbackComponent = (props: { error: unknown; resetError: () => void }) => (
   <View style={styles.errorContainer}>
@@ -19,7 +23,13 @@ function App() {
   const [isConnected, setIsConnected] = useState<boolean | null>(true);
 
   useEffect(() => {
-    AnalyticsService.init();
+    // Hide splash screen unconditionally to prevent locking
+    SplashScreen.hideAsync().catch(() => {});
+
+    // Bypass initial locking services
+    setTimeout(() => {
+      AnalyticsService.init();
+    }, 1000);
 
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsConnected(state.isConnected);
