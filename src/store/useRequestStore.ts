@@ -21,11 +21,20 @@ export const useRequestStore = create<RequestStore>((set) => ({
   fetchTransactions: async (userId) => {
     set({ loading: true, error: null });
     try {
-      const data = await DBService.getPendingTransactions();
-      
-      const allTxs = data || [];
-      const myTxs = userId ? allTxs.filter((tx: any) => tx.seeker_id === userId) : [];
-      const otherTxs = userId ? allTxs.filter((tx: any) => tx.seeker_id !== userId) : allTxs;
+      const pendingData = await DBService.getPendingTransactions();
+      const allPending = pendingData || [];
+      const otherTxs = userId ? allPending.filter((tx: any) => tx.seeker_id !== userId) : allPending;
+
+      let myTxs: any[] = [];
+      if (userId) {
+        const { supabase } = await import('../lib/supabase');
+        const { data } = await supabase
+          .from('transactions')
+          .select(`*, profiles!transactions_seeker_id_fkey(full_name, rating, avatar_url)`)
+          .or(`seeker_id.eq.${userId},supporter_id.eq.${userId}`)
+          .order('created_at', { ascending: false });
+        if (data) myTxs = data;
+      }
 
       set({ otherTransactions: otherTxs, myTransactions: myTxs, loading: false });
     } catch (err: any) {
@@ -38,12 +47,8 @@ export const useRequestStore = create<RequestStore>((set) => ({
     try {
       await DBService.acceptTransaction(transactionId, supporterId, supportPercentage);
       AnalyticsService.trackEvent('talep_accepted', { transactionId, supportPercentage });
-      // Re-fetch to update lists
-      const data = await DBService.getPendingTransactions();
-      const allTxs = data || [];
-      const myTxs = allTxs.filter((tx: any) => tx.seeker_id === supporterId);
-      const otherTxs = allTxs.filter((tx: any) => tx.seeker_id !== supporterId);
-      set({ otherTransactions: otherTxs, myTransactions: myTxs, loading: false });
+      // Use the store's fetch method to properly rehydrate both lists
+      await useRequestStore.getState().fetchTransactions(supporterId);
     } catch (err: any) {
       set({ error: err.message, loading: false });
     }
@@ -54,12 +59,8 @@ export const useRequestStore = create<RequestStore>((set) => ({
     try {
       await DBService.updateTransactionStatus(transactionId, 'cancelled');
       AnalyticsService.trackEvent('talep_cancelled', { transactionId });
-      // Re-fetch to update lists
-      const data = await DBService.getPendingTransactions();
-      const allTxs = data || [];
-      const myTxs = allTxs.filter((tx: any) => tx.seeker_id === userId);
-      const otherTxs = allTxs.filter((tx: any) => tx.seeker_id !== userId);
-      set({ otherTransactions: otherTxs, myTransactions: myTxs, loading: false });
+      // Use the store's fetch method
+      await useRequestStore.getState().fetchTransactions(userId);
     } catch (err: any) {
       set({ error: err.message, loading: false });
     }

@@ -71,22 +71,39 @@ const TalepCardItem = React.memo(({ item, isMine, profile, onAccept, onCancel, o
         {/* CTA Buttons */}
         {isMine ? (
           <View style={styles.myActionsRow}>
-            <TouchableOpacity 
-              style={[styles.btn, styles.btnFollow]} 
-              onPress={() => onFollow(item.id)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.btnFollowText}>TAKİP ET</Text>
-            </TouchableOpacity>
+            {item.status !== 'cancelled' && (
+              <TouchableOpacity 
+                style={[styles.btn, styles.btnFollow]} 
+                onPress={() => onFollow(item.id)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.btnFollowText}>SÜRECİ TAKİP ET</Text>
+              </TouchableOpacity>
+            )}
             
-            <TouchableOpacity 
-              style={[styles.btn, styles.btnCancel]} 
-              onPress={() => onCancel(item.id)}
-              activeOpacity={0.8}
-            >
-               <Trash2 color="#ef4444" size={16} />
-              <Text style={styles.btnCancelText}>İPTAL ET</Text>
-            </TouchableOpacity>
+            {(item.status === 'waiting-supporter' || item.status === 'waiting-cash-payment') && (
+              <TouchableOpacity 
+                style={[styles.btn, styles.btnCancel]} 
+                onPress={() => onCancel(item.id)}
+                activeOpacity={0.8}
+              >
+                <Trash2 color="#ef4444" size={16} />
+                <Text style={styles.btnCancelText}>İPTAL ET</Text>
+              </TouchableOpacity>
+            )}
+
+            {item.status === 'completed' && (
+              <View style={[styles.btn, { backgroundColor: 'rgba(142, 255, 113, 0.1)', borderWidth: 1, borderColor: '#8eff71' }]}>
+                <CheckCircle2 color="#8eff71" size={16} />
+                <Text style={[styles.btnFollowText, { color: '#8eff71', marginLeft: 8 }]}>TAMAMLANDI</Text>
+              </View>
+            )}
+
+            {item.status === 'cancelled' && (
+              <View style={[styles.btn, { backgroundColor: 'rgba(239, 68, 68, 0.1)', borderWidth: 1, borderColor: '#ef4444' }]}>
+                <Text style={[styles.btnFollowText, { color: '#ef4444' }]}>İPTAL EDİLDİ</Text>
+              </View>
+            )}
           </View>
         ) : (
           <TouchableOpacity 
