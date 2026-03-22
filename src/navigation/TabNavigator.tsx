@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, ClipboardList, ShoppingCart, MessageSquare, User } from 'lucide-react-native';
 
 // Screens (Placeholders for now)
@@ -12,10 +13,18 @@ import { ProfileScreen } from '../screens/ProfileScreen';
 const Tab = createBottomTabNavigator();
 
 export function TabNavigator() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarStyle: { backgroundColor: '#111', borderTopColor: '#333', height: 60, paddingBottom: 10 },
+        tabBarStyle: { 
+          backgroundColor: '#111', 
+          borderTopColor: '#333', 
+          height: 60 + insets.bottom, 
+          paddingBottom: 10 + insets.bottom,
+          paddingTop: 10
+        },
         tabBarActiveTintColor: '#00FF00',
         tabBarInactiveTintColor: '#888',
         headerShown: false, // We use a custom global header

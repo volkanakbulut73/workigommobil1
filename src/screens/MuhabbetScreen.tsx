@@ -1,21 +1,23 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import { useMuhabbetStore } from '../store/useMuhabbetStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { Layout } from '../components/Layout';
-import { Send, Globe, Users as UsersIcon } from 'lucide-react-native';
+import { Send, Globe, Users as UsersIcon, X } from 'lucide-react-native';
 
 export default function MuhabbetScreen() {
   const { profile } = useAuthStore();
   const { 
     messages, 
     onlineUsers, 
+    presenceList,
     initializeRoom, 
     sendMessage, 
     leaveRoom 
   } = useMuhabbetStore();
   
   const [inputText, setInputText] = useState('');
+  const [showUsersModal, setShowUsersModal] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   
   const ROOM_NAME = 'genel';
@@ -108,11 +110,16 @@ export default function MuhabbetScreen() {
           </View>
         </View>
         <View style={styles.headerRight}>
-          <View style={styles.onlineBadge}>
+          <TouchableOpacity 
+            style={styles.onlineBadge}
+            onPress={() => setShowUsersModal(true)}
+          >
             <View style={styles.onlineDot} />
             <Text style={styles.onlineText}>{onlineUsers}</Text>
-          </View>
-          <UsersIcon color="#8eff71" size={20} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowUsersModal(true)}>
+            <UsersIcon color="#8eff71" size={20} />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -163,6 +170,42 @@ export default function MuhabbetScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Online Users Modal */}
+      <Modal
+        visible={showUsersModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowUsersModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>ÇEVRİMİÇİ KULLANICILAR</Text>
+              <TouchableOpacity onPress={() => setShowUsersModal(false)} style={styles.modalCloseButton}>
+                <X color="#aaaab6" size={20} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalDivider} />
+            <FlatList
+              data={presenceList}
+              keyExtractor={(item, index) => item?.id || index.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.userRow}>
+                  <View style={styles.userAvatar}>
+                    <Text style={styles.userAvatarText}>
+                      {(item?.name || 'U')[0].toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text style={styles.userName}>{item?.name || 'Anonim'}</Text>
+                  <View style={styles.onlineDot} />
+                </View>
+              )}
+              contentContainerStyle={styles.usersListContainer}
+            />
+          </View>
+        </View>
+      </Modal>
     </Layout>
   );
 }
@@ -421,5 +464,69 @@ const styles = StyleSheet.create({
   sendButtonDisabled: {
     backgroundColor: '#222531',
     shadowOpacity: 0,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#11141e',
+    width: '100%',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(142, 255, 113, 0.2)',
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalTitle: {
+    color: '#8eff71',
+    fontSize: 14,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalDivider: {
+    height: 1,
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+  },
+  usersListContainer: {
+    padding: 16,
+    gap: 12,
+  },
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  userAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(142, 255, 113, 0.3)',
+  },
+  userAvatarText: {
+    color: '#8eff71',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  userName: {
+    flex: 1,
+    color: '#ededf9',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
