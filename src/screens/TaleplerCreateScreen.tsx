@@ -21,10 +21,6 @@ export function TaleplerCreateScreen() {
         Alert.alert('Hata', 'Lütfen geçerli bir tutar girin.');
         return;
       }
-      if (!description.trim()) {
-        Alert.alert('Hata', 'Lütfen bir açıklama (ilan başlığı) girin.');
-        return;
-      }
       setStep(2);
     }
   };
@@ -41,7 +37,7 @@ export function TaleplerCreateScreen() {
       const tx = await DBService.createTransactionRequest(
         userId,
         Number(amount),
-        description.trim()
+        description.trim() || 'Paylaşım Talebi'
       );
       AnalyticsService.trackEvent('talep_created', { amount: Number(amount) });
       navigation.replace('Tracker', { id: tx.id });

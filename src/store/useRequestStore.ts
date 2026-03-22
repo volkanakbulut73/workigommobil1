@@ -27,13 +27,7 @@ export const useRequestStore = create<RequestStore>((set) => ({
 
       let myTxs: any[] = [];
       if (userId) {
-        const { supabase } = await import('../lib/supabase');
-        const { data } = await supabase
-          .from('transactions')
-          .select(`*, profiles!transactions_seeker_id_fkey(full_name, rating, avatar_url)`)
-          .or(`seeker_id.eq.${userId},supporter_id.eq.${userId}`)
-          .order('created_at', { ascending: false });
-        if (data) myTxs = data;
+        myTxs = await DBService.getUserTransactions(userId) || [];
       }
 
       set({ otherTransactions: otherTxs, myTransactions: myTxs, loading: false });

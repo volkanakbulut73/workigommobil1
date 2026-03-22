@@ -52,6 +52,17 @@ export const DBService = {
     return data;
   },
 
+  async getUserTransactions(userId: string) {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select(`*, profiles!transactions_seeker_id_fkey(full_name, rating, avatar_url)`)
+      .or(`seeker_id.eq.${userId},supporter_id.eq.${userId}`)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
   async getUserActiveTransaction(userId: string) {
     const { data, error } = await supabase
       .from('transactions')
