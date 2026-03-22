@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { supabase } from '@/lib/supabase';
+import { DBService } from '../services/dbService';
+import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/useAuthStore';
 import { ChevronLeft, CheckCircle } from 'lucide-react-native';
 

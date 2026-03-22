@@ -245,9 +245,9 @@ const styles = StyleSheet.create({
   },
   content: { paddingBottom: 20 },
   bannerContainer: { width: SCREEN_WIDTH, height: SCREEN_WIDTH, backgroundColor: '#11142A', position: 'relative' },
-  bannerImage: { width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#000', overflow: 'hidden' },
+  bannerImage: { width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#000' },
   bannerPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#11142A' },
-  bannerPlaceholderText: { fontSize: 80, fontWeight: '900', color: 'rgba(255,255,255,0.05)' },
+  bannerPlaceholderText: { fontSize: 80, fontWeight: 'black', color: 'rgba(255,255,255,0.05)' },
   ratingBadge: {
     position: 'absolute', bottom: 16, right: 16, backgroundColor: 'rgba(0,0,0,0.6)',
     paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 4
@@ -255,8 +255,8 @@ const styles = StyleSheet.create({
   ratingText: { color: '#fff', fontWeight: 'bold' },
   thumbnailScroll: { backgroundColor: '#0a0b1e', paddingVertical: 12 },
   thumbnailContainer: { paddingHorizontal: 16, gap: 12 },
-  thumbnail: { width: 60, height: 60, borderRadius: 12, borderWidth: 2, borderColor: 'transparent', opacity: 0.5, overflow: 'hidden' },
-  thumbnailActive: { borderColor: '#39ff14', opacity: 1, overflow: 'hidden' },
+  thumbnail: { width: 60, height: 60, borderRadius: 12, borderWidth: 2, borderColor: 'transparent', opacity: 0.5 },
+  thumbnailActive: { borderColor: '#39ff14', opacity: 1 },
   detailsBox: { padding: 24 },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   title: { color: '#fff', fontSize: 24, fontWeight: '900', flex: 1, marginRight: 16 },

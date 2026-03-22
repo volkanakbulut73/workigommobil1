@@ -12,7 +12,7 @@ const TalepCardItem = React.memo(({ item, isMine, profile, onAccept, onCancel, o
   const avatar = item.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${fullName.replace(' ', '+')}&background=33f20d&color=0a0b1e&rounded=true`;
 
   return (
-    <Card style={[styles.requestCard, isMine && styles.myRequestCard]}>
+    <Card style={[styles.requestCard, isMine && styles.myRequestCard] as any}>
       {isMine && (
         <View style={styles.myBadge}>
           <Text style={styles.myBadgeText}>SENİN PAYLAŞIMIN</Text>
