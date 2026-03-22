@@ -105,6 +105,7 @@ const TalepCardItem = React.memo(({ item, isMine, profile, onAccept, onCancel, o
 export function TaleplerScreen() {
   const navigation = useNavigation<any>();
   const profile = useAuthStore(state => state.profile);
+  const user = useAuthStore(state => state.user);
   
   const otherTransactions = useRequestStore(state => state.otherTransactions);
   const myTransactions = useRequestStore(state => state.myTransactions);
@@ -119,16 +120,18 @@ export function TaleplerScreen() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    if (profile?.id) {
-      fetchTransactions(profile.id);
+    const userId = profile?.id || user?.id;
+    if (userId) {
+      fetchTransactions(userId);
     }
-  }, [profile?.id]);
+  }, [profile?.id, user?.id]);
 
   const onRefresh = useCallback(() => {
-    if (profile?.id) {
-      fetchTransactions(profile.id);
+    const userId = profile?.id || user?.id;
+    if (userId) {
+      fetchTransactions(userId);
     }
-  }, [profile?.id, fetchTransactions]);
+  }, [profile?.id, user?.id, fetchTransactions]);
 
   const handleAcceptClick = useCallback((item: any) => {
     setSelectedTx(item);
@@ -136,24 +139,26 @@ export function TaleplerScreen() {
   }, []);
 
   const confirmAccept = useCallback(async (supportPercentage: number) => {
-    if (!profile || !selectedTx) return;
+    const userId = profile?.id || user?.id;
+    if (!userId || !selectedTx) return;
     try {
-      await acceptTransaction(selectedTx.id, profile.id, supportPercentage);
+      await acceptTransaction(selectedTx.id, userId, supportPercentage);
       setIsModalOpen(false);
       setSelectedTx(null);
       navigation.navigate('Tracker', { id: selectedTx.id });
     } catch (error) {
        Alert.alert('Error', 'Something went wrong while accepting the request.');
     }
-  }, [profile, selectedTx, acceptTransaction, navigation]);
+  }, [profile?.id, user?.id, selectedTx, acceptTransaction, navigation]);
 
   const handleCancel = useCallback((txId: string) => {
-    if (!profile) return;
+    const userId = profile?.id || user?.id;
+    if (!userId) return;
     Alert.alert('İptal Et', 'Bu talebi iptal etmek istediğinize emin misiniz?', [
       { text: 'Hayır', style: 'cancel' },
-      { text: 'Evet', style: 'destructive', onPress: () => cancelTransaction(txId, profile.id) }
+      { text: 'Evet', style: 'destructive', onPress: () => cancelTransaction(txId, userId) }
     ]);
-  }, [profile, cancelTransaction]);
+  }, [profile?.id, user?.id, cancelTransaction]);
 
   const onFollow = useCallback((id: string) => {
     navigation.navigate('Tracker', { id });
@@ -354,12 +359,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 80, // Because Layout usually puts content at top under absolute headers
-    marginBottom: 24,
+    paddingTop: 50, // Reduced from 80
+    marginBottom: 16, // Reduced from 24
   },
   screenTitle: {
     fontFamily: 'SpaceGrotesk-Bold',
-    fontSize: 28,
+    fontSize: 22, // Reduced from 28
     fontWeight: 'bold',
     color: '#ededf9',
     textTransform: 'uppercase',
@@ -370,8 +375,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 12, // Reduced
+    paddingVertical: 8, // Reduced
     borderRadius: 9999,
     shadowColor: '#8eff71',
     shadowOffset: { width: 0, height: 0 },
@@ -383,7 +388,7 @@ const styles = StyleSheet.create({
     color: '#0d6100',
     fontFamily: 'Manrope-Bold',
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 12, // Reduced
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -414,22 +419,22 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     paddingHorizontal: 16,
-    marginBottom: 24,
+    marginBottom: 16, // Reduced
   },
   statsBox: {
     backgroundColor: '#11131c', // surface-container-low
-    padding: 16,
+    padding: 12, // Reduced
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12, // Reduced
     borderWidth: 1,
     borderColor: 'rgba(70, 71, 81, 0.2)',
   },
   statsIconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 36, // Reduced
+    height: 36,
+    borderRadius: 18,
     backgroundColor: 'rgba(142, 255, 113, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -444,7 +449,7 @@ const styles = StyleSheet.create({
   statsValue: {
     color: '#ededf9',
     fontFamily: 'SpaceGrotesk-Bold',
-    fontSize: 18,
+    fontSize: 16, // Reduced
     fontWeight: 'bold',
   },
   listContent: {

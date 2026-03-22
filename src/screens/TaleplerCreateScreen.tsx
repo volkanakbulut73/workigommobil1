@@ -8,7 +8,7 @@ import { ChevronLeft, Wallet, FileText, CheckCircle2, Users, Zap, ShieldCheck } 
 
 export function TaleplerCreateScreen() {
   const navigation = useNavigation<any>();
-  const { profile } = useAuthStore();
+  const { profile, user } = useAuthStore();
   
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState('');
@@ -30,12 +30,16 @@ export function TaleplerCreateScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!profile) return;
+    const userId = profile?.id || user?.id;
+    if (!userId) {
+      Alert.alert('Hata', 'Kullanıcı oturumu bulunamadı.');
+      return;
+    }
     
     setLoading(true);
     try {
       const tx = await DBService.createTransactionRequest(
-        profile.id,
+        userId,
         Number(amount),
         description.trim()
       );
