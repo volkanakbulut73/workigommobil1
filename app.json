@@ -2,6 +2,7 @@
   "expo": {
     "name": "Workigom",
     "slug": "workigom-mobile",
+    "scheme": "workigom",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

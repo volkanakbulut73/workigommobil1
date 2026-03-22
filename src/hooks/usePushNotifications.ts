@@ -77,6 +77,11 @@ export function usePushNotifications() {
 async function registerForPushNotificationsAsync() {
   let token;
 
+  if (Constants.appOwnership === 'expo') {
+    console.log('Push notifications are not fully supported in Expo Go. Bypassing...');
+    return undefined;
+  }
+
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
