@@ -180,7 +180,7 @@ export default function MuhabbetScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Globe color="#8eff71" size={16} />
+            <Globe color="#FF007F" size={16} />
             <View>
               <Text style={styles.headerSubtitle}>MUHABBET - Global Chat</Text>
             </View>
@@ -194,7 +194,7 @@ export default function MuhabbetScreen() {
               <Text style={styles.onlineText}>{onlineUsers}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setShowUsersSidebar(true)}>
-              <UsersIcon color="#8eff71" size={20} />
+              <UsersIcon color="#FF007F" size={20} />
             </TouchableOpacity>
           </View>
         </View>
@@ -233,7 +233,7 @@ export default function MuhabbetScreen() {
                 disabled={!inputText.trim()}
                 style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
               >
-                <Send color={inputText.trim() ? "#0d6100" : "#aaaab6"} size={18} />
+                <Send color={inputText.trim() ? "#ffffff" : "#aaaab6"} size={18} />
               </TouchableOpacity>
             </View>
           </View>
@@ -267,8 +267,8 @@ export default function MuhabbetScreen() {
             contentContainerStyle={styles.drawerList}
             renderItem={({ item }) => (
               <View style={styles.drawerUserRow}>
-                <View style={[styles.drawerAvatar, item?.id === profile?.id && { backgroundColor: '#39FF14', borderColor: '#39FF14' }]}>
-                  <Text style={[styles.drawerAvatarText, item?.id === profile?.id && { color: '#0d6100' }]}>
+                <View style={[styles.drawerAvatar, item?.id === profile?.id && { backgroundColor: '#FF007F', borderColor: '#FF007F' }]}>
+                  <Text style={[styles.drawerAvatarText, item?.id === profile?.id && { color: '#ffffff' }]}>
                     {(item?.name || 'U')[0].toUpperCase()}
                   </Text>
                 </View>
@@ -322,12 +322,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   headerSubtitle: {
-    color: '#8eff71',
+    color: '#FF007F',
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
     letterSpacing: 1,
     textTransform: 'uppercase',
-    opacity: 0.8,
+    opacity: 0.9,
   },
   headerRight: {
     flexDirection: 'row',
@@ -337,25 +337,25 @@ const styles = StyleSheet.create({
   onlineBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(142, 255, 113, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: 'rgba(255, 0, 127, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 9999,
-    gap: 8,
+    gap: 6,
   },
   onlineDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#8eff71',
-    shadowColor: '#8eff71',
+    backgroundColor: '#FF007F',
+    shadowColor: '#FF007F',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 6,
     elevation: 4,
   },
   onlineText: {
-    color: '#8eff71',
+    color: '#FF007F',
     fontSize: 12,
     fontWeight: '900',
   },
@@ -363,48 +363,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0c0e16',
   },
-  welcomeBanner: {
-    paddingHorizontal: 32,
-    paddingVertical: 24,
-    alignItems: 'center',
-    gap: 12,
-  },
-  welcomeDivider: {
-    height: 1,
-    width: '40%',
-    backgroundColor: 'rgba(142, 255, 113, 0.15)',
-  },
-  welcomeBox: {
-    backgroundColor: 'rgba(142, 255, 113, 0.05)',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 20,
-    alignItems: 'center',
-    shadowColor: '#8eff71',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-  },
-  welcomeTitle: {
-    color: '#8eff71',
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 2,
-    textAlign: 'center',
-    marginBottom: 6,
-    textTransform: 'uppercase',
-  },
-  welcomeSub: {
-    color: '#aaaab6',
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 4,
-    opacity: 0.6,
-  },
   listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    gap: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 12,
   },
   messageRow: {
     flexDirection: 'row',
@@ -425,7 +387,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1d1f2a',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#8eff71',
+    shadowColor: '#FF007F',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -436,7 +398,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
   },
   avatarLetter: {
-    color: '#8eff71',
+    color: '#FF007F',
     fontSize: 15,
     fontWeight: '900',
   },
@@ -444,16 +406,16 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#8eff71',
+    backgroundColor: '#FF007F',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#8eff71',
+    shadowColor: '#FF007F',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
   },
   avatarLetterMine: {
-    color: '#0c0e16',
+    color: '#ffffff',
     fontSize: 15,
     fontWeight: '900',
   },
@@ -465,7 +427,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   senderLabel: {
-    color: 'rgba(142, 255, 113, 0.6)',
+    color: '#FF007F',
+    opacity: 0.8,
     fontSize: 9,
     fontWeight: '900',
     textTransform: 'uppercase',
@@ -477,32 +440,32 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   bubble: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     maxWidth: '100%',
   },
   bubbleMine: {
-    backgroundColor: '#8eff71',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderBottomLeftRadius: 24,
+    backgroundColor: '#FF007F',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 16,
     borderBottomRightRadius: 4,
-    shadowColor: '#8eff71',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 15,
-    elevation: 10,
+    shadowColor: '#FF007F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
   },
   bubbleTheirs: {
     backgroundColor: '#1d1f2a',
     borderTopLeftRadius: 4,
-    borderTopRightRadius: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 10,
+    shadowRadius: 5,
   },
   bubbleBot: {
     backgroundColor: 'rgba(255, 0, 127, 0.05)',
@@ -514,11 +477,11 @@ const styles = StyleSheet.create({
     shadowRadius: 15,
   },
   messageText: {
-    fontSize: 15,
-    lineHeight: 24,
+    fontSize: 14,
+    lineHeight: 18,
   },
   messageTextMine: {
-    color: '#0c0e16',
+    color: '#ffffff',
     fontWeight: '700',
   },
   messageTextTheirs: {
@@ -552,7 +515,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     paddingHorizontal: 6,
     paddingVertical: 6,
-    shadowColor: '#8eff71',
+    shadowColor: '#FF007F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 15,
@@ -572,10 +535,10 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#8eff71',
+    backgroundColor: '#FF007F',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#8eff71',
+    shadowColor: '#FF007F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 10,
@@ -601,7 +564,7 @@ const styles = StyleSheet.create({
     width: width * 0.8,
     backgroundColor: '#0c0e16',
     zIndex: 100,
-    shadowColor: '#8eff71',
+    shadowColor: '#FF007F',
     shadowOffset: { width: 10, height: 0 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
@@ -620,7 +583,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   drawerTitle: {
-    color: '#8eff71',
+    color: '#FF007F',
     fontSize: 12,
     fontWeight: '900',
     letterSpacing: 2,
@@ -628,7 +591,7 @@ const styles = StyleSheet.create({
   },
   drawerDivider: {
     height: 1,
-    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+    backgroundColor: 'rgba(255, 0, 127, 0.1)',
     marginHorizontal: 24,
   },
   drawerList: {
@@ -655,13 +618,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#1d1f2a',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#8eff71',
+    shadowColor: '#FF007F',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
   },
   drawerAvatarText: {
-    color: '#8eff71',
+    color: '#FF007F',
     fontSize: 16,
     fontWeight: '900',
   },
@@ -674,7 +637,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   drawerUserSub: {
-    color: '#8eff71',
+    color: '#FF007F',
     fontSize: 10,
     fontWeight: '900',
     textTransform: 'uppercase',
