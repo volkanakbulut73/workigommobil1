@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, Dimensions, StatusBar as RNStatusBar } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, Dimensions, StatusBar as RNStatusBar, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMuhabbetStore } from '../store/useMuhabbetStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -140,7 +140,10 @@ export default function MuhabbetScreen() {
             {isBot ? (
               <Bot color="#FF007F" size={16} />
             ) : (
-              <Text style={[styles.avatarLetter, isMine && styles.avatarLetterMine]}>{item.sender_name?.[0] || 'U'}</Text>
+              <Image 
+                source={{ uri: (isMine ? profile?.avatar_url : item.avatar_url) || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }} 
+                style={styles.avatarImage}
+              />
             )}
           </View>
         </View>
@@ -522,13 +525,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FF007F',
   },
-  avatarLetter: {
-    color: '#FF007F',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  avatarLetterMine: {
-    color: '#fff',
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 18,
   },
 
   // Redesigned Input Dock
