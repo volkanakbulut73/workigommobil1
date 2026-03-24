@@ -55,15 +55,15 @@ const TalepCardItem = React.memo(({ item, isMine, profile, onAccept, onCancel, o
         {/* Features / Chips */}
         <View style={styles.featuresRow}>
           <View style={styles.featureChip}>
-            <Shield color="#8eff71" size={14} />
+            <Shield color="#8eff71" size={12} />
             <Text style={styles.featureChipText}>Escrow</Text>
           </View>
           <View style={styles.featureChip}>
-            <QrCode color="#8eff71" size={14} />
+            <QrCode color="#8eff71" size={12} />
             <Text style={styles.featureChipText}>QR ile Ödeme</Text>
           </View>
           <View style={styles.featureChip}>
-            <Zap color="#8eff71" size={14} />
+            <Zap color="#8eff71" size={12} />
             <Text style={styles.featureChipText}>Anında Transfer</Text>
           </View>
         </View>
@@ -605,22 +605,21 @@ const styles = StyleSheet.create({
   },
   featuresRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    gap: 6,
     marginBottom: 28,
   },
   featureChip: {
     backgroundColor: 'rgba(142, 255, 113, 0.05)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 14,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
   },
   featureChipText: {
     color: '#ededf9',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 'bold',
   },
   mainCtaBtn: {

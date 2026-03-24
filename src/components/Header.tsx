@@ -4,40 +4,52 @@ import { Bell, MessageCircle } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useNotificationStore } from '../store/useNotificationStore';
 
-export function Header() {
+interface HeaderProps {
+  showActions?: boolean;
+  logoMode?: 'full' | 'compact' | 'none';
+}
+
+export function Header({ showActions = true, logoMode = 'full' }: HeaderProps) {
   const navigation = useNavigation<any>();
   const { unreadCount, unreadMessageCount } = useNotificationStore();
 
   return (
     <View style={styles.safeArea}>
       <View style={styles.container}>
-        <Text style={styles.logo}>Workigom</Text>
+        {logoMode === 'full' && <Text style={styles.logo}>Workigom</Text>}
+        {logoMode === 'compact' && (
+          <View style={styles.compactLogo}>
+            <Text style={styles.compactLogoText}>W</Text>
+          </View>
+        )}
         
-        <View style={styles.actions}>
-          <TouchableOpacity 
-            style={styles.iconButton}
-            onPress={() => navigation.navigate('MessagesList')}
-          >
-            <MessageCircle color="#8eff71" size={24} />
-            {unreadMessageCount > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{unreadMessageCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+        {showActions && (
+          <View style={styles.actions}>
+            <TouchableOpacity 
+              style={styles.iconButton}
+              onPress={() => navigation.navigate('MessagesList')}
+            >
+              <MessageCircle color="#8eff71" size={24} />
+              {unreadMessageCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{unreadMessageCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.iconButton}
-            onPress={() => navigation.navigate('Notifications')}
-          >
-            <Bell color="#8eff71" size={24} />
-            {unreadCount > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{unreadCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity 
+              style={styles.iconButton}
+              onPress={() => navigation.navigate('Notifications')}
+            >
+              <Bell color="#8eff71" size={24} />
+              {unreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{unreadCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -63,6 +75,22 @@ const styles = StyleSheet.create({
     color: '#8eff71',
     letterSpacing: 2,
     textTransform: 'uppercase',
+  },
+  compactLogo: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(142, 255, 113, 0.3)',
+  },
+  compactLogoText: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#8eff71',
+    marginTop: -1, // Visual adjustment
   },
   actions: {
     flexDirection: 'row',

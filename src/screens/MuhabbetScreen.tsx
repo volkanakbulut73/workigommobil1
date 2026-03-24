@@ -175,15 +175,14 @@ export default function MuhabbetScreen() {
   };
 
   return (
-    <Layout>
+    <Layout headerProps={{ logoMode: 'compact', showActions: false }}>
       <View style={styles.screenContainer}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Globe color="#8eff71" size={22} />
+            <Globe color="#8eff71" size={16} />
             <View>
-              <Text style={styles.headerTitle}>MUHABBET</Text>
-              <Text style={styles.headerSubtitle}>Global Chat</Text>
+              <Text style={styles.headerSubtitle}>MUHABBET - Global Chat</Text>
             </View>
           </View>
           <View style={styles.headerRight}>
@@ -205,15 +204,6 @@ export default function MuhabbetScreen() {
           style={styles.keyboardContainer}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
-          {/* Welcome Banner */}
-          <View style={styles.welcomeBanner}>
-            <View style={styles.welcomeDivider} />
-            <View style={styles.welcomeBox}>
-              <Text style={styles.welcomeTitle}>GENEL SOHBET. ŞİFRELİ OTURUMA HOŞ GELDİNİZ.</Text>
-              <Text style={styles.welcomeSub}>WORKIGOM{'<'}CHAT{'>'}</Text>
-            </View>
-            <View style={styles.welcomeDivider} />
-          </View>
 
           {/* Messages */}
           <FlatList
@@ -321,8 +311,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     backgroundColor: 'rgba(12, 14, 22, 0.85)',
     zIndex: 100,
   },
@@ -331,20 +321,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  headerTitle: {
-    color: '#8eff71',
-    fontSize: 18,
-    fontWeight: '900',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-  },
   headerSubtitle: {
-    color: '#aaaab6',
-    fontSize: 10,
-    fontWeight: 'bold',
+    color: '#8eff71',
+    fontSize: 11,
+    fontWeight: '500',
     letterSpacing: 1,
     textTransform: 'uppercase',
-    opacity: 0.7,
+    opacity: 0.8,
   },
   headerRight: {
     flexDirection: 'row',
