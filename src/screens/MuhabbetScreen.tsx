@@ -5,7 +5,7 @@ import { useMuhabbetStore } from '../store/useMuhabbetStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { Layout } from '../components/Layout';
 import { supabase } from '../lib/supabase';
-import { Send, Globe, Users as UsersIcon, X, Bot } from 'lucide-react-native';
+import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -116,22 +116,15 @@ export default function MuhabbetScreen() {
     
     return (
       <View style={[styles.messageRow, isMine ? styles.messageRowMine : styles.messageRowTheirs]}>
-        {/* Avatar */}
-        {!isMine && (
-          <View style={[styles.avatarCircle, isBot && styles.botAvatarCircle]}>
-            {isBot ? (
-              <Bot color="#FF007F" size={16} />
-            ) : (
-              <Text style={styles.avatarLetter}>{item.sender_name?.[0] || 'U'}</Text>
-            )}
-          </View>
-        )}
-        
+        {/* Message Content Group (Top: Name/Time, Bottom: Bubble) */}
         <View style={[styles.messageContent, isMine && styles.messageContentMine]}>
-          {/* Sender Name */}
-          <Text style={[styles.senderLabel, isMine && styles.senderLabelMine, isBot && { color: '#FF007F' }]}>
-            {isMine ? 'SİZ' : (item.sender_name || 'Anonim')}
-          </Text>
+          {/* Sender Name and Time Above Bubble */}
+          <View style={[styles.nameTimeRow, isMine ? styles.nameTimeRowMine : styles.nameTimeRowTheirs]}>
+            <Text style={styles.timeLabelNew}>{formatTime(item.created_at)}</Text>
+            <Text style={[styles.senderLabelNew, isMine && styles.senderLabelMineNew]}>
+              {isMine ? 'SİZ' : (item.sender_name || 'Anonim')}
+            </Text>
+          </View>
           
           {/* Message Bubble */}
           <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs, isBot && styles.bubbleBot]}>
@@ -139,20 +132,18 @@ export default function MuhabbetScreen() {
               {item.content}
             </Text>
           </View>
-          
-          {/* Time */}
-          {item.created_at && (
-            <Text style={[styles.timeLabel, isMine && styles.timeLabelMine]}>
-              {formatTime(item.created_at)}
-            </Text>
-          )}
         </View>
 
-        {isMine && (
-          <View style={styles.avatarCircleMine}>
-            <Text style={styles.avatarLetterMine}>{profile?.full_name?.[0] || 'U'}</Text>
+        {/* Avatar next to bubble */}
+        <View style={[styles.avatarWrapper, isMine ? styles.avatarWrapperMine : styles.avatarWrapperTheirs]}>
+          <View style={[styles.avatarCircle, isMine ? styles.avatarCircleMine : styles.avatarCircleTheirs, isBot && styles.botAvatarCircle]}>
+            {isBot ? (
+              <Bot color="#FF007F" size={16} />
+            ) : (
+              <Text style={[styles.avatarLetter, isMine && styles.avatarLetterMine]}>{item.sender_name?.[0] || 'U'}</Text>
+            )}
           </View>
-        )}
+        </View>
       </View>
     );
   };
@@ -161,11 +152,13 @@ export default function MuhabbetScreen() {
     if (!isBotTyping) return null;
     return (
       <View style={[styles.messageRow, styles.messageRowTheirs, { marginBottom: 12 }]}>
-         <View style={[styles.avatarCircle, styles.botAvatarCircle]}>
-            <Bot color="#FF007F" size={16} />
+         <View style={[styles.avatarWrapper, styles.avatarWrapperTheirs]}>
+           <View style={[styles.avatarCircle, styles.botAvatarCircle]}>
+              <Bot color="#FF007F" size={16} />
+           </View>
          </View>
          <View style={styles.messageContent}>
-           <Text style={[styles.senderLabel, { color: '#FF007F' }]}>WORKIGOM AI</Text>
+           <Text style={[styles.senderLabelNew, { color: '#FF007F' }]}>WORKIGOM AI</Text>
            <View style={[styles.bubble, styles.bubbleBot]}>
               <Text style={[styles.messageText, styles.messageTextTheirs, { opacity: 0.6 }]}>
                 Workigom AI düşünüyor...
@@ -179,28 +172,35 @@ export default function MuhabbetScreen() {
   return (
     <Layout withHeader={false}>
       <View style={styles.screenContainer}>
-        {/* Header with Safe Area */}
+        {/* Header with Safe Area (Redesigned) */}
         <View style={[
-          styles.header, 
+          styles.headerNew, 
           { paddingTop: Math.max(insets.top, Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) : 0) + 12 }
         ]}>
-          <View style={styles.headerLeft}>
-            <Globe color="#FF007F" size={16} />
-            <View>
-              <Text style={styles.headerSubtitle}>MUHABBET - Global Chat</Text>
-            </View>
+          <View style={styles.headerLeftNew}>
+            <View style={styles.pinkSquare} />
+            <TouchableOpacity style={styles.chatSelector}>
+              <Text style={styles.chatSelectorText}>Global Chat</Text>
+              <ChevronDown color="#fff" size={16} />
+            </TouchableOpacity>
           </View>
-          <View style={styles.headerRight}>
+          <View style={styles.headerRightNew}>
+            <TouchableOpacity style={styles.roundIconBtn}>
+              <Bell color="#aaaab6" size={20} />
+            </TouchableOpacity>
             <TouchableOpacity 
-              style={styles.onlineBadge}
+              style={styles.roundIconBtn}
               onPress={() => setShowUsersSidebar(true)}
             >
-              <View style={styles.onlineDot} />
-              <Text style={styles.onlineText}>{onlineUsers}</Text>
+              <UsersIcon color="#aaaab6" size={20} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setShowUsersSidebar(true)}>
-              <UsersIcon color="#FF007F" size={20} />
-            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Welcome Pill */}
+        <View style={styles.welcomePillContainer}>
+          <View style={styles.welcomePill}>
+             <Text style={styles.welcomePillText}>GENEL SOHBET. ŞİFRELI OTURUMA HOŞ GELDİNİZ.</Text>
           </View>
         </View>
 
@@ -221,24 +221,36 @@ export default function MuhabbetScreen() {
             contentContainerStyle={styles.listContent}
           />
 
-          {/* Input Dock */}
-          <View style={styles.inputDock}>
-            <View style={styles.inputPill}>
-              <TextInput
-                style={styles.input}
-                placeholder="@workigom yazarak çağırın..."
-                placeholderTextColor="#aaaab6"
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-                maxLength={500}
-              />
+          {/* Input Dock (Redesigned) */}
+          <View style={styles.inputDockNew}>
+            {/* Formatting Toolbar */}
+            <View style={styles.formatToolbar}>
+              <TouchableOpacity style={styles.toolbarBtn}><Bold color="#aaaab6" size={18} /></TouchableOpacity>
+              <TouchableOpacity style={styles.toolbarBtn}><Italic color="#aaaab6" size={18} /></TouchableOpacity>
+              <TouchableOpacity style={styles.toolbarBtn}><Underline color="#aaaab6" size={18} /></TouchableOpacity>
+              <View style={styles.toolbarDivider} />
+              <TouchableOpacity style={styles.toolbarBtn}><Palette color="#aaaab6" size={18} /></TouchableOpacity>
+              <TouchableOpacity style={styles.toolbarBtn}><Smile color="#aaaab6" size={18} /></TouchableOpacity>
+            </View>
+
+            <View style={styles.inputRowNew}>
+              <View style={styles.inputContainerNew}>
+                <TextInput
+                  style={styles.inputNew}
+                  placeholder="Mesajınızı yazın..."
+                  placeholderTextColor="#666"
+                  value={inputText}
+                  onChangeText={setInputText}
+                  multiline
+                  maxLength={500}
+                />
+              </View>
               <TouchableOpacity 
                 onPress={handleSend} 
                 disabled={!inputText.trim()}
-                style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+                style={[styles.sendButtonNew, !inputText.trim() && styles.sendButtonDisabledNew]}
               >
-                <Send color={inputText.trim() ? "#ffffff" : "#aaaab6"} size={18} />
+                <Send color="#fff" size={20} />
               </TouchableOpacity>
             </View>
           </View>
@@ -312,78 +324,182 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0c0e16',
   },
-  header: {
+  // Redesigned Header
+  headerNew: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: 'rgba(12, 14, 22, 0.85)',
+    backgroundColor: 'rgba(12, 14, 22, 0.95)',
     zIndex: 100,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
-  headerLeft: {
+  headerLeftNew: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  headerSubtitle: {
-    color: '#FF007F',
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    opacity: 0.9,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  onlineBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 0, 127, 0.1)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 9999,
-    gap: 6,
-  },
-  onlineDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  pinkSquare: {
+    width: 36,
+    height: 36,
     backgroundColor: '#FF007F',
+    borderRadius: 8,
     shadowColor: '#FF007F',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
   },
-  onlineText: {
-    color: '#FF007F',
-    fontSize: 12,
-    fontWeight: '900',
+  chatSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    gap: 8,
   },
+  chatSelectorText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  headerRightNew: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  roundIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  // Welcome Pill
+  welcomePillContainer: {
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  welcomePill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  welcomePillText: {
+    color: '#aaaab6',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+
   keyboardContainer: {
     flex: 1,
-    backgroundColor: '#0c0e16',
   },
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 16,
-    gap: 12,
+    gap: 16,
   },
+
+  // Message Rows
   messageRow: {
     flexDirection: 'row',
-    maxWidth: '85%',
-    gap: 12,
+    maxWidth: '90%',
+    alignItems: 'flex-end',
+    gap: 8,
   },
   messageRowMine: {
     alignSelf: 'flex-end',
-    flexDirection: 'row-reverse',
+    flexDirection: 'row', // Keeping it row, but we use contentMine to align
   },
   messageRowTheirs: {
     alignSelf: 'flex-start',
+    flexDirection: 'row-reverse', // Avatar on left
+  },
+  messageContent: {
+    flex: 1,
+    gap: 4,
+  },
+  messageContentMine: {
+    alignItems: 'flex-end',
+  },
+  nameTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 2,
+  },
+  nameTimeRowMine: {
+    flexDirection: 'row',
+  },
+  nameTimeRowTheirs: {
+    flexDirection: 'row-reverse',
+  },
+  timeLabelNew: {
+    color: '#666',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  senderLabelNew: {
+    color: '#FF007F',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  senderLabelMineNew: {
+    color: '#FF007F',
+  },
+  
+  // Bubble
+  bubble: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 18,
+    maxWidth: '100%',
+  },
+  bubbleMine: {
+    backgroundColor: '#FF007F',
+    borderBottomRightRadius: 4,
+  },
+  bubbleTheirs: {
+    backgroundColor: '#1d1f2a',
+    borderBottomLeftRadius: 4,
+  },
+  bubbleBot: {
+    backgroundColor: 'rgba(255, 0, 127, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 0, 127, 0.2)',
+  },
+  messageText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  messageTextMine: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  messageTextTheirs: {
+    color: '#ededf9',
+  },
+
+  // Avatar
+  avatarWrapper: {
+    justifyContent: 'flex-end',
+    paddingBottom: 2,
+  },
+  avatarWrapperMine: {
+    marginLeft: 4,
+  },
+  avatarWrapperTheirs: {
+    marginRight: 4,
   },
   avatarCircle: {
     width: 36,
@@ -392,170 +508,98 @@ const styles = StyleSheet.create({
     backgroundColor: '#1d1f2a',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#FF007F',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
+  },
+  avatarCircleMine: {
+    backgroundColor: '#1d1f2a',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  avatarCircleTheirs: {
+    backgroundColor: '#1d1f2a',
   },
   botAvatarCircle: {
     backgroundColor: '#0c0e16',
-    shadowColor: '#FF007F',
-    shadowOpacity: 0.2,
+    borderWidth: 1,
+    borderColor: '#FF007F',
   },
   avatarLetter: {
     color: '#FF007F',
-    fontSize: 15,
-    fontWeight: '900',
-  },
-  avatarCircleMine: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FF007F',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#FF007F',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   avatarLetterMine: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '900',
+    color: '#fff',
   },
-  messageContent: {
-    flexShrink: 1,
-    gap: 6,
-  },
-  messageContentMine: {
-    alignItems: 'flex-end',
-  },
-  senderLabel: {
-    color: '#FF007F',
-    opacity: 0.8,
-    fontSize: 9,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginLeft: 4,
-  },
-  senderLabelMine: {
-    marginLeft: 0,
-    marginRight: 4,
-  },
-  bubble: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    maxWidth: '100%',
-  },
-  bubbleMine: {
-    backgroundColor: '#FF007F',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 4,
-    shadowColor: '#FF007F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  bubbleTheirs: {
+
+  // Redesigned Input Dock
+  inputDockNew: {
     backgroundColor: '#1d1f2a',
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 16,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    paddingHorizontal: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: -10 },
     shadowOpacity: 0.1,
-    shadowRadius: 5,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  bubbleBot: {
-    backgroundColor: 'rgba(255, 0, 127, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 0, 127, 0.2)',
-    shadowColor: '#FF007F',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
+  formatToolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    marginBottom: 12,
+    paddingHorizontal: 4,
   },
-  messageText: {
-    fontSize: 14,
-    lineHeight: 18,
+  toolbarBtn: {
+    padding: 4,
   },
-  messageTextMine: {
-    color: '#ffffff',
-    fontWeight: '700',
+  toolbarDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
-  messageTextTheirs: {
-    color: '#ededf9',
-    fontWeight: '500',
-  },
-  timeLabel: {
-    color: '#aaaab6',
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    opacity: 0.5,
-    marginLeft: 4,
-    marginTop: 4,
-  },
-  timeLabelMine: {
-    marginLeft: 0,
-    marginRight: 4,
-  },
-  inputDock: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
-    backgroundColor: 'rgba(12, 14, 22, 0.95)',
-  },
-  inputPill: {
+  inputRowNew: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#1d1f2a',
-    borderRadius: 32,
-    paddingHorizontal: 6,
-    paddingVertical: 6,
-    shadowColor: '#FF007F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
+    gap: 12,
   },
-  input: {
+  inputContainerNew: {
     flex: 1,
-    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  inputNew: {
+    color: '#fff',
+    fontSize: 15,
+    minHeight: 44,
+    maxHeight: 120,
     paddingTop: 12,
     paddingBottom: 12,
-    color: '#ededf9',
-    fontSize: 15,
-    fontWeight: '500',
-    maxHeight: 120,
-    minHeight: 44,
   },
-  sendButton: {
+  sendButtonNew: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: 12,
     backgroundColor: '#FF007F',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#FF007F',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  sendButtonDisabled: {
-    backgroundColor: '#2d3142',
+  sendButtonDisabledNew: {
+    backgroundColor: '#333',
     shadowOpacity: 0,
-    elevation: 0,
   },
-  
-  // Drawer Styles
+
+  // Side Drawer (keeping these basic for now)
   drawerOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.8)',
@@ -623,10 +667,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1d1f2a',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#FF007F',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
   },
   drawerAvatarText: {
     color: '#FF007F',
