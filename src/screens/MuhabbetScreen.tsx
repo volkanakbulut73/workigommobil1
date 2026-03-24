@@ -9,318 +9,7 @@ import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold,
 
 const { width } = Dimensions.get('window');
 
-export default function MuhabbetScreen() {
-  const { profile } = useAuthStore();
-  const insets = useSafeAreaInsets();
-  const { 
-    messages, 
-    onlineUsers, 
-    presenceList,
-    initializeRoom, 
-    sendMessage, 
-    leaveRoom 
-  } = useMuhabbetStore();
-  
-  const [inputText, setInputText] = useState('');
-  const [showUsersSidebar, setShowUsersSidebar] = useState(false);
-  const [isBotTyping, setIsBotTyping] = useState(false);
-  
-  const flatListRef = useRef<FlatList>(null);
-  const slideAnim = useRef(new Animated.Value(-width)).current;
-  
-  const ROOM_NAME = 'genel';
-
-  useEffect(() => {
-    if (profile?.id) {
-      initializeRoom(ROOM_NAME, profile.id, {
-        name: profile.full_name,
-        avatar: profile.avatar_url
-      });
-    }
-    return () => leaveRoom();
-  }, [profile?.id]);
-
-  // Sidebar Slide Animation
-  useEffect(() => {
-    Animated.timing(slideAnim, {
-      toValue: showUsersSidebar ? 0 : -width,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [showUsersSidebar]);
-
-  const handleSend = async () => {
-    if (!inputText.trim() || !profile) return;
-    
-    const content = inputText.trim();
-    setInputText(''); // Optimistic UI clear
-    
-    // Normal message handling
-    await sendMessage(ROOM_NAME, {
-      sender_id: profile.id,
-      sender_name: profile.full_name || 'Anonim',
-      avatar_url: profile.avatar_url || '',
-      content: content
-    });
-
-    // Check for bot trigger
-    const isBotTriggered = content.toLowerCase().includes('@workigom') || content.toLowerCase().includes('/workigom');
-    
-    if (isBotTriggered) {
-      setIsBotTyping(true);
-      try {
-        const { data, error } = await supabase.functions.invoke('gemini-bot', {
-          body: { message: content, user_name: profile.full_name || 'Anonim' }
-        });
-
-        if (error) {
-          console.error("Supabase Edge Function Error:", error);
-          throw error;
-        }
-
-        const botReply = data?.response || data?.error || "Sanırım sistemlerimde bir arıza var...";
-
-        await sendMessage(ROOM_NAME, {
-          sender_id: 'bot-1',
-          sender_name: 'Workigom AI',
-          avatar_url: '',
-          content: botReply
-        });
-      } catch (err) {
-        console.error("Bot error details:", err);
-        await sendMessage(ROOM_NAME, {
-          sender_id: 'bot-1',
-          sender_name: 'Workigom AI',
-          avatar_url: '',
-          content: "Bağlantı hatası oluştu, Workigom AI'a ulaşılamıyor."
-        });
-      } finally {
-        setIsBotTyping(false);
-      }
-    }
-  };
-
-  const formatTime = (timestamp: string | undefined) => {
-    if (!timestamp) return '';
-    try {
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-    } catch {
-      return '';
-    }
-  };
-
-  const renderMessage = ({ item }: { item: any }) => {
-    const isMine = item.sender_id === profile?.id;
-    const isBot = item.sender_id === 'bot-1';
-    
-    return (
-      <View style={[styles.messageRow, isMine ? styles.messageRowMine : styles.messageRowTheirs]}>
-        {/* Message Content Group (Top: Name/Time, Bottom: Bubble) */}
-        <View style={[styles.messageContent, isMine && styles.messageContentMine]}>
-          {/* Sender Name and Time Above Bubble */}
-          <View style={[styles.nameTimeRow, isMine ? styles.nameTimeRowMine : styles.nameTimeRowTheirs]}>
-            <Text style={styles.timeLabelNew}>{formatTime(item.created_at)}</Text>
-            <Text style={[styles.senderLabelNew, isMine && styles.senderLabelMineNew]}>
-              {isMine ? 'SİZ' : (item.sender_name || 'Anonim')}
-            </Text>
-          </View>
-          
-          {/* Message Bubble */}
-          <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs, isBot && styles.bubbleBot]}>
-            <Text style={[styles.messageText, isMine ? styles.messageTextMine : styles.messageTextTheirs]}>
-              {item.content}
-            </Text>
-          </View>
-        </View>
-
-        {/* Avatar next to bubble */}
-        <View style={[styles.avatarWrapper, isMine ? styles.avatarWrapperMine : styles.avatarWrapperTheirs]}>
-          <View style={[styles.avatarCircle, isMine ? styles.avatarCircleMine : styles.avatarCircleTheirs, isBot && styles.botAvatarCircle]}>
-            {isBot ? (
-              <Bot color="#FF007F" size={16} />
-            ) : (
-              <Image 
-                source={{ uri: (isMine ? profile?.avatar_url : item.avatar_url) || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }} 
-                style={styles.avatarImage}
-              />
-            )}
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  const renderTypingIndicator = () => {
-    if (!isBotTyping) return null;
-    return (
-      <View style={[styles.messageRow, styles.messageRowTheirs, { marginBottom: 12 }]}>
-         <View style={[styles.avatarWrapper, styles.avatarWrapperTheirs]}>
-           <View style={[styles.avatarCircle, styles.botAvatarCircle]}>
-              <Bot color="#FF007F" size={16} />
-           </View>
-         </View>
-         <View style={styles.messageContent}>
-           <Text style={[styles.senderLabelNew, { color: '#FF007F' }]}>WORKIGOM AI</Text>
-           <View style={[styles.bubble, styles.bubbleBot]}>
-              <Text style={[styles.messageText, styles.messageTextTheirs, { opacity: 0.6 }]}>
-                Workigom AI düşünüyor...
-              </Text>
-           </View>
-         </View>
-      </View>
-    );
-  };
-
-  return (
-    <Layout withHeader={false}>
-      <View style={styles.screenContainer}>
-        {/* Header with Safe Area (Redesigned) */}
-        <View style={[
-          styles.headerNew, 
-          { paddingTop: Math.max(insets.top, Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) : 0) + 12 }
-        ]}>
-          <View style={styles.headerLeftNew}>
-            <View style={styles.pinkSquare} />
-            <TouchableOpacity style={styles.chatSelector}>
-              <Text style={styles.chatSelectorText}>Global Chat</Text>
-              <ChevronDown color="#fff" size={16} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.headerRightNew}>
-            <TouchableOpacity style={styles.roundIconBtn}>
-              <Bell color="#aaaab6" size={20} />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.roundIconBtn}
-              onPress={() => setShowUsersSidebar(true)}
-            >
-              <UsersIcon color="#aaaab6" size={20} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Welcome Pill */}
-        <View style={styles.welcomePillContainer}>
-          <View style={styles.welcomePill}>
-             <Text style={styles.welcomePillText}>GENEL SOHBET. ŞİFRELI OTURUMA HOŞ GELDİNİZ.</Text>
-          </View>
-        </View>
-
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
-          style={styles.keyboardContainer}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
-
-          {/* Messages */}
-          <FlatList
-            ref={flatListRef}
-            data={messages}
-            keyExtractor={(item) => item.id}
-            renderItem={renderMessage}
-            ListHeaderComponent={renderTypingIndicator} // Renders at bottom due to inverted
-            inverted
-            contentContainerStyle={styles.listContent}
-          />
-
-          {/* Input Dock (Redesigned) */}
-          <View style={styles.inputDockNew}>
-            {/* Formatting Toolbar */}
-            <View style={styles.formatToolbar}>
-              <TouchableOpacity style={styles.toolbarBtn}><Bold color="#aaaab6" size={18} /></TouchableOpacity>
-              <TouchableOpacity style={styles.toolbarBtn}><Italic color="#aaaab6" size={18} /></TouchableOpacity>
-              <TouchableOpacity style={styles.toolbarBtn}><Underline color="#aaaab6" size={18} /></TouchableOpacity>
-              <View style={styles.toolbarDivider} />
-              <TouchableOpacity style={styles.toolbarBtn}><Palette color="#aaaab6" size={18} /></TouchableOpacity>
-              <TouchableOpacity style={styles.toolbarBtn}><Smile color="#aaaab6" size={18} /></TouchableOpacity>
-            </View>
-
-            <View style={styles.inputRowNew}>
-              <View style={styles.inputContainerNew}>
-                <TextInput
-                  style={styles.inputNew}
-                  placeholder="Mesajınızı yazın..."
-                  placeholderTextColor="#666"
-                  value={inputText}
-                  onChangeText={setInputText}
-                  multiline
-                  maxLength={500}
-                />
-              </View>
-              <TouchableOpacity 
-                onPress={handleSend} 
-                disabled={!inputText.trim()}
-                style={[styles.sendButtonNew, !inputText.trim() && styles.sendButtonDisabledNew]}
-              >
-                <Send color="#fff" size={20} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-
-        {/* --- Side Drawer Overlay --- */}
-        {showUsersSidebar && (
-          <TouchableOpacity 
-            style={styles.drawerOverlay} 
-            activeOpacity={1} 
-            onPress={() => setShowUsersSidebar(false)} 
-          />
-        )}
-
-        {/* --- Side Drawer Content --- */}
-        <Animated.View style={[styles.drawerContainer, { transform: [{ translateX: slideAnim }] }]}>
-          <View style={styles.drawerHeader}>
-            <View style={styles.drawerHeaderTitleRow}>
-              <View style={styles.onlineDot} />
-              <Text style={styles.drawerTitle}>ÇEVRİMİÇİ KULLANICILAR</Text>
-            </View>
-            <TouchableOpacity onPress={() => setShowUsersSidebar(false)}>
-              <X color="#aaaab6" size={20} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.drawerDivider} />
-          
-          <FlatList
-            data={presenceList}
-            keyExtractor={(item, index) => item?.id || index.toString()}
-            contentContainerStyle={styles.drawerList}
-            renderItem={({ item }) => (
-              <View style={styles.drawerUserRow}>
-                <View style={[styles.drawerAvatar, item?.id === profile?.id && { backgroundColor: '#FF007F', borderColor: '#FF007F' }]}>
-                  <Text style={[styles.drawerAvatarText, item?.id === profile?.id && { color: '#ffffff' }]}>
-                    {(item?.name || 'U')[0].toUpperCase()}
-                  </Text>
-                </View>
-                <View style={styles.drawerUserInfo}>
-                  <Text style={styles.drawerUserName}>
-                    {item?.id === profile?.id ? `${item?.name} (Siz)` : (item?.name || 'Anonim')}
-                  </Text>
-                  <Text style={styles.drawerUserSub}>Online</Text>
-                </View>
-              </View>
-            )}
-            ListHeaderComponent={() => (
-              <View style={{ marginBottom: 16 }}>
-                <Text style={styles.drawerSectionTitle}>DROIDS (Yapay Zeka)</Text>
-                <View style={[styles.drawerUserRow, { marginTop: 8 }]}>
-                  <View style={[styles.drawerAvatar, { backgroundColor: '#0a0b1e', borderColor: 'rgba(255, 0, 127, 0.4)' }]}>
-                    <Bot color="#FF007F" size={16} />
-                  </View>
-                  <View style={styles.drawerUserInfo}>
-                    <Text style={[styles.drawerUserName, { color: '#FF007F' }]}>Workigom AI</Text>
-                    <Text style={styles.drawerUserSub}>Geçerli Oda: Global Chat</Text>
-                  </View>
-                </View>
-              </View>
-            )}
-          />
-        </Animated.View>
-
-      </View>
-    </Layout>
-  );
-}
+const EMOJI_SET = ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😮‍💨", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😶‍🌫️", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👹", "👺", "🤡", "💩", "👻", "💀", "☠️", "👽", "👾", "🤖", "🎃", "😺", "😸", "😻", "😼", "😽", "🙀", "😿", "😾"];
 
 const styles = StyleSheet.create({
   screenContainer: {
@@ -342,6 +31,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  onlineDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FF007F',
+    shadowColor: '#FF007F',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 4,
   },
   pinkSquare: {
     width: 36,
@@ -422,11 +122,11 @@ const styles = StyleSheet.create({
   },
   messageRowMine: {
     alignSelf: 'flex-end',
-    flexDirection: 'row', // Keeping it row, but we use contentMine to align
+    flexDirection: 'row', 
   },
   messageRowTheirs: {
     alignSelf: 'flex-start',
-    flexDirection: 'row-reverse', // Avatar on left
+    flexDirection: 'row-reverse',
   },
   messageContent: {
     flex: 1,
@@ -599,7 +299,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
   },
 
-  // Side Drawer (keeping these basic for now)
+  // Emoji Picker Styles
+  emojiPickerContainer: {
+    height: 250,
+    backgroundColor: '#1d1f2a',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  emojiListContent: {
+    padding: 12,
+  },
+  emojiItem: {
+    flex: 1,
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 4,
+  },
+  emojiText: {
+    fontSize: 26,
+  },
+
+  // Side Drawer
   drawerOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.8)',
@@ -613,10 +334,6 @@ const styles = StyleSheet.create({
     width: width * 0.8,
     backgroundColor: '#0c0e16',
     zIndex: 100,
-    shadowColor: '#FF007F',
-    shadowOffset: { width: 10, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
   },
   drawerHeader: {
     flexDirection: 'row',
@@ -691,3 +408,400 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
+
+export default function MuhabbetScreen() {
+  const { profile } = useAuthStore();
+  const insets = useSafeAreaInsets();
+  const [selection, setSelection] = useState({ start: 0, end: 0 });
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const { 
+    messages, 
+    onlineUsers, 
+    presenceList,
+    initializeRoom, 
+    sendMessage, 
+    leaveRoom 
+  } = useMuhabbetStore();
+  
+  const [inputText, setInputText] = useState('');
+  const [showUsersSidebar, setShowUsersSidebar] = useState(false);
+  const [isBotTyping, setIsBotTyping] = useState(false);
+  
+  const flatListRef = useRef<FlatList>(null);
+  const slideAnim = useRef(new Animated.Value(-width)).current;
+  
+  const ROOM_NAME = 'genel';
+
+  useEffect(() => {
+    if (profile?.id) {
+      initializeRoom(ROOM_NAME, profile.id, {
+        name: profile.full_name,
+        avatar: profile.avatar_url
+      });
+    }
+    return () => leaveRoom();
+  }, [profile?.id]);
+
+  // Sidebar Slide Animation
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: showUsersSidebar ? 0 : -width,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [showUsersSidebar]);
+
+  const handleSend = async () => {
+    if (!inputText.trim() || !profile) return;
+    
+    const content = inputText.trim();
+    setInputText(''); // Optimistic UI clear
+    
+    // Normal message handling
+    await sendMessage(ROOM_NAME, {
+      sender_id: profile.id,
+      sender_name: profile.full_name || 'Anonim',
+      avatar_url: profile.avatar_url || '',
+      content: content
+    });
+
+    // Check for bot trigger
+    const isBotTriggered = content.toLowerCase().includes('@workigom') || content.toLowerCase().includes('/workigom');
+    
+    if (isBotTriggered) {
+      setIsBotTyping(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('gemini-bot', {
+          body: { message: content, user_name: profile.full_name || 'Anonim' }
+        });
+
+        if (error) {
+          console.error("Supabase Edge Function Error:", error);
+          throw error;
+        }
+
+        const botReply = data?.response || data?.error || "Sanırım sistemlerimde bir arıza var...";
+
+        await sendMessage(ROOM_NAME, {
+          sender_id: 'bot-1',
+          sender_name: 'Workigom AI',
+          avatar_url: '',
+          content: botReply
+        });
+      } catch (err) {
+        console.error("Bot error details:", err);
+        await sendMessage(ROOM_NAME, {
+          sender_id: 'bot-1',
+          sender_name: 'Workigom AI',
+          avatar_url: '',
+          content: "Bağlantı hatası oluştu, Workigom AI'a ulaşılamıyor."
+        });
+      } finally {
+        setIsBotTyping(false);
+      }
+    }
+  };
+
+  const formatTime = (timestamp: string | undefined) => {
+    if (!timestamp) return '';
+    try {
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return '';
+    }
+  };
+  const toggleFormat = (type: string) => {
+    let tag = '';
+    switch(type) {
+      case 'bold': tag = '**'; break;
+      case 'italic': tag = '_'; break;
+      case 'underline': tag = '__'; break;
+    }
+
+    const { start, end } = selection;
+    const selectedText = inputText.substring(start, end);
+    const beforeText = inputText.substring(0, start);
+    const afterText = inputText.substring(end);
+
+    let newText = '';
+    if (selectedText) {
+      newText = `${beforeText}${tag}${selectedText}${tag}${afterText}`;
+    } else {
+      newText = `${beforeText}${tag}${tag}${afterText}`;
+    }
+    
+    setInputText(newText);
+  };
+
+  const addEmoji = (emoji: string) => {
+    const { start, end } = selection;
+    const beforeText = inputText.substring(0, start);
+    const afterText = inputText.substring(end);
+    const newText = `${beforeText}${emoji}${afterText}`;
+    setInputText(newText);
+    // Move cursor after emoji
+    setSelection({ start: start + emoji.length, end: start + emoji.length });
+  };
+
+  const EMOJI_SET_INNER = EMOJI_SET; // Just for reference or local use if needed
+
+
+  const renderMessage = ({ item }: { item: any }) => {
+    const isMine = item.sender_id === profile?.id;
+    const isBot = item.sender_id === 'bot-1';
+    
+    return (
+      <View style={[styles.messageRow, isMine ? styles.messageRowMine : styles.messageRowTheirs]}>
+        {/* Message Content Group (Top: Name/Time, Bottom: Bubble) */}
+        <View style={[styles.messageContent, isMine && styles.messageContentMine]}>
+          {/* Sender Name and Time Above Bubble */}
+          <View style={[styles.nameTimeRow, isMine ? styles.nameTimeRowMine : styles.nameTimeRowTheirs]}>
+            <Text style={styles.timeLabelNew}>{formatTime(item.created_at)}</Text>
+            <Text style={[styles.senderLabelNew, isMine && styles.senderLabelMineNew]}>
+              {isMine ? 'SİZ' : (item.sender_name || 'Anonim')}
+            </Text>
+          </View>
+          
+          {/* Message Bubble */}
+          <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs, isBot && styles.bubbleBot]}>
+            <Text style={[styles.messageText, isMine ? styles.messageTextMine : styles.messageTextTheirs]}>
+              {item.content}
+            </Text>
+          </View>
+        </View>
+
+        {/* Avatar next to bubble */}
+        <View style={[styles.avatarWrapper, isMine ? styles.avatarWrapperMine : styles.avatarWrapperTheirs]}>
+          <View style={[styles.avatarCircle, isMine ? styles.avatarCircleMine : styles.avatarCircleTheirs, isBot && styles.botAvatarCircle]}>
+            {isBot ? (
+              <Bot color="#FF007F" size={16} />
+            ) : (
+              <Image 
+                source={{ uri: (isMine ? profile?.avatar_url : item.avatar_url) || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }} 
+                style={styles.avatarImage}
+              />
+            )}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderTypingIndicator = () => {
+    if (!isBotTyping) return null;
+    return (
+      <View style={[styles.messageRow, styles.messageRowTheirs, { marginBottom: 12 }]}>
+         <View style={[styles.avatarWrapper, styles.avatarWrapperTheirs]}>
+           <View style={[styles.avatarCircle, styles.botAvatarCircle]}>
+              <Bot color="#FF007F" size={16} />
+           </View>
+         </View>
+         <View style={styles.messageContent}>
+           <Text style={[styles.senderLabelNew, { color: '#FF007F' }]}>WORKIGOM AI</Text>
+           <View style={[styles.bubble, styles.bubbleBot]}>
+              <Text style={[styles.messageText, styles.messageTextTheirs, { opacity: 0.6 }]}>
+                Workigom AI düşünüyor...
+              </Text>
+           </View>
+         </View>
+      </View>
+    );
+  };
+
+  return (
+    <Layout withHeader={false}>
+      <View style={styles.screenContainer}>
+        {/* Header with Safe Area (Redesigned) */}
+        <View style={[
+          styles.headerNew, 
+          { paddingTop: Math.max(insets.top, Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) : 0) + 12 }
+        ]}>
+          <View style={styles.headerLeftNew}>
+            <View style={styles.pinkSquare} />
+            <TouchableOpacity style={styles.chatSelector}>
+              <Text style={styles.chatSelectorText}>Global Chat</Text>
+              <ChevronDown color="#fff" size={16} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.headerRightNew}>
+            <TouchableOpacity style={styles.roundIconBtn}>
+              <Bell color="#aaaab6" size={20} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.roundIconBtn}
+              onPress={() => setShowUsersSidebar(true)}
+            >
+              <UsersIcon color="#aaaab6" size={20} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Welcome Pill */}
+        <View style={styles.welcomePillContainer}>
+          <View style={styles.welcomePill}>
+             <Text style={styles.welcomePillText}>GENEL SOHBET. ŞİFRELI OTURUMA HOŞ GELDİNİZ.</Text>
+          </View>
+        </View>
+
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+          style={styles.keyboardContainer}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        >
+
+          {/* Messages */}
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={renderMessage}
+            ListHeaderComponent={renderTypingIndicator} // Renders at bottom due to inverted
+            inverted
+            contentContainerStyle={styles.listContent}
+            onScroll={() => showEmojiPicker && setShowEmojiPicker(false)}
+          />
+
+          {/* Emoji Picker Panel */}
+          {showEmojiPicker && (
+            <View style={styles.emojiPickerContainer}>
+              <FlatList
+                data={EMOJI_SET}
+                keyExtractor={(item, index) => index.toString()}
+                numColumns={8}
+                renderItem={({ item }) => (
+                  <TouchableOpacity 
+                    style={styles.emojiItem} 
+                    onPress={() => addEmoji(item)}
+                  >
+                    <Text style={styles.emojiText}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+                contentContainerStyle={styles.emojiListContent}
+              />
+            </View>
+          )}
+
+          {/* Input Dock (Redesigned & Functional) */}
+          <View style={styles.inputDockNew}>
+            {/* Formatting Toolbar */}
+            <View style={styles.formatToolbar}>
+              <TouchableOpacity 
+                style={styles.toolbarBtn} 
+                onPress={() => toggleFormat('bold')}
+              >
+                <Bold color={inputText.includes('**') ? '#FF007F' : '#aaaab6'} size={18} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.toolbarBtn} 
+                onPress={() => toggleFormat('italic')}
+              >
+                <Italic color={inputText.includes('_') ? '#FF007F' : '#aaaab6'} size={18} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.toolbarBtn} 
+                onPress={() => toggleFormat('underline')}
+              >
+                <Underline color={inputText.includes('__') ? '#FF007F' : '#aaaab6'} size={18} />
+              </TouchableOpacity>
+              
+              <View style={styles.toolbarDivider} />
+              
+              <TouchableOpacity style={styles.toolbarBtn}><Palette color="#aaaab6" size={18} /></TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.toolbarBtn}
+                onPress={() => setShowEmojiPicker(!showEmojiPicker)}
+              >
+                <Smile color={showEmojiPicker ? '#FF007F' : '#aaaab6'} size={18} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputRowNew}>
+              <View style={styles.inputContainerNew}>
+                <TextInput
+                  style={styles.inputNew}
+                  placeholder="Mesajınızı yazın..."
+                  placeholderTextColor="#666"
+                  value={inputText}
+                  onChangeText={setInputText}
+                  onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+                  multiline
+                  maxLength={500}
+                />
+              </View>
+
+              <TouchableOpacity 
+                onPress={handleSend} 
+                disabled={!inputText.trim()}
+                style={[styles.sendButtonNew, !inputText.trim() && styles.sendButtonDisabledNew]}
+              >
+                <Send color="#fff" size={20} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+
+        {/* --- Side Drawer Overlay --- */}
+        {showUsersSidebar && (
+          <TouchableOpacity 
+            style={styles.drawerOverlay} 
+            activeOpacity={1} 
+            onPress={() => setShowUsersSidebar(false)} 
+          />
+        )}
+
+        {/* --- Side Drawer Content --- */}
+        <Animated.View style={[styles.drawerContainer, { transform: [{ translateX: slideAnim }] }]}>
+          <View style={styles.drawerHeader}>
+            <View style={styles.drawerHeaderTitleRow}>
+              <View style={styles.onlineDot} />
+              <Text style={styles.drawerTitle}>ÇEVRİMİÇİ KULLANICILAR</Text>
+            </View>
+            <TouchableOpacity onPress={() => setShowUsersSidebar(false)}>
+              <X color="#aaaab6" size={20} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.drawerDivider} />
+          
+          <FlatList
+            data={presenceList}
+            keyExtractor={(item, index) => item?.id || index.toString()}
+            contentContainerStyle={styles.drawerList}
+            renderItem={({ item }) => (
+              <View style={styles.drawerUserRow}>
+                <View style={[styles.drawerAvatar, item?.id === profile?.id && { backgroundColor: '#FF007F', borderColor: '#FF007F' }]}>
+                  <Text style={[styles.drawerAvatarText, item?.id === profile?.id && { color: '#ffffff' }]}>
+                    {(item?.name || 'U')[0].toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.drawerUserInfo}>
+                  <Text style={styles.drawerUserName}>
+                    {item?.id === profile?.id ? `${item?.name} (Siz)` : (item?.name || 'Anonim')}
+                  </Text>
+                  <Text style={styles.drawerUserSub}>Online</Text>
+                </View>
+              </View>
+            )}
+            ListHeaderComponent={() => (
+              <View style={{ marginBottom: 16 }}>
+                <Text style={styles.drawerSectionTitle}>DROIDS (Yapay Zeka)</Text>
+                <View style={[styles.drawerUserRow, { marginTop: 8 }]}>
+                  <View style={[styles.drawerAvatar, { backgroundColor: '#0a0b1e', borderColor: 'rgba(255, 0, 127, 0.4)' }]}>
+                    <Bot color="#FF007F" size={16} />
+                  </View>
+                  <View style={styles.drawerUserInfo}>
+                    <Text style={[styles.drawerUserName, { color: '#FF007F' }]}>Workigom AI</Text>
+                    <Text style={styles.drawerUserSub}>Geçerli Oda: Global Chat</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+          />
+        </Animated.View>
+
+      </View>
+    </Layout>
+  );
+}
+
+
