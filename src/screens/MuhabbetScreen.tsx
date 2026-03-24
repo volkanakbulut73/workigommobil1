@@ -9,6 +9,8 @@ import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold,
 
 const { width } = Dimensions.get('window');
 
+const COLOR_SET = ['#FF007F', '#00FF00', '#00FFFF', '#FFFF00', '#BF00FF', '#FF8000', '#FF0000', '#0080FF'];
+
 const EMOJI_SET = ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😮‍💨", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😶‍🌫️", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👹", "👺", "🤡", "💩", "👻", "💀", "☠️", "👽", "👾", "🤖", "🎃", "😺", "😸", "😻", "😼", "😽", "🙀", "😿", "😾"];
 
 const styles = StyleSheet.create({
@@ -320,7 +322,29 @@ const styles = StyleSheet.create({
     fontSize: 26,
   },
 
+  // Color Picker Styles
+  colorPickerContainer: {
+    padding: 16,
+    backgroundColor: '#1d1f2a',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  colorListContent: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  colorItem: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+
   // Side Drawer
+
   drawerOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.8)',
@@ -414,6 +438,7 @@ export default function MuhabbetScreen() {
   const insets = useSafeAreaInsets();
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const { 
     messages, 
     onlineUsers, 
@@ -525,14 +550,47 @@ export default function MuhabbetScreen() {
     const afterText = inputText.substring(end);
 
     let newText = '';
-    if (selectedText) {
+    let newSelection = { start, end };
+
+    if (start !== end) {
+      // Wrap selection
       newText = `${beforeText}${tag}${selectedText}${tag}${afterText}`;
+      newSelection = { start: start + tag.length, end: end + tag.length };
     } else {
+      // Empty selection: insert tags and place cursor in middle
       newText = `${beforeText}${tag}${tag}${afterText}`;
+      newSelection = { start: start + tag.length, end: start + tag.length };
     }
     
     setInputText(newText);
+    setSelection(newSelection);
   };
+
+  const applyColor = (color: string) => {
+    const { start, end } = selection;
+    const selectedText = inputText.substring(start, end);
+    const beforeText = inputText.substring(0, start);
+    const afterText = inputText.substring(end);
+
+    const openTag = `[color=${color}]`;
+    const closeTag = `[/color]`;
+
+    let newText = '';
+    let newSelection = { start, end };
+
+    if (start !== end) {
+      newText = `${beforeText}${openTag}${selectedText}${closeTag}${afterText}`;
+      newSelection = { start: start + openTag.length, end: end + openTag.length };
+    } else {
+      newText = `${beforeText}${openTag}${closeTag}${afterText}`;
+      newSelection = { start: start + openTag.length, end: start + openTag.length };
+    }
+
+    setInputText(newText);
+    setSelection(newSelection);
+    setShowColorPicker(false);
+  };
+
 
   const addEmoji = (emoji: string) => {
     const { start, end } = selection;
@@ -682,6 +740,21 @@ export default function MuhabbetScreen() {
             </View>
           )}
 
+          {/* Color Picker Panel */}
+          {showColorPicker && (
+            <View style={styles.colorPickerContainer}>
+              <View style={styles.colorListContent}>
+                {COLOR_SET.map((color, index) => (
+                  <TouchableOpacity 
+                    key={index}
+                    style={[styles.colorItem, { backgroundColor: color }]} 
+                    onPress={() => applyColor(color)}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+
           {/* Input Dock (Redesigned & Functional) */}
           <View style={styles.inputDockNew}>
             {/* Formatting Toolbar */}
@@ -707,10 +780,21 @@ export default function MuhabbetScreen() {
               
               <View style={styles.toolbarDivider} />
               
-              <TouchableOpacity style={styles.toolbarBtn}><Palette color="#aaaab6" size={18} /></TouchableOpacity>
               <TouchableOpacity 
                 style={styles.toolbarBtn}
-                onPress={() => setShowEmojiPicker(!showEmojiPicker)}
+                onPress={() => {
+                  setShowColorPicker(!showColorPicker);
+                  setShowEmojiPicker(false);
+                }}
+              >
+                <Palette color={showColorPicker ? '#FF007F' : '#aaaab6'} size={18} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.toolbarBtn}
+                onPress={() => {
+                  setShowEmojiPicker(!showEmojiPicker);
+                  setShowColorPicker(false);
+                }}
               >
                 <Smile color={showEmojiPicker ? '#FF007F' : '#aaaab6'} size={18} />
               </TouchableOpacity>
