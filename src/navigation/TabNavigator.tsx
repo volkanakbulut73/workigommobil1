@@ -25,7 +25,7 @@ export function TabNavigator() {
           paddingBottom: 10 + insets.bottom,
           paddingTop: 10
         },
-        tabBarActiveTintColor: '#00FF00',
+        tabBarActiveTintColor: '#FF007F',
         tabBarInactiveTintColor: '#888',
         headerShown: false, // We use a custom global header
       }}

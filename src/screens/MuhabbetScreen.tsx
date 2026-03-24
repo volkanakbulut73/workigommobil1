@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, Dimensions, StatusBar as RNStatusBar } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMuhabbetStore } from '../store/useMuhabbetStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { Layout } from '../components/Layout';
@@ -10,6 +11,7 @@ const { width } = Dimensions.get('window');
 
 export default function MuhabbetScreen() {
   const { profile } = useAuthStore();
+  const insets = useSafeAreaInsets();
   const { 
     messages, 
     onlineUsers, 
@@ -175,10 +177,13 @@ export default function MuhabbetScreen() {
   };
 
   return (
-    <Layout headerProps={{ logoMode: 'compact', showActions: false }}>
+    <Layout withHeader={false}>
       <View style={styles.screenContainer}>
-        {/* Header */}
-        <View style={styles.header}>
+        {/* Header with Safe Area */}
+        <View style={[
+          styles.header, 
+          { paddingTop: Math.max(insets.top, Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) : 0) + 12 }
+        ]}>
           <View style={styles.headerLeft}>
             <Globe color="#FF007F" size={16} />
             <View>
