@@ -37,7 +37,7 @@ export function ProfileScreen() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(profile?.full_name || user?.user_metadata?.full_name || 'Hasan İKİ');
-  const [editLocation, setEditLocation] = useState('SAN FRANCISCO, CA');
+  const [editLocation, setEditLocation] = useState('İstanbul, Türkiye');
   const [editPhone, setEditPhone] = useState('+90 555 123 4567');
   const [editIban, setEditIban] = useState('TR12 3456 7890 1234 5678 9012 34');
   
@@ -340,8 +340,8 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     backgroundColor: '#1d1f2a',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     overflow: 'hidden',
     position: 'relative',
     marginBottom: 16,
@@ -474,9 +474,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(29, 31, 42, 0.6)',
+    backgroundColor: 'rgba(29, 31, 42, 0.4)',
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 20,
   },
   transactionLeft: {
     flexDirection: 'row',
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   transactionIconBox: {
     width: 48,
     height: 48,
-    borderRadius: 12,
+    backgroundColor: 'rgba(34, 37, 49, 0.4)',
     alignItems: 'center',
     justifyContent: 'center',
   },

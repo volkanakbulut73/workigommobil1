@@ -86,7 +86,7 @@ export function MarketDetailScreen() {
           thread.id,
           profile.id,
           listingOwnerId,
-          "Merhaba, ilanınız hala satılık mı detayları öğrenebilir miyim?"
+          `[İlan: ${listing.title}]\nMerhaba, bu ilanınızla ilgileniyorum, hala satılık mı?`
         );
       }
       

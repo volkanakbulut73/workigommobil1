@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Image } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../store/useAuthStore';
 import { useMessageStore } from '../store/useMessageStore';
 import { ChevronLeft, Send, Image as ImageIcon } from 'lucide-react-native';
+import { MessageService } from '../services/messageService';
 
 const MessageBubble = React.memo(({ item, isMe }: { item: any, isMe: boolean }) => (
   <View style={[styles.messageWrapper, isMe ? styles.messageWrapperMe : styles.messageWrapperOther]}>
@@ -34,11 +35,22 @@ export function ChatScreen() {
 
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
+  const [threadDetails, setThreadDetails] = useState<any>(null);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     if (!threadId || !profile) return;
 
+    const loadThread = async () => {
+      try {
+        const details = await MessageService.getThreadDetails(threadId);
+        setThreadDetails(details);
+      } catch (err) {
+        console.error('Error fetching thread details:', err);
+      }
+    };
+
+    loadThread();
     fetchMessages(threadId);
     subscribeToThread(threadId);
     markThreadAsRead(threadId, profile.id);
@@ -95,6 +107,19 @@ export function ChatScreen() {
         <Text style={styles.headerTitle} numberOfLines={1}>{title || 'Sohbet'}</Text>
         <View style={{ width: 40 }} />
       </View>
+
+      {threadDetails?.listing && (
+        <View style={styles.listingHeader}>
+          <Image 
+            source={{ uri: threadDetails.listing.photo_url?.split(',')[0] }} 
+            style={styles.listingThumb} 
+          />
+          <View style={styles.listingInfo}>
+            <Text style={styles.listingTitle} numberOfLines={1}>{threadDetails.listing.title}</Text>
+            <Text style={styles.listingPrice}>₺{threadDetails.listing.required_balance}</Text>
+          </View>
+        </View>
+      )}
 
       <View style={styles.chatArea}>
         {loading && messages.length === 0 ? (
@@ -173,4 +198,34 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
   },
   sendBtn: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center', marginLeft: 8 },
+  listingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#11142A',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+    gap: 12
+  },
+  listingThumb: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)'
+  },
+  listingInfo: {
+    flex: 1,
+  },
+  listingTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 2
+  },
+  listingPrice: {
+    color: '#39ff14',
+    fontSize: 12,
+    fontWeight: 'bold'
+  },
 });

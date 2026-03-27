@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { AnalyticsService } from '../services/analyticsService';
+import { DBService } from '../services/dbService';
 
 interface AuthState {
   session: Session | null;
@@ -33,11 +34,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ session, user: session?.user ?? null, loading: false });
 
     if (session?.user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
+      const profile = await DBService.ensureUserProfile(
+        session.user.id, 
+        session.user.user_metadata?.full_name || 'Kullanıcı'
+      );
       set({ profile });
       if (profile) {
         AnalyticsService.identifyUser(session.user.id, profile);
@@ -47,11 +47,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     supabase.auth.onAuthStateChange(async (_event, session) => {
       set({ session, user: session?.user ?? null });
       if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+        const profile = await DBService.ensureUserProfile(
+          session.user.id, 
+          session.user.user_metadata?.full_name || 'Kullanıcı'
+        );
         set({ profile });
         if (profile) {
           AnalyticsService.identifyUser(session.user.id, profile);

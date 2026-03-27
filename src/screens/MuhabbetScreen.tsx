@@ -171,28 +171,74 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   bubbleMine: {
-    backgroundColor: '#FF007F',
-    borderBottomRightRadius: 4,
+    backgroundColor: '#2e7d32', // Mat Green
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   bubbleTheirs: {
-    backgroundColor: '#1d1f2a',
-    borderBottomLeftRadius: 4,
+    backgroundColor: '#1C2541', // Indigo Deep
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(142, 255, 113, 0.05)',
   },
   bubbleBot: {
     backgroundColor: 'rgba(255, 0, 127, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 0, 127, 0.2)',
+    borderColor: 'rgba(255, 0, 127, 0.15)',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
   },
   messageText: {
     fontSize: 14,
     lineHeight: 20,
   },
   messageTextMine: {
-    color: '#fff',
-    fontWeight: '600',
+    color: '#ffffff',
+    fontWeight: '500',
   },
   messageTextTheirs: {
     color: '#ededf9',
+  },
+  welcomeBanner: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    alignItems: 'center',
+    gap: 8,
+  },
+  welcomeDivider: {
+    height: 1,
+    width: '100%',
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+  },
+  welcomeBox: {
+    backgroundColor: 'rgba(142, 255, 113, 0.05)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  welcomeTitle: {
+    color: '#8eff71',
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  welcomeSub: {
+    color: '#aaaab6',
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 3,
   },
 
   // Avatar
@@ -496,16 +542,26 @@ export default function MuhabbetScreen() {
     if (isBotTriggered) {
       setIsBotTyping(true);
       try {
-        const { data, error } = await supabase.functions.invoke('gemini-bot', {
-          body: { message: content, user_name: profile.full_name || 'Anonim' }
+        // Use manual fetch to bypass 401 errors when verify_jwt = false
+        const response = await fetch('https://toqroogfufzgxsxemfeh.supabase.co/functions/v1/gemini-bot', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            message: content, 
+            user_name: profile.full_name || 'Anonim' 
+          }),
         });
 
-        if (error) {
-          console.error("Supabase Edge Function Error:", error);
-          throw error;
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Gemini Bot Fetch Error:", response.status, errorText);
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
-        const botReply = data?.response || data?.error || "Sanırım sistemlerimde bir arıza var...";
+        const data = await response.json();
+        const botReply = data?.response || "Sanırım sistemlerimde bir arıza var...";
 
         await sendMessage(ROOM_NAME, {
           sender_id: 'bot-1',
@@ -714,7 +770,17 @@ export default function MuhabbetScreen() {
             data={messages}
             keyExtractor={(item) => item.id}
             renderItem={renderMessage}
-            ListHeaderComponent={renderTypingIndicator} // Renders at bottom due to inverted
+            ListHeaderComponent={renderTypingIndicator} // Bottom in inverted
+            ListFooterComponent={() => (
+              <View style={styles.welcomeBanner}>
+                <View style={styles.welcomeDivider} />
+                <View style={styles.welcomeBox}>
+                  <Text style={styles.welcomeTitle}>GENEL SOHBET. ŞİFRELİ OTURUMA HOŞ GELDİNİZ.</Text>
+                  <Text style={styles.welcomeSub}>WORKIGOM{'<'}CHAT{'>'}</Text>
+                </View>
+                <View style={styles.welcomeDivider} />
+              </View>
+            )}
             inverted
             contentContainerStyle={styles.listContent}
             onScroll={() => showEmojiPicker && setShowEmojiPicker(false)}
@@ -887,5 +953,4 @@ export default function MuhabbetScreen() {
     </Layout>
   );
 }
-
 

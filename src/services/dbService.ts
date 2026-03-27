@@ -9,8 +9,38 @@ export const DBService = {
       .eq('id', userId)
       .single();
 
-    if (error) throw error;
-    return data as Profile;
+    if (error && error.code !== 'PGRST116') throw error;
+    return data as Profile | null;
+  },
+
+  async ensureUserProfile(userId: string, fullName: string = 'Kullanıcı') {
+    try {
+      const profile = await this.getProfile(userId);
+      if (profile) return profile;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          full_name: fullName,
+          avatar_url: `https://ui-avatars.com/api/?name=${fullName.replace(' ', '+')}&background=random&color=fff`,
+          rating: 5.0,
+          wallet_balance: 0
+        })
+        .select()
+        .single();
+
+      if (error) {
+        if (error.code === '23505') {
+          return await this.getProfile(userId);
+        }
+        throw error;
+      }
+      return data as Profile;
+    } catch (err) {
+      console.error('ensureUserProfile error:', err);
+      return null;
+    }
   },
 
   async updateProfile(userId: string, updates: Partial<Profile>) {
@@ -44,7 +74,7 @@ export const DBService = {
   async getPendingTransactions() {
     const { data, error } = await supabase
       .from('transactions')
-      .select(`*, profiles!transactions_seeker_id_fkey(full_name, rating, avatar_url)`)
+      .select(`*, profiles!seeker_id(full_name, rating, avatar_url)`)
       .eq('status', 'waiting-supporter')
       .order('created_at', { ascending: false });
 
@@ -55,7 +85,7 @@ export const DBService = {
   async getUserTransactions(userId: string) {
     const { data, error } = await supabase
       .from('transactions')
-      .select(`*, profiles!transactions_seeker_id_fkey(full_name, rating, avatar_url)`)
+      .select(`*, profiles!seeker_id(full_name, rating, avatar_url)`)
       .or(`seeker_id.eq.${userId},supporter_id.eq.${userId}`)
       .order('created_at', { ascending: false });
 
@@ -66,7 +96,7 @@ export const DBService = {
   async getUserActiveTransaction(userId: string) {
     const { data, error } = await supabase
       .from('transactions')
-      .select(`*, seeker:profiles!transactions_seeker_id_fkey(full_name), supporter:profiles!transactions_supporter_id_fkey(full_name)`)
+      .select(`*, seeker:profiles!seeker_id(full_name), supporter:profiles!supporter_id(full_name)`)
       .or(`seeker_id.eq.${userId},supporter_id.eq.${userId}`)
       .in('status', ['waiting-supporter', 'waiting-cash-payment', 'cash-paid', 'qr-uploaded'])
       .order('created_at', { ascending: false })
@@ -80,7 +110,7 @@ export const DBService = {
   async getTransactionById(transactionId: string) {
     const { data, error } = await supabase
       .from('transactions')
-      .select(`*, seeker:profiles!transactions_seeker_id_fkey(full_name), supporter:profiles!transactions_supporter_id_fkey(full_name)`)
+      .select(`*, seeker:profiles!seeker_id(full_name), supporter:profiles!supporter_id(full_name)`)
       .eq('id', transactionId)
       .single();
 
@@ -101,6 +131,31 @@ export const DBService = {
   },
 
   async acceptTransaction(transactionId: string, supporterId: string, supportPercentage: number) {
-    return this.updateTransactionStatus(transactionId, 'waiting-cash-payment', { supporter_id: supporterId, support_percentage: supportPercentage });
+    // Ensure profile exists for supporter
+    await this.ensureUserProfile(supporterId);
+    
+    return this.updateTransactionStatus(transactionId, 'waiting-cash-payment', { 
+      supporter_id: supporterId, 
+      support_percentage: supportPercentage 
+    });
+  },
+
+  async uploadImage(base64: string, bucket: string = 'images') {
+    const { decode } = require('base64-arraybuffer');
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+    
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, decode(base64), {
+        contentType: 'image/jpeg',
+      });
+      
+    if (error) throw error;
+    
+    const { data: publicUrlData } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(data.path);
+      
+    return publicUrlData.publicUrl;
   }
 };

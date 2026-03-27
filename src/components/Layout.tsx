@@ -17,7 +17,7 @@ export function Layout({ children, withHeader = true, headerProps }: LayoutProps
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0c0e16" />
+      <StatusBar barStyle="light-content" backgroundColor="#0c0e16" translucent />
       {withHeader && <Header {...headerProps} />}
       <View style={styles.content}>
         {children}

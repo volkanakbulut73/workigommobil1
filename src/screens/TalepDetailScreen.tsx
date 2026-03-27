@@ -29,7 +29,7 @@ export function TalepDetailScreen() {
     try {
       const { data, error } = await supabase
         .from('transactions')
-        .select(`*, profiles!transactions_seeker_id_fkey(full_name, avatar_url)`)
+        .select(`*, profiles!seeker_id(full_name, avatar_url)`)
         .eq('id', id)
         .single();
         

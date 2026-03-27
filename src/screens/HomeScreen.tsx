@@ -23,8 +23,11 @@ export default function HomeScreen() {
             />
           </View>
         </View>
-        <Text style={styles.brandTitle}>WORKIGOM</Text>
-        <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate('Profile')}>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.greetingText}>Selam, </Text>
+          <Text style={styles.userNameText}>{profile?.full_name?.split(' ')[0] || 'Dostum'}</Text>
+        </View>
+        <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate('Notifications')}>
           <Bell color="#8eff71" size={24} />
         </TouchableOpacity>
       </View>
@@ -39,9 +42,9 @@ export default function HomeScreen() {
               Birlikte Paylaş,{'\n'}
               <Text style={styles.heroTitleHighlight}>Daha Fazla Kazan</Text>
             </Text>
-            <View style={styles.heroBtn}>
+            <TouchableOpacity style={styles.heroBtn} activeOpacity={0.8} onPress={() => navigation.navigate('TaleplerCreate')}>
               <Text style={styles.heroBtnText}>Hemen Başla</Text>
-            </View>
+            </TouchableOpacity>
           </View>
           <View style={styles.heroIconWrapper}>
             <Rocket color="#8eff71" size={72} strokeWidth={1} style={{ opacity: 0.3 }} />
@@ -226,7 +229,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 80,
     paddingBottom: 40,
-    gap: 28,
+    gap: 16,
   },
   header: {
     position: 'absolute',
@@ -238,8 +241,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    backgroundColor: 'rgba(12, 14, 22, 0.85)',
-    zIndex: 100,
+    backgroundColor: 'rgba(12, 14, 22, 0.98)',
+    zIndex: 50,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(142, 255, 113, 0.08)',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -263,11 +268,18 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
   },
-  brandTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  greetingText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#aaaab6',
+  },
+  userNameText: {
+    fontSize: 16,
+    fontWeight: 'bold',
     color: '#8eff71',
   },
   headerRight: {
@@ -316,15 +328,12 @@ const styles = StyleSheet.create({
   },
   heroBtn: {
     backgroundColor: '#8eff71',
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 9999,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 16,
     alignSelf: 'flex-start',
-    shadowColor: '#8eff71',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 15,
-    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(142, 255, 113, 0.5)',
   },
   heroBtnText: {
     color: '#0c0e16',

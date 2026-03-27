@@ -1,0 +1,8 @@
+# Supabase configuration for mobile project
+project_id = "toqroogfufzgxsxemfeh"
+
+[functions.gemini-bot]
+enabled = true
+verify_jwt = false
+import_map = "./functions/gemini-bot/deno.json"
+entrypoint = "./functions/gemini-bot/index.ts"

@@ -9,12 +9,31 @@ export const MessageService = {
       .from('threads')
       .select(`
         *,
-        buyer:profiles!threads_buyer_id_fkey(full_name, avatar_url),
-        seller:profiles!threads_seller_id_fkey(full_name, avatar_url),
+        buyer:profiles!buyer_id(full_name, avatar_url),
+        seller:profiles!seller_id(full_name, avatar_url),
         listing:swap_listings(title, photo_url)
       `)
       .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
       .order('updated_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Fetches a single thread detail with related data.
+   */
+  getThreadDetails: async (threadId: string) => {
+    const { data, error } = await supabase
+      .from('threads')
+      .select(`
+        *,
+        buyer:profiles!buyer_id(full_name, avatar_url),
+        seller:profiles!seller_id(full_name, avatar_url),
+        listing:swap_listings(title, photo_url, required_balance)
+      `)
+      .eq('id', threadId)
+      .single();
 
     if (error) throw error;
     return data;
