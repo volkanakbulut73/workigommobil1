@@ -79,15 +79,8 @@ export function TabNavigator() {
         name="Muhabbet" 
         component={MuhabbetScreen} 
         options={{ 
-          tabBarLabel: 'Sohbet',
-          tabBarBadge: unreadMessageCount > 0 ? (unreadMessageCount > 9 ? '9+' : unreadMessageCount) : undefined,
-          tabBarBadgeStyle: { 
-            backgroundColor: '#ff4b4b', 
-            color: 'white', 
-            fontSize: 10,
-            fontWeight: 'bold',
-            marginTop: -2
-          },
+          tabBarLabel: 'Muhabbet',
+          tabBarBadge: undefined,
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
               <MessageSquare color={color} size={focused ? 24 : 22} />

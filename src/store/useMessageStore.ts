@@ -21,7 +21,7 @@ interface MessageState {
   fetchThreads: (userId: string) => Promise<void>;
   fetchMessages: (threadId: string, lastCursor?: string) => Promise<void>;
   sendMessage: (threadId: string, senderId: string, receiverId: string, content: string) => Promise<void>;
-  subscribeToThread: (threadId: string) => void;
+  subscribeToThread: (threadId: string, userId: string) => void;
   unsubscribe: () => void;
   addMessageOptimistically: (message: Message) => void;
   markThreadAsRead: (threadId: string, userId: string) => Promise<void>;
@@ -137,13 +137,21 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
     }
   },
 
-  subscribeToThread: (threadId: string) => {
-    const { currentChannel, unsubscribe } = get();
+  subscribeToThread: (threadId: string, userId: string) => {
+    const { currentChannel, unsubscribe, markThreadAsRead } = get();
     if (currentChannel) unsubscribe();
+    
+    // Clear once on subscribe
+    markThreadAsRead(threadId, userId);
 
     const channel = RealtimeService.subscribeToThread(threadId, (payload: any) => {
       const newMessage = payload.new as Message;
       const state = get();
+
+      // If we are actively viewing this thread and receive a message from others, mark as read
+      if (newMessage.sender_id !== userId) {
+        markThreadAsRead(threadId, userId);
+      }
       
       // Prevent optimistic duplication
       const isAlreadyInState = state.messages.some(m => m.id === newMessage.id);
@@ -193,13 +201,13 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
   },
 
   markThreadAsRead: async (threadId: string, userId: string) => {
-    // 1. Clear notifications
+    // 1. Clear notifications (identifying them by the threadId in the link column)
     const { error: notifError } = await supabase
       .from('notifications')
       .update({ read: true })
       .eq('user_id', userId)
-      .eq('thread_id', threadId)
       .eq('type', 'new_message')
+      .like('link', `%${threadId}%`)
       .eq('read', false);
 
     // 2. Clear messages read status

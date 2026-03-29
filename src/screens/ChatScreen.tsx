@@ -52,13 +52,12 @@ export function ChatScreen() {
 
     loadThread();
     fetchMessages(threadId);
-    subscribeToThread(threadId);
-    markThreadAsRead(threadId, profile.id);
+    subscribeToThread(threadId, profile.id);
 
     return () => {
       unsubscribe();
     };
-  }, [threadId, profile]);
+  }, [threadId, profile?.id]);
 
   const handleSend = async () => {
     if (!inputText.trim() || !profile || !threadId) return;

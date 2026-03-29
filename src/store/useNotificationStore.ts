@@ -38,7 +38,14 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
       .eq('type', 'new_message')
       .eq('read', false);
 
-    const unreadThreadIds = notifications?.map(n => n.thread_id).filter(Boolean) || [];
+    const unreadThreadIds = notifications?.map(n => {
+      if (n.thread_id) return n.thread_id;
+      // Fallback: parse from link /app/messages/:id or messages/:id
+      if (n.link?.includes('/messages/')) {
+        return n.link.split('/messages/').pop();
+      }
+      return null;
+    }).filter(Boolean) || [];
     
     set({ 
       unreadCount: notifCount || 0, 
