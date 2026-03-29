@@ -11,7 +11,7 @@ export const MessageService = {
         *,
         buyer:profiles!buyer_id(full_name, avatar_url),
         seller:profiles!seller_id(full_name, avatar_url),
-        listing:swap_listings(title, photo_url)
+        listing:swap_listings(title, photo_url, required_balance)
       `)
       .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
       .order('updated_at', { ascending: false });
@@ -62,17 +62,22 @@ export const MessageService = {
   /**
    * Finds an existing thread or creates a new one.
    */
-  findOrCreateThread: async (listingId: string, buyerId: string, sellerId: string, moduleType: string) => {
-    // Try to find existing
-    const { data: existingData, error: findError } = await supabase
-      .from('threads')
-      .select('*')
-      .eq('listing_id', listingId)
-      .eq('buyer_id', buyerId)
-      .eq('seller_id', sellerId)
-      .maybeSingle();
-      
+  findOrCreateThread: async (listingId: string | null, buyerId: string, sellerId: string, moduleType: string) => {
+    // Try to find existing in both directions
+    let query = supabase.from('threads').select('*').eq('buyer_id', buyerId).eq('seller_id', sellerId).eq('type', moduleType);
+    if (listingId) query = query.eq('listing_id', listingId);
+    else query = query.is('listing_id', null);
+
+    const { data: existingData } = await query.maybeSingle();
     if (existingData) return existingData;
+
+    // Try reverse direction
+    let query2 = supabase.from('threads').select('*').eq('buyer_id', sellerId).eq('seller_id', buyerId).eq('type', moduleType);
+    if (listingId) query2 = query2.eq('listing_id', listingId);
+    else query2 = query2.is('listing_id', null);
+
+    const { data: existingData2 } = await query2.maybeSingle();
+    if (existingData2) return existingData2;
 
     // Create new
     const { data: newData, error: createError } = await supabase
@@ -81,7 +86,7 @@ export const MessageService = {
         listing_id: listingId,
         buyer_id: buyerId,
         seller_id: sellerId,
-        module_type: moduleType,
+        type: moduleType,
         last_message: null
       })
       .select()

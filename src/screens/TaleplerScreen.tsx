@@ -11,7 +11,7 @@ const TalepCardItem = React.memo(({ item, isMine, profile, onAccept, onCancel, o
   const avatar = item.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${fullName.replace(' ', '+')}&background=8eff71&color=0c0e16&rounded=true`;
 
   return (
-    <View style={styles.requestCard}>
+    <View style={styles.requestCard as any}>
       {/* Card Header / User Info */}
       <View style={styles.cardHeader}>
         <View style={styles.userInfoLeft}>

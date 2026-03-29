@@ -31,7 +31,7 @@ function App() {
       AnalyticsService.init();
     }, 1000);
 
-    const unsubscribe = NetInfo.addEventListener(state => {
+    const unsubscribe = NetInfo.addEventListener((state: any) => {
       setIsConnected(state.isConnected);
     });
 

@@ -1,42 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator, RefreshControl } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../store/useAuthStore';
-import { MessageService } from '../services/messageService';
+import { useMessageStore } from '../store/useMessageStore';
 import { ChevronLeft, MessageSquare, Search } from 'lucide-react-native';
 
 export function MessagesListScreen() {
   const navigation = useNavigation<any>();
   const { profile } = useAuthStore();
   
-  const [threads, setThreads] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const threads = useMessageStore(state => state.threads);
+  const loading = useMessageStore(state => state.loading);
+  const fetchThreads = useMessageStore(state => state.fetchThreads);
   const [refreshing, setRefreshing] = useState(false);
-
-  const fetchThreads = async () => {
-    if (!profile) {
-      setLoading(false);
-      return;
-    }
-    try {
-      const data = await MessageService.getUserThreads(profile.id);
-      setThreads(data || []);
-    } catch (error) {
-      console.error('Error fetching threads:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  
+  useFocusEffect(
+    React.useCallback(() => {
+      if (profile?.id) {
+        fetchThreads(profile.id);
+      }
+    }, [profile?.id])
+  );
 
   useEffect(() => {
-    fetchThreads();
+    if (profile?.id) {
+      fetchThreads(profile.id);
+    }
     // In a real app we might also subscribe to thread updates here via Realtime
   }, [profile?.id]);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchThreads();
+  const onRefresh = async () => {
+    if (profile?.id) {
+      setRefreshing(true);
+      await fetchThreads(profile.id);
+      setRefreshing(false);
+    }
   };
 
   const renderItem = ({ item }: { item: any }) => {
@@ -56,7 +54,11 @@ export function MessagesListScreen() {
     return (
       <TouchableOpacity 
         style={styles.threadItem}
-        onPress={() => navigation.navigate('Chat', { threadId: item.id, title: listingTitle || otherName })}
+        onPress={() => navigation.navigate('Chat', { 
+          threadId: item.id, 
+          title: listingTitle || otherName,
+          receiverId: otherUser?.id
+        })}
       >
         <Image source={{ uri: otherAvatar }} style={styles.avatar} />
         

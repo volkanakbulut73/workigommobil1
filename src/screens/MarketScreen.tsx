@@ -26,7 +26,7 @@ const ListingCard = React.memo(({ item, onPress }: { item: any, onPress: (id: st
         {mainPhoto ? (
           <ExpoImage 
             source={{ uri: mainPhoto }} 
-            style={styles.image} 
+            style={styles.image as any} 
             placeholder={blurhash}
             contentFit="cover"
             transition={200}
@@ -58,7 +58,7 @@ const ListingCard = React.memo(({ item, onPress }: { item: any, onPress: (id: st
           <View style={styles.sellerRow}>
             <ExpoImage 
               source={{ uri: sellerAvatar }} 
-              style={styles.sellerAvatar} 
+              style={styles.sellerAvatar as any} 
               placeholder={blurhash}
               contentFit="cover"
               transition={200}
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   },
   image: { width: '100%', height: '100%' },
   imagePlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  placeholderText: { fontSize: 32, fontWeight: 'black', color: 'rgba(255,255,255,0.1)' },
+  placeholderText: { fontSize: 32, fontWeight: '900', color: 'rgba(255,255,255,0.1)' },
   ratingBadge: {
     position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.5)',
     flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6, paddingVertical: 3,

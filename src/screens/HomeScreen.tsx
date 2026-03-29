@@ -27,9 +27,7 @@ export default function HomeScreen() {
           <Text style={styles.greetingText}>Selam, </Text>
           <Text style={styles.userNameText}>{profile?.full_name?.split(' ')[0] || 'Dostum'}</Text>
         </View>
-        <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate('Notifications')}>
-          <Bell color="#8eff71" size={24} />
-        </TouchableOpacity>
+        <View style={styles.headerRight} />
       </View>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>

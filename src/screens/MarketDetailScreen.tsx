@@ -92,7 +92,8 @@ export function MarketDetailScreen() {
       
       navigation.navigate('Chat', { 
         threadId: thread.id, 
-        title: listing.title 
+        title: listing.title,
+        receiverId: listingOwnerId
       });
       
     } catch (err) {
@@ -143,7 +144,7 @@ export function MarketDetailScreen() {
         {/* Banner Area */}
         <View style={styles.bannerContainer}>
           {mainPhoto ? (
-             <Image source={{ uri: mainPhoto }} style={styles.bannerImage} />
+             <Image source={{ uri: mainPhoto }} style={styles.bannerImage as any} />
           ) : (
              <View style={styles.bannerPlaceholder}>
                 <Text style={styles.bannerPlaceholderText}>{listing.title[0] || '?'}</Text>
@@ -163,7 +164,7 @@ export function MarketDetailScreen() {
               <TouchableOpacity key={index} onPress={() => setActiveImageIndex(index)}>
                 <Image 
                   source={{ uri: url }} 
-                  style={[styles.thumbnail, activeImageIndex === index && styles.thumbnailActive]} 
+                  style={[styles.thumbnail, activeImageIndex === index && styles.thumbnailActive] as any} 
                 />
               </TouchableOpacity>
             ))}
@@ -247,7 +248,7 @@ const styles = StyleSheet.create({
   bannerContainer: { width: SCREEN_WIDTH, height: SCREEN_WIDTH, backgroundColor: '#11142A', position: 'relative' },
   bannerImage: { width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#000' },
   bannerPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#11142A' },
-  bannerPlaceholderText: { fontSize: 80, fontWeight: 'black', color: 'rgba(255,255,255,0.05)' },
+  bannerPlaceholderText: { fontSize: 80, fontWeight: '900', color: 'rgba(255,255,255,0.05)' },
   ratingBadge: {
     position: 'absolute', bottom: 16, right: 16, backgroundColor: 'rgba(0,0,0,0.6)',
     paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 4

@@ -67,7 +67,7 @@ export function TrackerScreen() {
         })
         .subscribe();
         
-      return () => { supabase.removeChannel(channel); };
+      return () => { (supabase as any).removeChannel(channel); };
     } else {
       setLoading(false);
     }

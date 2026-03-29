@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import { Profile, Transaction } from '../types';
 
 export const DBService = {
+  supabase,
   async getProfile(userId: string) {
     const { data, error } = await supabase
       .from('profiles')

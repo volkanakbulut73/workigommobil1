@@ -64,11 +64,15 @@ export function ChatScreen() {
     if (!inputText.trim() || !profile || !threadId) return;
     
     let receiverId = '';
-    const otherMessage = messages.find(m => m.sender_id !== profile.id);
-    if (otherMessage) {
-      receiverId = otherMessage.sender_id;
+    if (threadDetails) {
+      receiverId = profile.id === threadDetails.buyer_id ? threadDetails.seller_id : threadDetails.buyer_id;
     } else {
       receiverId = route.params?.receiverId || '';
+    }
+
+    if (!receiverId) {
+      console.warn('Cannot determine receiverId');
+      return;
     }
 
     const text = inputText.trim();
