@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
+
   // Welcome Pill
   welcomePillContainer: {
     alignItems: 'center',
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   },
   messageRowMine: {
     alignSelf: 'flex-end',
-    flexDirection: 'row', 
+    flexDirection: 'row',
   },
   messageRowTheirs: {
     alignSelf: 'flex-start',
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   senderLabelMineNew: {
     color: '#FF007F',
   },
-  
+
   // Bubble
   bubble: {
     paddingHorizontal: 16,
@@ -485,22 +485,22 @@ export default function MuhabbetScreen() {
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const { 
-    messages, 
-    onlineUsers, 
+  const {
+    messages,
+    onlineUsers,
     presenceList,
-    initializeRoom, 
-    sendMessage, 
-    leaveRoom 
+    initializeRoom,
+    sendMessage,
+    leaveRoom
   } = useMuhabbetStore();
-  
+
   const [inputText, setInputText] = useState('');
   const [showUsersSidebar, setShowUsersSidebar] = useState(false);
   const [isBotTyping, setIsBotTyping] = useState(false);
-  
+
   const flatListRef = useRef<FlatList>(null);
   const slideAnim = useRef(new Animated.Value(-width)).current;
-  
+
   const ROOM_NAME = 'genel';
 
   useEffect(() => {
@@ -524,10 +524,10 @@ export default function MuhabbetScreen() {
 
   const handleSend = async () => {
     if (!inputText.trim() || !profile) return;
-    
+
     const content = inputText.trim();
     setInputText(''); // Optimistic UI clear
-    
+
     // Normal message handling
     await sendMessage(ROOM_NAME, {
       sender_id: profile.id,
@@ -538,7 +538,7 @@ export default function MuhabbetScreen() {
 
     // Check for bot trigger
     const isBotTriggered = content.toLowerCase().includes('@workigom') || content.toLowerCase().includes('/workigom');
-    
+
     if (isBotTriggered) {
       setIsBotTyping(true);
       try {
@@ -548,9 +548,9 @@ export default function MuhabbetScreen() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ 
-            message: content, 
-            user_name: profile.full_name || 'Anonim' 
+          body: JSON.stringify({
+            message: content,
+            user_name: profile.full_name || 'Anonim'
           }),
         });
 
@@ -594,7 +594,7 @@ export default function MuhabbetScreen() {
   };
   const toggleFormat = (type: string) => {
     let tag = '';
-    switch(type) {
+    switch (type) {
       case 'bold': tag = '**'; break;
       case 'italic': tag = '_'; break;
       case 'underline': tag = '__'; break;
@@ -617,7 +617,7 @@ export default function MuhabbetScreen() {
       newText = `${beforeText}${tag}${tag}${afterText}`;
       newSelection = { start: start + tag.length, end: start + tag.length };
     }
-    
+
     setInputText(newText);
     setSelection(newSelection);
   };
@@ -664,7 +664,7 @@ export default function MuhabbetScreen() {
   const renderMessage = ({ item }: { item: any }) => {
     const isMine = item.sender_id === profile?.id;
     const isBot = item.sender_id === 'bot-1';
-    
+
     return (
       <View style={[styles.messageRow, isMine ? styles.messageRowMine : styles.messageRowTheirs]}>
         {/* Message Content Group (Top: Name/Time, Bottom: Bubble) */}
@@ -676,7 +676,7 @@ export default function MuhabbetScreen() {
               {isMine ? 'SİZ' : (item.sender_name || 'Anonim')}
             </Text>
           </View>
-          
+
           {/* Message Bubble */}
           <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs, isBot && styles.bubbleBot]}>
             <Text style={[styles.messageText, isMine ? styles.messageTextMine : styles.messageTextTheirs]}>
@@ -691,8 +691,8 @@ export default function MuhabbetScreen() {
             {isBot ? (
               <Bot color="#FF007F" size={16} />
             ) : (
-              <Image 
-                source={{ uri: (isMine ? profile?.avatar_url : item.avatar_url) || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }} 
+              <Image
+                source={{ uri: (isMine ? profile?.avatar_url : item.avatar_url) || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }}
                 style={styles.avatarImage}
               />
             )}
@@ -706,19 +706,19 @@ export default function MuhabbetScreen() {
     if (!isBotTyping) return null;
     return (
       <View style={[styles.messageRow, styles.messageRowTheirs, { marginBottom: 12 }]}>
-         <View style={[styles.avatarWrapper, styles.avatarWrapperTheirs]}>
-           <View style={[styles.avatarCircle, styles.botAvatarCircle]}>
-              <Bot color="#FF007F" size={16} />
-           </View>
-         </View>
-         <View style={styles.messageContent}>
-           <Text style={[styles.senderLabelNew, { color: '#FF007F' }]}>WORKIGOM AI</Text>
-           <View style={[styles.bubble, styles.bubbleBot]}>
-              <Text style={[styles.messageText, styles.messageTextTheirs, { opacity: 0.6 }]}>
-                Workigom AI düşünüyor...
-              </Text>
-           </View>
-         </View>
+        <View style={[styles.avatarWrapper, styles.avatarWrapperTheirs]}>
+          <View style={[styles.avatarCircle, styles.botAvatarCircle]}>
+            <Bot color="#FF007F" size={16} />
+          </View>
+        </View>
+        <View style={styles.messageContent}>
+          <Text style={[styles.senderLabelNew, { color: '#FF007F' }]}>WORKIGOM AI</Text>
+          <View style={[styles.bubble, styles.bubbleBot]}>
+            <Text style={[styles.messageText, styles.messageTextTheirs, { opacity: 0.6 }]}>
+              Workigom AI düşünüyor...
+            </Text>
+          </View>
+        </View>
       </View>
     );
   };
@@ -728,7 +728,7 @@ export default function MuhabbetScreen() {
       <View style={styles.screenContainer}>
         {/* Header with Safe Area (Redesigned) */}
         <View style={[
-          styles.headerNew, 
+          styles.headerNew,
           { paddingTop: Math.max(insets.top, Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) : 0) + 12 }
         ]}>
           <View style={styles.headerLeftNew}>
@@ -742,7 +742,7 @@ export default function MuhabbetScreen() {
             <TouchableOpacity style={styles.roundIconBtn}>
               <Bell color="#aaaab6" size={20} />
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.roundIconBtn}
               onPress={() => setShowUsersSidebar(true)}
             >
@@ -754,12 +754,12 @@ export default function MuhabbetScreen() {
         {/* Welcome Pill */}
         <View style={styles.welcomePillContainer}>
           <View style={styles.welcomePill}>
-             <Text style={styles.welcomePillText}>GENEL SOHBET. ŞİFRELI OTURUMA HOŞ GELDİNİZ.</Text>
+            <Text style={styles.welcomePillText}>GENEL SOHBET. ŞİFRELI OTURUMA HOŞ GELDİNİZ.</Text>
           </View>
         </View>
 
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardContainer}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
@@ -794,8 +794,8 @@ export default function MuhabbetScreen() {
                 keyExtractor={(item, index) => index.toString()}
                 numColumns={8}
                 renderItem={({ item }) => (
-                  <TouchableOpacity 
-                    style={styles.emojiItem} 
+                  <TouchableOpacity
+                    style={styles.emojiItem}
                     onPress={() => addEmoji(item)}
                   >
                     <Text style={styles.emojiText}>{item}</Text>
@@ -811,9 +811,9 @@ export default function MuhabbetScreen() {
             <View style={styles.colorPickerContainer}>
               <View style={styles.colorListContent}>
                 {COLOR_SET.map((color, index) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={index}
-                    style={[styles.colorItem, { backgroundColor: color }]} 
+                    style={[styles.colorItem, { backgroundColor: color }]}
                     onPress={() => applyColor(color)}
                   />
                 ))}
@@ -825,28 +825,28 @@ export default function MuhabbetScreen() {
           <View style={styles.inputDockNew}>
             {/* Formatting Toolbar */}
             <View style={styles.formatToolbar}>
-              <TouchableOpacity 
-                style={styles.toolbarBtn} 
+              <TouchableOpacity
+                style={styles.toolbarBtn}
                 onPress={() => toggleFormat('bold')}
               >
                 <Bold color={inputText.includes('**') ? '#FF007F' : '#aaaab6'} size={18} />
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.toolbarBtn} 
+              <TouchableOpacity
+                style={styles.toolbarBtn}
                 onPress={() => toggleFormat('italic')}
               >
                 <Italic color={inputText.includes('_') ? '#FF007F' : '#aaaab6'} size={18} />
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.toolbarBtn} 
+              <TouchableOpacity
+                style={styles.toolbarBtn}
                 onPress={() => toggleFormat('underline')}
               >
                 <Underline color={inputText.includes('__') ? '#FF007F' : '#aaaab6'} size={18} />
               </TouchableOpacity>
-              
+
               <View style={styles.toolbarDivider} />
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.toolbarBtn}
                 onPress={() => {
                   setShowColorPicker(!showColorPicker);
@@ -855,7 +855,7 @@ export default function MuhabbetScreen() {
               >
                 <Palette color={showColorPicker ? '#FF007F' : '#aaaab6'} size={18} />
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.toolbarBtn}
                 onPress={() => {
                   setShowEmojiPicker(!showEmojiPicker);
@@ -880,8 +880,8 @@ export default function MuhabbetScreen() {
                 />
               </View>
 
-              <TouchableOpacity 
-                onPress={handleSend} 
+              <TouchableOpacity
+                onPress={handleSend}
                 disabled={!inputText.trim()}
                 style={[styles.sendButtonNew, !inputText.trim() && styles.sendButtonDisabledNew]}
               >
@@ -893,10 +893,10 @@ export default function MuhabbetScreen() {
 
         {/* --- Side Drawer Overlay --- */}
         {showUsersSidebar && (
-          <TouchableOpacity 
-            style={styles.drawerOverlay} 
-            activeOpacity={1} 
-            onPress={() => setShowUsersSidebar(false)} 
+          <TouchableOpacity
+            style={styles.drawerOverlay}
+            activeOpacity={1}
+            onPress={() => setShowUsersSidebar(false)}
           />
         )}
 
@@ -912,7 +912,7 @@ export default function MuhabbetScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.drawerDivider} />
-          
+
           <FlatList
             data={presenceList}
             keyExtractor={(item, index) => item?.id || index.toString()}
