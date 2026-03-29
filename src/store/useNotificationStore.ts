@@ -6,6 +6,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 interface NotificationState {
   unreadCount: number;
   unreadMessageCount: number;
+  unreadThreadIds: string[];
   notifications: any[];
   currentChannel: RealtimeChannel | null;
   setUnreadCount: (count: number) => void;
@@ -18,6 +19,7 @@ interface NotificationState {
 export const useNotificationStore = create<NotificationState>()((set, get) => ({
   unreadCount: 0,
   unreadMessageCount: 0,
+  unreadThreadIds: [],
   notifications: [],
   currentChannel: null,
   setUnreadCount: (count) => set({ unreadCount: count }),
@@ -29,14 +31,21 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
       .eq('user_id', userId)
       .eq('read', false);
 
-    const { count: msgCount } = await supabase
+    const { data: notifications, count: msgCount } = await supabase
       .from('notifications')
-      .select('*', { count: 'exact', head: true })
+      .select('*', { count: 'exact' })
       .eq('user_id', userId)
       .eq('type', 'new_message')
       .eq('read', false);
 
-    set({ unreadCount: notifCount || 0, unreadMessageCount: msgCount || 0 });
+    const unreadThreadIds = notifications?.map(n => n.thread_id).filter(Boolean) || [];
+    
+    set({ 
+      unreadCount: notifCount || 0, 
+      unreadMessageCount: msgCount || 0,
+      unreadThreadIds: Array.from(new Set(unreadThreadIds)),
+      notifications: notifications || []
+    });
   },
   subscribe: (userId) => {
     // Unsubscribe if exists

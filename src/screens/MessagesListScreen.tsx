@@ -3,15 +3,17 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndi
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../store/useAuthStore';
 import { useMessageStore } from '../store/useMessageStore';
+import { useNotificationStore } from '../store/useNotificationStore';
 import { ChevronLeft, MessageSquare, Search } from 'lucide-react-native';
 
 export function MessagesListScreen() {
   const navigation = useNavigation<any>();
   const { profile } = useAuthStore();
   
-  const threads = useMessageStore(state => state.threads);
-  const loading = useMessageStore(state => state.loading);
-  const fetchThreads = useMessageStore(state => state.fetchThreads);
+  const threads = useMessageStore((state: any) => state.threads);
+  const loading = useMessageStore((state: any) => state.loading);
+  const fetchThreads = useMessageStore((state: any) => state.fetchThreads);
+  const unreadThreadIds = useNotificationStore((state: any) => state.unreadThreadIds);
   const [refreshing, setRefreshing] = useState(false);
   
   useFocusEffect(
@@ -45,11 +47,7 @@ export function MessagesListScreen() {
     const otherAvatar = otherUser?.avatar_url || `https://ui-avatars.com/api/?name=${otherName.replace(' ', '+')}&background=random&color=fff&rounded=true`;
 
     const listingTitle = item.listing?.title;
-    
-    // Check if there are unread messages for THIS user
-    // Since our database has "read" flag on messages, but here we just have last_message updated_at
-    // We can do a visual check based on a local state or just show the last message visually
-    const unread = false; // Simplified
+    const unread = unreadThreadIds.includes(item.id);
 
     return (
       <TouchableOpacity 

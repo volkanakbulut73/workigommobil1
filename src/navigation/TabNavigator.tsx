@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, ClipboardList, ShoppingCart, MessageSquare, User } from 'lucide-react-native';
+import { useNotificationStore } from '../store/useNotificationStore';
 
 // Screens (Placeholders for now)
 import HomeScreen from '../screens/HomeScreen';
@@ -15,6 +16,7 @@ const Tab = createBottomTabNavigator();
 
 export function TabNavigator() {
   const insets = useSafeAreaInsets();
+  const unreadMessageCount = useNotificationStore(state => state.unreadMessageCount);
 
   return (
     <Tab.Navigator
@@ -78,6 +80,14 @@ export function TabNavigator() {
         component={MuhabbetScreen} 
         options={{ 
           tabBarLabel: 'Sohbet',
+          tabBarBadge: unreadMessageCount > 0 ? (unreadMessageCount > 9 ? '9+' : unreadMessageCount) : undefined,
+          tabBarBadgeStyle: { 
+            backgroundColor: '#ff4b4b', 
+            color: 'white', 
+            fontSize: 10,
+            fontWeight: 'bold',
+            marginTop: -2
+          },
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
               <MessageSquare color={color} size={focused ? 24 : 22} />

@@ -193,14 +193,24 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
   },
 
   markThreadAsRead: async (threadId: string, userId: string) => {
-    const { error } = await supabase
+    // 1. Clear notifications
+    const { error: notifError } = await supabase
       .from('notifications')
       .update({ read: true })
       .eq('user_id', userId)
       .eq('thread_id', threadId)
-      .eq('type', 'new_message');
+      .eq('type', 'new_message')
+      .eq('read', false);
 
-    if (!error) {
+    // 2. Clear messages read status
+    const { error: msgError } = await supabase
+      .from('messages')
+      .update({ read: true })
+      .eq('thread_id', threadId)
+      .eq('receiver_id', userId)
+      .eq('read', false);
+
+    if (!notifError || !msgError) {
       useNotificationStore.getState().fetchCounts(userId);
     }
   },

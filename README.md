@@ -61,6 +61,24 @@ src/
 4. **Push Bildirimleri:**
    - `expo-device` ve `expo-notifications` kullanılarak anlık cihaz bildirimleri.
 
+## 💬 Mesajlaşma Mimarisi
+
+Uygulamanın mesajlaşma sistemi, web versiyonu ile tam uyumlu ve senkronize bir mimari üzerine kuruludur.
+
+**1. Veri Yapısı ve Tablolar:**
+- **`threads` (Sohbet Kanalları):** Alıcı ve satıcı arasındaki her bir ilan veya özel görüşme için benzersiz bir kanal oluşturulur. `buyer_id` ve `seller_id` üzerinden çift yönlü kontrol yapılır (Aynı iki kişi için tek thread).
+- **`messages` (Mesajlar):** Her thread'e bağlı mesajlar burada saklanır. Gönderen (`sender_id`) ve alıcı (`receiver_id`) bilgileri ile `read` (okundu) durumu tutulur.
+- **`notifications` (Bildirimler):** Bir mesaj gönderildiğinde, alıcı için otomatik olarak `type='new_message'` tipinde bir bildirim kaydı oluşturulur. Okunmamış mesaj sayıları bu tablo üzerinden hesaplanır.
+
+**2. Canlı Dinleme (Realtime):**
+- **Supabase Realtime**: Uygulama açıkken gelen yeni mesajlar ve bildirimler anlık olarak (WebSocket üzerinden) dinlenir. 
+- **Zustand Store (`useMessageStore` & `useNotificationStore`)**: Gelen veriler merkezi store'da güncellenerek tüm ekranların (Tab Menu, Thread Listesi, Chat Ekranı) anında güncellenmesi sağlanır.
+
+**3. Bildirim ve Badge Yönetimi:**
+- **Tab Bar Badge**: Alt menüdeki mesaj ikonunda, okunmamış bildirim sayısı kadar kırmızı bir işaret (badge) gösterilir.
+- **Thread Listesi**: Okunmamış mesajı olan sohbetlerin yanında görsel bir işaret (mavi nokta) belirir.
+- **Web Senkronizasyonu**: Mesaj mobilden okunduğunda, web versiyonundaki bildirim sayısı ve tarayıcı sekme başlığı (örn: `(3) Workigom`) otomatik olarak güncellenir.
+
 ## 🛠 Kurulum ve Çalıştırma
 
 **Ön gereksinimler:** Node.js yüklü (Tercihen v18 veya v20). Android/iOS Emülatör ya da fiziksel cihazda `Expo Go` kurulu olmalı.
