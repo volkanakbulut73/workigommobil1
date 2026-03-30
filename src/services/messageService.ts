@@ -135,14 +135,40 @@ export const MessageService = {
   },
 
   /**
-   * Deletes a message if the caller is the sender.
+   * Deletes a message and updates the thread's last message.
    */
-  deleteMessage: async (messageId: string, senderId: string) => {
+  deleteMessage: async (messageId: string, senderId: string, threadId: string) => {
     const { error } = await supabase
       .from('messages')
       .delete()
       .match({ id: messageId, sender_id: senderId });
 
     if (error) throw error;
+
+    // Fix: Update the thread's last_message so it doesn't show the deleted message
+    const { data: lastMsgs } = await supabase
+      .from('messages')
+      .select('content')
+      .eq('thread_id', threadId)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    const newLastMessage = lastMsgs && lastMsgs.length > 0 ? lastMsgs[0].content : '';
+    await supabase.from('threads').update({ last_message: newLastMessage }).eq('id', threadId);
+  },
+
+  /**
+   * Deletes an entire thread.
+   */
+  deleteThread: async (threadId: string) => {
+    const { error } = await supabase
+      .from('threads')
+      .delete()
+      .eq('id', threadId);
+
+    if (error) {
+      console.error('Thread delete error:', error);
+      throw error;
+    }
   }
 };

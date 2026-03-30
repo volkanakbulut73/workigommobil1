@@ -25,7 +25,8 @@ interface MessageState {
   unsubscribe: () => void;
   addMessageOptimistically: (message: Message) => void;
   markThreadAsRead: (threadId: string, userId: string) => Promise<void>;
-  deleteMessage: (messageId: string, senderId: string) => Promise<void>;
+  deleteMessage: (messageId: string, senderId: string, threadId: string) => Promise<void>;
+  deleteThread: (threadId: string) => Promise<void>;
 }
 
 export const useMessageStore = create<MessageState>()((set, get) => ({
@@ -235,7 +236,7 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
     }
   },
 
-  deleteMessage: async (messageId: string, senderId: string) => {
+  deleteMessage: async (messageId: string, senderId: string, threadId: string) => {
     try {
       // Optimistic delete
       set(state => ({
@@ -243,9 +244,26 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
       }));
       
       const { MessageService } = require('../services/messageService');
-      await MessageService.deleteMessage(messageId, senderId);
+      await MessageService.deleteMessage(messageId, senderId, threadId);
     } catch (err) {
       console.error('Error deleting message:', err);
+    }
+  },
+
+  deleteThread: async (threadId: string) => {
+    try {
+      // Optimistic delete
+      set(state => ({
+        threads: state.threads.filter(t => t.id !== threadId)
+      }));
+
+      const { MessageService } = require('../services/messageService');
+      await MessageService.deleteThread(threadId);
+    } catch (err) {
+      console.error('Error deleting thread:', err);
+      // Re-fetch threads to sync state on error
+      const profileId = require('./useAuthStore').useAuthStore.getState().profile?.id;
+      if (profileId) get().fetchThreads(profileId);
     }
   },
 }));

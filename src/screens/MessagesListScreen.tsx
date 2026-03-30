@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator, RefreshControl, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../store/useAuthStore';
 import { useMessageStore } from '../store/useMessageStore';
@@ -13,6 +13,7 @@ export function MessagesListScreen() {
   const threads = useMessageStore((state: any) => state.threads);
   const loading = useMessageStore((state: any) => state.loading);
   const fetchThreads = useMessageStore((state: any) => state.fetchThreads);
+  const deleteThread = useMessageStore((state: any) => state.deleteThread);
   const unreadThreadIds = useNotificationStore((state: any) => state.unreadThreadIds);
   const [refreshing, setRefreshing] = useState(false);
   
@@ -39,6 +40,17 @@ export function MessagesListScreen() {
     }
   };
 
+  const handleDeleteThread = (threadId: string, otherName: string) => {
+    Alert.alert(
+      "Sohbeti Sil",
+      `${otherName} ile olan bu konuşmayı silmek istediğinize emin misiniz? (Bu işlem konuşma geçmişini tamamen siler)`,
+      [
+        { text: "İptal", style: "cancel" },
+        { text: "Sil", style: "destructive", onPress: () => deleteThread(threadId) }
+      ]
+    );
+  };
+
   const renderItem = ({ item }: { item: any }) => {
     // Determine the "other" user in the thread
     const isBuyer = profile?.id === item.buyer_id;
@@ -57,6 +69,8 @@ export function MessagesListScreen() {
           title: listingTitle || otherName,
           receiverId: otherUser?.id
         })}
+        onLongPress={() => handleDeleteThread(item.id, otherName)}
+        delayLongPress={400}
       >
         <Image source={{ uri: otherAvatar }} style={styles.avatar} />
         

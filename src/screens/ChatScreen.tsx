@@ -106,10 +106,10 @@ export function ChatScreen() {
       "Bu mesajı silmek istediğinize emin misiniz?",
       [
         { text: "İptal", style: "cancel" },
-        { text: "Sil", style: "destructive", onPress: () => deleteMessage(msgId, profile?.id || '') }
+        { text: "Sil", style: "destructive", onPress: () => deleteMessage(msgId, profile?.id || '', threadId) }
       ]
     );
-  }, [profile?.id, deleteMessage]);
+  }, [profile?.id, deleteMessage, threadId]);
 
   const renderMessage = useCallback(({ item }: { item: any }) => {
     const isMe = item.sender_id === profile?.id;
