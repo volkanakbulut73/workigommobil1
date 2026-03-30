@@ -223,26 +223,29 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
   },
 
   markThreadAsRead: async (threadId: string, userId: string) => {
-    // 1. Clear notifications (identifying them by the threadId in the link column)
-    const { error: notifError } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('user_id', userId)
-      .eq('type', 'new_message')
-      .like('link', `%${threadId}%`)
-      .eq('read', false);
+    try {
+      // 1. Clear notifications (identifying them by the threadId in the link column)
+      await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', userId)
+        .eq('type', 'new_message')
+        .like('link', `%${threadId}%`)
+        .eq('read', false);
 
-    // 2. Clear messages read status
-    const { error: msgError } = await supabase
-      .from('messages')
-      .update({ read: true })
-      .eq('thread_id', threadId)
-      .eq('receiver_id', userId)
-      .eq('read', false);
-
-    if (!notifError || !msgError) {
-      useNotificationStore.getState().fetchCounts(userId);
+      // 2. Clear messages read status
+      await supabase
+        .from('messages')
+        .update({ read: true })
+        .eq('thread_id', threadId)
+        .eq('receiver_id', userId)
+        .eq('read', false);
+    } catch (err) {
+      console.error('Error marking thread as read:', err);
     }
+
+    // Always refresh counts so badge updates
+    useNotificationStore.getState().fetchCounts(userId);
   },
 
   deleteMessage: async (messageId: string, senderId: string, threadId: string) => {
