@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, ClipboardList, ShoppingCart, MessageSquare, User } from 'lucide-react-native';
 import { useNotificationStore } from '../store/useNotificationStore';
+import { useAuthStore } from '../store/useAuthStore';
 
-// Screens (Placeholders for now)
+// Screens
 import HomeScreen from '../screens/HomeScreen';
 import { TaleplerScreen } from '../screens/TaleplerScreen';
 import { MarketScreen } from '../screens/MarketScreen';
@@ -16,7 +17,23 @@ const Tab = createBottomTabNavigator();
 
 export function TabNavigator() {
   const insets = useSafeAreaInsets();
+  const { profile } = useAuthStore();
   const unreadMessageCount = useNotificationStore(state => state.unreadMessageCount);
+  const fetchCounts = useNotificationStore(state => state.fetchCounts);
+  const subscribe = useNotificationStore(state => state.subscribe);
+  const unsubscribe = useNotificationStore(state => state.unsubscribe);
+
+  useEffect(() => {
+    if (profile?.id) {
+      // Fetch initial counts
+      fetchCounts(profile.id);
+      // Start realtime subscription for messages + notifications
+      subscribe(profile.id);
+    }
+    return () => {
+      unsubscribe();
+    };
+  }, [profile?.id]);
 
   return (
     <Tab.Navigator

@@ -43,18 +43,27 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
 
   fetchThreads: async (userId) => {
     set({ loading: true });
-    const { data: threads } = await supabase
-      .from('threads')
-      .select(`
-        *,
-        buyer:profiles!buyer_id(full_name, avatar_url),
-        seller:profiles!seller_id(full_name, avatar_url),
-        listing:swap_listings(title, photo_url, required_balance)
-      `)
-      .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
-      .order('updated_at', { ascending: false });
+    try {
+      const { data: threads, error } = await supabase
+        .from('threads')
+        .select(`
+          *,
+          buyer:profiles!buyer_id(full_name, avatar_url),
+          seller:profiles!seller_id(full_name, avatar_url),
+          listing:swap_listings(title, photo_url, required_balance)
+        `)
+        .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+        .order('updated_at', { ascending: false });
 
-    set({ threads: threads || [], loading: false });
+      if (error) throw error;
+      set({ threads: threads || [] });
+    } catch (err) {
+      console.error('Error fetching threads:', err);
+      // Fallback or empty to stop infinite spin
+      set({ threads: [] });
+    } finally {
+      set({ loading: false });
+    }
   },
 
   fetchMessages: async (threadId, lastCursor) => {

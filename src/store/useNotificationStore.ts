@@ -8,7 +8,7 @@ interface NotificationState {
   unreadMessageCount: number;
   unreadThreadIds: string[];
   notifications: any[];
-  currentChannel: RealtimeChannel | null;
+  currentChannels: RealtimeChannel[];
   setUnreadCount: (count: number) => void;
   setUnreadMessageCount: (count: number) => void;
   fetchCounts: (userId: string) => Promise<void>;
@@ -21,7 +21,7 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
   unreadMessageCount: 0,
   unreadThreadIds: [],
   notifications: [],
-  currentChannel: null,
+  currentChannels: [],
   setUnreadCount: (count) => set({ unreadCount: count }),
   setUnreadMessageCount: (count) => set({ unreadMessageCount: count }),
   fetchCounts: async (userId) => {
@@ -57,17 +57,31 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
     // Unsubscribe if exists
     get().unsubscribe();
 
-    const channel = RealtimeService.subscribeToUserChanges(userId, 'notifications', () => {
+    const notifChannel = RealtimeService.subscribeToUserChanges(userId, 'notifications', () => {
       get().fetchCounts(userId);
     });
 
-    set({ currentChannel: channel });
+    const msgChannel = supabase
+      .channel(`user-messages-${userId}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'messages', 
+          filter: `receiver_id=eq.${userId}` 
+        },
+        () => get().fetchCounts(userId)
+      )
+      .subscribe();
+
+    set({ currentChannels: [notifChannel, msgChannel] });
   },
   unsubscribe: () => {
-    const { currentChannel } = get();
-    if (currentChannel) {
-      RealtimeService.unsubscribe(currentChannel);
-      set({ currentChannel: null });
-    }
+    const { currentChannels } = get();
+    currentChannels.forEach(channel => {
+      supabase.removeChannel(channel);
+    });
+    set({ currentChannels: [] });
   },
 }));
