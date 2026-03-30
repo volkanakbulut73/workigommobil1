@@ -65,25 +65,76 @@ src/
 
 Uygulamanın mesajlaşma sistemi, web versiyonu ile tam uyumlu ve senkronize bir mimari üzerine kuruludur.
 
-**1. Veri Yapısı ve Tablolar:**
-- **`threads` (Sohbet Kanalları):** Alıcı ve satıcı arasındaki her bir ilan veya özel görüşme için benzersiz bir kanal oluşturulur. `buyer_id` ve `seller_id` üzerinden çift yönlü kontrol yapılır (Aynı iki kişi için tek thread).
-- **`messages` (Mesajlar):** Her thread'e bağlı mesajlar burada saklanır. Gönderen (`sender_id`) ve alıcı (`receiver_id`) bilgileri ile `read` (okundu) durumu tutulur.
-- **`notifications` (Bildirimler):** Bir mesaj gönderildiğinde, alıcı için otomatik olarak `type='new_message'` tipinde bir bildirim kaydı oluşturulur. Okunmamış mesaj sayıları bu tablo üzerinden hesaplanır.
+### Veri Yapısı ve Tablolar
 
-**2. Canlı Dinleme (Realtime):**
-- **Supabase Realtime**: Uygulama açıkken gelen yeni mesajlar ve bildirimler anlık olarak (WebSocket üzerinden) dinlenir. 
-- **Zustand Store (`useMessageStore` & `useNotificationStore`)**: Gelen veriler merkezi store'da güncellenerek tüm ekranların (Tab Menu, Thread Listesi, Chat Ekranı) anında güncellenmesi sağlanır.
+**`messages` Tablosu:**
 
-**3. Bildirim ve Badge Yönetimi:**
-- **Tab Bar Badge**: Alt menüdeki mesaj ikonunda, okunmamış bildirim sayısı kadar kırmızı bir işaret (badge) gösterilir.
-- **Thread Listesi**: Okunmamış mesajı olan sohbetlerin yanında görsel bir işaret (mavi nokta) belirir.
-- **Web Senkronizasyonu**: Mesaj mobilden okunduğunda, web versiyonundaki bildirim sayısı ve tarayıcı sekme başlığı (örn: `(3) Workigom`) otomatik olarak güncellenir.
+| Kolon        | Tip          | Varsayılan          | Açıklama                          |
+|-------------|-------------|---------------------|-----------------------------------|
+| `id`         | uuid         | `gen_random_uuid()` | Primary key                       |
+| `thread_id`  | uuid         | —                   | İlişkili sohbet odası (FK → threads) |
+| `sender_id`  | uuid         | —                   | Gönderen kullanıcı (FK → profiles) |
+| `receiver_id`| uuid         | —                   | Alıcı kullanıcı (FK → profiles)   |
+| `content`    | text         | —                   | Mesaj içeriği                     |
+| `read`       | bool         | `false`             | Okundu mu?                        |
+| `created_at` | timestamptz  | `now()`             | Oluşturulma zamanı                |
+
+**`threads` Tablosu:**
+
+| Kolon          | Tip          | Varsayılan          | Açıklama                         |
+|---------------|-------------|---------------------|----------------------------------|
+| `id`           | uuid         | `gen_random_uuid()` | Primary key                      |
+| `listing_id`   | uuid         | nullable            | İlişkili ilan (FK → swap_listings) |
+| `buyer_id`     | uuid         | —                   | Alıcı taraf (FK → profiles)      |
+| `seller_id`    | uuid         | —                   | Satıcı taraf (FK → profiles)     |
+| `type`         | text         | —                   | `'market'`, `'task'`, `'private'` |
+| `last_message` | text         | nullable            | Son mesaj önizlemesi              |
+| `updated_at`   | timestamptz  | `now()`             | Son güncelleme zamanı             |
+| `created_at`   | timestamptz  | `now()`             | Oluşturulma zamanı                |
+
+**`notifications` Tablosu:**
+
+| Kolon       | Tip          | Varsayılan          | Açıklama                          |
+|------------|-------------|---------------------|-----------------------------------|
+| `id`        | uuid         | `gen_random_uuid()` | Primary key                       |
+| `user_id`   | uuid         | —                   | Bildirim sahibi (FK → profiles)   |
+| `type`      | text         | —                   | Bildirim tipi                     |
+| `title`     | text         | —                   | Bildirim başlığı                  |
+| `content`   | text         | —                   | Bildirim içeriği                  |
+| `link`      | text         | —                   | Yönlendirme linki                 |
+| `read`      | bool         | `false`             | Okundu mu?                        |
+| `created_at`| timestamptz  | `now()`             | Oluşturulma zamanı                |
+
+### Bildirim ve Badge Felsefesi
+
+- **Zil ikonu (Bell):** Yalnızca platform bildirimleri (görev kabul, market hareketi vb.) gösterir. **Mesaj bildirimleri burada GÖSTERİLMEZ.**
+- **Mesaj ikonu (MessageCircle - Header'da):** `messages` tablosundan `receiver_id = userId AND read = false` sayısını badge olarak gösterir.
+- **Muhabbet sekmesi:** Grup sohbeti (broadcast) içindir. Birebir mesajlarla ilgisi yoktur, badge konulmaz.
+
+**ÖNEMLİ:** Okunmamış mesaj sayısı artık `notifications` tablosundan DEĞİL, doğrudan `messages` tablosundan hesaplanır:
+```sql
+SELECT count(*) FROM messages WHERE receiver_id = '{userId}' AND read = false;
+```
+
+### Canlı Dinleme (Realtime)
+
+**Mobil:** `TabNavigator.tsx` mount olduğunda `useNotificationStore.subscribe(userId)` çağrılır ve iki kanal açılır:
+1. `notifications` tablosu (user_id filtresi)
+2. `messages` tablosu (receiver_id filtresi)
+
+**Web:** `useNotifications.ts` hook'u içinde aynı iki kanal açılır:
+1. `user-notifications-{userId}` → notifications tablosu
+2. `user-messages-web-{userId}` → messages tablosu
+
+Her değişiklikte `fetchCounts(userId)` çağrılır → badge anında güncellenir.
+
+---
 
 ## 📝 Standart Supabase Mesajlaşma Şablonu (Mobil & Web)
 
-**DİKKAT:** Web ve Mobil platformlar arasında mesajlaşma senkronizasyonunun bozulmaması için anlık mesaj ve thread işlemleri *kesinlikle* aşağıdaki standart yapılandırmaya sadık kalınarak yapılmalıdır. Kod üzerinde herhangi bir yanlışlık yapıldığında düzeltmeler doğrudan bu şablona göre yapılacaktır:
+**DİKKAT:** Web ve Mobil platformlar arasında mesajlaşma senkronizasyonunun bozulmaması için anlık mesaj ve thread işlemleri *kesinlikle* aşağıdaki standart yapılandırmaya sadık kalınarak yapılmalıdır.
 
-### 1. Thread (Sohbet Kanalı) Bulma veya Oluşturma (`findOrCreateThread`)
+### 1. Thread Bulma veya Oluşturma (`findOrCreateThread`)
 Her sohbet kanalı (`threads`), `buyer_id`, `seller_id` ve `type` parametreleri dikkate alınarak tekil olmalıdır. Ters yönlü sorgular da (A-B ve B-A) kontrol edilmelidir.
 ```typescript
 // Yön 1: buyer_id = A, seller_id = B
@@ -92,18 +143,174 @@ let query = supabase.from('threads').select('*').eq('buyer_id', buyerId).eq('sel
 // Eğer ikisinde de kayıt yoksa, yeni insert işlemi: { buyer_id, seller_id, type, listing_id, last_message: null }
 ```
 
-### 2. Mesaj Gönderme ve Bildirim Oluşturma (`sendMessage`)
-Bir mesaj gönderildiğinde, daima ardışık olarak şu 3 işlem gerçekleşmelidir:
+### 2. Mesaj Gönderme (`sendMessage`)
+Bir mesaj gönderildiğinde, ardışık olarak şu işlemler gerçekleşir:
 1. **Mesajı Kaydet:** `messages` tablosuna `{ thread_id, sender_id, receiver_id, content }` insert edilir.
-2. **Thread'i Güncelle:** `threads` tablosundaki `last_message` sütunu son atılan mesajın metniyle ve `updated_at` sütunu anlık tarihle güncellenir.
-3. **Bildirim Yarat:** Alıcı (receiver) için `notifications` tablosuna `{ user_id: receiverId, type: 'new_message', content, thread_id, read: false }` datası eklenir. (Okunmamış sayaçları bu tablo üzerinden eşleşir).
+2. **Thread'i Güncelle:** `threads.last_message` son mesajla, `updated_at` anlık tarihle güncellenir.
+3. **❌ Bildirim OLUŞTURULMAZ:** `notifications` tablosuna `new_message` kaydı **EKLENMEMELİDİR**. Badge zaten `messages` tablosundan hesaplanıyor.
 
-### 3. Mesajları Çekme ve Optimistic UI
-- **Canlı Dinleme:** Supabase Realtime (`postgres_changes`) ile `messages` tablosundaki `INSERT` eventleri dinlenir.
-- **Optimistic UI:** Kullanıcı bir metin gönderdiğinde cevap beklemeden mesaj anında ekranda gösterilir (State array'e temp message eklenir). Realtime socket üzerinden aynı mesaj geri geldiğinde `sender_id !== user.id` kontrolü ile çiftleme (duplicate) engellenir. Sadece karşı tarafın attığı mesajlar state'e dahil edilir.
+**Optimistic UI:** Mesaj gönderildiğinde geçici ID ile listeye eklenir. Supabase'den dönen gerçek mesaj ID'si ile değiştirilir (silme işleminin çalışması için **şarttır**).
 
-### 4. Mesajları Okundu İşaretleme (`markThreadMessagesAsRead`)
-Canlı sohbet ekranına girildiğinde veya sohbet esnasında, thread'deki okuyucu bizsek (`receiver_id === user.id`) tüm mevcut mesajlar `read = true` olarak işaretlenir. Bu sayede web ve mobil platformlarda açık olan aynı hesap senkronize olarak bildirim işaretini anında siler.
+### 3. Mesaj Silme (`deleteMessage`)
+```typescript
+// 1. Mesajı sil (sadece gönderen silebilir)
+await supabase.from('messages').delete().match({ id: messageId, sender_id: senderId });
+// 2. Thread'in last_message'ını güncelle (bir önceki mesajla veya boşla)
+const { data: lastMsgs } = await supabase.from('messages')
+  .select('content').eq('thread_id', threadId)
+  .order('created_at', { ascending: false }).limit(1);
+const newLastMessage = lastMsgs?.length > 0 ? lastMsgs[0].content : '';
+await supabase.from('threads').update({ last_message: newLastMessage }).eq('id', threadId);
+```
+
+**Mobilde:** Mesaj balonuna uzun basarak (Long Press) → Alert ile silme.
+**Web'de:** Mesaj üzerine hover → Çöp kutusu ikonu ile silme.
+
+### 4. Sohbet (Thread) Silme (`deleteThread`)
+```typescript
+await supabase.from('threads').delete().eq('id', threadId);
+```
+
+**Mobilde:** Sohbet listesinde uzun basarak (Long Press) → Alert ile silme.
+**Web'de:** Sohbet listesinde hover → Çöp kutusu ikonu ile silme.
+
+### 5. Mesajları Okundu İşaretleme (`markThreadMessagesAsRead`)
+Sohbet ekranına girildiğinde tüm okunmamış mesajlar `read = true` olarak işaretlenir:
+```typescript
+await supabase.from('messages').update({ read: true })
+  .eq('thread_id', threadId).eq('receiver_id', viewerId).eq('read', false);
+```
+Bu sayede web ve mobil platformlarda açık olan aynı hesap senkronize olarak badge'i anında siler.
+
+### 6. Realtime Dinleme
+Thread içi dinleme `event: '*'` (tüm olaylar) ile yapılmalıdır:
+```typescript
+supabase.channel(`thread-${threadId}`)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `thread_id=eq.${threadId}` }, callback)
+  .subscribe();
+```
+Bu sayede INSERT, UPDATE ve **DELETE** olayları yakalanır.
+
+---
+
+## 🔒 Supabase RLS (Row Level Security) Politikaları
+
+**ÖNEMLİ:** Bu politikalar olmadan uygulama sessizce çalışmaz — hata fırlatmaz ama veri okuyamaz/yazamaz/silemez/güncelleyemez.
+
+### `messages` Tablosu
+```sql
+ALTER TABLE "public"."messages" ENABLE ROW LEVEL SECURITY;
+
+-- SELECT: Kullanıcılar kendi mesajlarını okuyabilir
+CREATE POLICY "messages_select" ON "public"."messages"
+AS PERMISSIVE FOR SELECT TO public
+USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
+
+-- INSERT: Kullanıcılar mesaj gönderebilir
+CREATE POLICY "messages_insert" ON "public"."messages"
+AS PERMISSIVE FOR INSERT TO public
+WITH CHECK (auth.uid() = sender_id);
+
+-- UPDATE: Alıcı mesajları okundu olarak işaretleyebilir
+CREATE POLICY "messages_update" ON "public"."messages"
+AS PERMISSIVE FOR UPDATE TO public
+USING (auth.uid() = receiver_id)
+WITH CHECK (auth.uid() = receiver_id);
+
+-- DELETE: Gönderen kendi mesajını silebilir
+CREATE POLICY "messages_delete" ON "public"."messages"
+AS PERMISSIVE FOR DELETE TO public
+USING (auth.uid() = sender_id);
+```
+
+### `threads` Tablosu
+```sql
+ALTER TABLE "public"."threads" ENABLE ROW LEVEL SECURITY;
+
+-- SELECT
+CREATE POLICY "threads_select" ON "public"."threads"
+AS PERMISSIVE FOR SELECT TO public
+USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
+
+-- INSERT
+CREATE POLICY "threads_insert" ON "public"."threads"
+AS PERMISSIVE FOR INSERT TO public
+WITH CHECK (auth.uid() = buyer_id OR auth.uid() = seller_id);
+
+-- UPDATE
+CREATE POLICY "threads_update" ON "public"."threads"
+AS PERMISSIVE FOR UPDATE TO public
+USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
+
+-- DELETE
+CREATE POLICY "threads_delete" ON "public"."threads"
+AS PERMISSIVE FOR DELETE TO public
+USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
+```
+
+### `notifications` Tablosu
+```sql
+ALTER TABLE "public"."notifications" ENABLE ROW LEVEL SECURITY;
+
+-- SELECT
+CREATE POLICY "notifications_select" ON "public"."notifications"
+AS PERMISSIVE FOR SELECT TO public
+USING (auth.uid() = user_id);
+
+-- INSERT
+CREATE POLICY "notifications_insert" ON "public"."notifications"
+AS PERMISSIVE FOR INSERT TO public
+WITH CHECK (true);
+
+-- UPDATE
+CREATE POLICY "notifications_update" ON "public"."notifications"
+AS PERMISSIVE FOR UPDATE TO public
+USING (auth.uid() = user_id);
+```
+
+---
+
+## ⚡ Supabase Realtime Yapılandırması
+
+**Supabase Dashboard → Database → Publications (Replication) → `supabase_realtime`**
+
+Aşağıdaki tablolar **AKTİF** olmalıdır:
+
+| Tablo           | Realtime | Açıklama                                     |
+|----------------|----------|----------------------------------------------|
+| `messages`      | ✅ AÇIK   | Yeni mesaj, okundu işareti, silme olayları   |
+| `threads`       | ✅ AÇIK   | Sohbet güncelleme/silme olayları             |
+| `notifications` | ✅ AÇIK   | Bildirim güncelleme olayları                 |
+
+**Bu açılmazsa:** Uygulama mesajları/bildirimleri anlık olarak alamaz, sayfa yenilenmesi gerekir.
+
+---
+
+## 🔧 Sorun Giderme Rehberi
+
+| Sorun | Kök Neden | Çözüm |
+|-------|-----------|-------|
+| Mesaj siliniyor ama geri geliyor | `messages` DELETE RLS politikası eksik | `messages_delete` politikasını ekle |
+| `read` kolonu false kalıyor | `messages` UPDATE RLS politikası eksik | `messages_update` politikasını ekle |
+| Badge hiç güncellenmiyor | Realtime yayını kapalı | Publications'da tabloları aktif et |
+| Badge sayfa yenilemeden güncellenmiyor (WEB) | `useNotifications.ts`'de `messages` kanalı eksik | `messages` tablosu için ikinci kanal ekle |
+| Badge sayfa yenilemeden güncellenmiyor (MOBİL) | `subscribe()` çağrılmamış | `TabNavigator.tsx`'de `subscribe(userId)` çağır |
+| Zil ikonunda gereksiz mesaj bildirimi | `sendMessage` içinde notification oluşturuluyor | `sendMessage`'dan notification INSERT'i sil |
+| Sohbet listesinde silinen mesaj hala görünüyor | `deleteMessage`'da `threads.last_message` güncellenmiyor | `deleteMessage`'a last_message güncelleme ekle |
+| Mesajlar ekranında sonsuz loading | `fetchThreads`'de try/catch/finally eksik | `fetchThreads`'e try/catch/finally ekle |
+
+---
+
+## ⚠️ Altın Kurallar
+
+1. **`sendMessage` içinde asla `notifications` tablosuna INSERT yapma** — badge zaten `messages` tablosundan hesaplanıyor
+2. **Muhabbet sekmesine mesaj badge'i koyma** — bu sekme grup sohbeti (broadcast) için
+3. **Mesaj silindikten sonra `threads.last_message`'ı güncelle** — yoksa listede hayalet mesaj görünür
+4. **Her Realtime dinleyicide `*` (tüm event'ler) kullan** — INSERT, UPDATE ve DELETE olaylarını yakalamak için
+5. **Optimistic UI'da gerçek ID'yi yerine koy** — silme işleminin çalışması için `tempId` → `realId` dönüşümü şart
+6. **`fetchThreads` ve `fetchMessages`'da `try/catch/finally` kullan** — RLS hatası sonsuz loading döngüsüne neden olur
+
+---
 
 ## 🛠 Kurulum ve Çalıştırma
 
