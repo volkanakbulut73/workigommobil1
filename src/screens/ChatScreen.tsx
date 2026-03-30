@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Image, Alert } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/useAuthStore';
@@ -7,18 +7,25 @@ import { useMessageStore } from '../store/useMessageStore';
 import { ChevronLeft, Send, Image as ImageIcon } from 'lucide-react-native';
 import { MessageService } from '../services/messageService';
 
-const MessageBubble = React.memo(({ item, isMe }: { item: any, isMe: boolean }) => (
-  <View style={[styles.messageWrapper, isMe ? styles.messageWrapperMe : styles.messageWrapperOther]}>
-    <View style={[styles.messageBubble, isMe ? styles.messageBubbleMe : styles.messageBubbleOther]}>
-      <Text style={[styles.messageText, isMe ? styles.messageTextMe : styles.messageTextOther]}>
-        {item.content}
-      </Text>
-      <Text style={[styles.timestamp, isMe ? styles.timestampMe : styles.timestampOther]}>
-        {new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-      </Text>
+const MessageBubble = React.memo(({ item, isMe, onDelete }: { item: any, isMe: boolean, onDelete: (id: string) => void }) => {
+  return (
+    <View style={[styles.messageWrapper, isMe ? styles.messageWrapperMe : styles.messageWrapperOther]}>
+      <TouchableOpacity 
+        style={[styles.messageBubble, isMe ? styles.messageBubbleMe : styles.messageBubbleOther]}
+        onLongPress={() => isMe ? onDelete(item.id) : null}
+        delayLongPress={400}
+        activeOpacity={isMe ? 0.7 : 1}
+      >
+        <Text style={[styles.messageText, isMe ? styles.messageTextMe : styles.messageTextOther]}>
+          {item.content}
+        </Text>
+        <Text style={[styles.timestamp, isMe ? styles.timestampMe : styles.timestampOther]}>
+          {new Date(item.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+        </Text>
+      </TouchableOpacity>
     </View>
-  </View>
-));
+  );
+});
 
 export function ChatScreen() {
   const route = useRoute<any>();
@@ -34,6 +41,7 @@ export function ChatScreen() {
   const subscribeToThread = useMessageStore(state => state.subscribeToThread);
   const unsubscribe = useMessageStore(state => state.unsubscribe);
   const markThreadAsRead = useMessageStore(state => state.markThreadAsRead);
+  const deleteMessage = useMessageStore(state => state.deleteMessage);
 
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
@@ -92,10 +100,21 @@ export function ChatScreen() {
     }
   };
 
+  const handleDelete = useCallback((msgId: string) => {
+    Alert.alert(
+      "Mesajı Sil",
+      "Bu mesajı silmek istediğinize emin misiniz?",
+      [
+        { text: "İptal", style: "cancel" },
+        { text: "Sil", style: "destructive", onPress: () => deleteMessage(msgId, profile?.id || '') }
+      ]
+    );
+  }, [profile?.id, deleteMessage]);
+
   const renderMessage = useCallback(({ item }: { item: any }) => {
     const isMe = item.sender_id === profile?.id;
-    return <MessageBubble item={item} isMe={isMe} />;
-  }, [profile?.id]);
+    return <MessageBubble item={item} isMe={isMe} onDelete={handleDelete} />;
+  }, [profile?.id, handleDelete]);
 
   const keyExtractor = useCallback((item: any, index: number) => item.id || index.toString(), []);
 

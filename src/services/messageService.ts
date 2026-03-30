@@ -114,15 +114,8 @@ export const MessageService = {
       .update({ last_message: content, updated_at: new Date().toISOString() })
       .eq('id', threadId);
 
-    // Create notification for receiver
-    await supabase.from('notifications').insert({
-      user_id: receiverId,
-      type: 'new_message',
-      title: 'Yeni Mesaj',
-      content: content.substring(0, 50),
-      thread_id: threadId,
-      read: false
-    });
+    // Create notification for receiver (REMOVED - no longer using new_message for the bell icon)
+    // Removed to prevent redundant notifications
 
     return message;
   },
@@ -137,6 +130,18 @@ export const MessageService = {
       .eq('thread_id', threadId)
       .eq('receiver_id', viewerId)
       .eq('read', false);
+
+    if (error) throw error;
+  },
+
+  /**
+   * Deletes a message if the caller is the sender.
+   */
+  deleteMessage: async (messageId: string, senderId: string) => {
+    const { error } = await supabase
+      .from('messages')
+      .delete()
+      .match({ id: messageId, sender_id: senderId });
 
     if (error) throw error;
   }

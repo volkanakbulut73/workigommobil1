@@ -25,6 +25,7 @@ interface MessageState {
   unsubscribe: () => void;
   addMessageOptimistically: (message: Message) => void;
   markThreadAsRead: (threadId: string, userId: string) => Promise<void>;
+  deleteMessage: (messageId: string, senderId: string) => Promise<void>;
 }
 
 export const useMessageStore = create<MessageState>()((set, get) => ({
@@ -145,15 +146,26 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
     markThreadAsRead(threadId, userId);
 
     const channel = RealtimeService.subscribeToThread(threadId, (payload: any) => {
+      if (payload.eventType === 'DELETE') {
+        const deletedId = payload.old?.id;
+        if (deletedId) {
+          set(state => ({
+            messages: state.messages.filter(m => m.id !== deletedId)
+          }));
+        }
+        return;
+      }
+
       const newMessage = payload.new as Message;
       const state = get();
 
       // If we are actively viewing this thread and receive a message from others, mark as read
-      if (newMessage.sender_id !== userId) {
+      if (newMessage && newMessage.sender_id !== userId) {
         markThreadAsRead(threadId, userId);
       }
       
       // Prevent optimistic duplication
+      if (!newMessage || !newMessage.id) return;
       const isAlreadyInState = state.messages.some(m => m.id === newMessage.id);
       if (isAlreadyInState) return;
 
@@ -220,6 +232,20 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
 
     if (!notifError || !msgError) {
       useNotificationStore.getState().fetchCounts(userId);
+    }
+  },
+
+  deleteMessage: async (messageId: string, senderId: string) => {
+    try {
+      // Optimistic delete
+      set(state => ({
+        messages: state.messages.filter(m => m.id !== messageId)
+      }));
+      
+      const { MessageService } = require('../services/messageService');
+      await MessageService.deleteMessage(messageId, senderId);
+    } catch (err) {
+      console.error('Error deleting message:', err);
     }
   },
 }));

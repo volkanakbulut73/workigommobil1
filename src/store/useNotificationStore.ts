@@ -31,27 +31,26 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
       .eq('user_id', userId)
       .eq('read', false);
 
-    const { data: notifications, count: msgCount } = await supabase
-      .from('notifications')
-      .select('*', { count: 'exact' })
-      .eq('user_id', userId)
-      .eq('type', 'new_message')
+    // Changed: Query `messages` table directly for unread messages instead of `notifications`.
+    const { count: msgCount } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('receiver_id', userId)
       .eq('read', false);
 
-    const unreadThreadIds = notifications?.map(n => {
-      if (n.thread_id) return n.thread_id;
-      // Fallback: parse from link /app/messages/:id or messages/:id
-      if (n.link?.includes('/messages/')) {
-        return n.link.split('/messages/').pop();
-      }
-      return null;
-    }).filter(Boolean) || [];
+    const { data: messagesData } = await supabase
+      .from('messages')
+      .select('thread_id')
+      .eq('receiver_id', userId)
+      .eq('read', false);
+
+    const unreadThreadIds = messagesData?.map(m => m.thread_id).filter(Boolean) || [];
     
     set({ 
       unreadCount: notifCount || 0, 
       unreadMessageCount: msgCount || 0,
       unreadThreadIds: Array.from(new Set(unreadThreadIds)),
-      notifications: notifications || []
+      notifications: [] // Optionally load other notifications here if needed in UI
     });
   },
   subscribe: (userId) => {

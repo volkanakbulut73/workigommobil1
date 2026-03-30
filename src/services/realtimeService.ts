@@ -26,13 +26,13 @@ export const RealtimeService = {
   /**
    * Subscribes to a specific message thread.
    */
-  subscribeToThread(threadId: string, onNewMessage: (payload: any) => void): RealtimeChannel {
+  subscribeToThread(threadId: string, onEvent: (payload: any) => void): RealtimeChannel {
     return supabase
       .channel(`thread-${threadId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `thread_id=eq.${threadId}` },
-        (payload) => onNewMessage(payload)
+        { event: '*', schema: 'public', table: 'messages', filter: `thread_id=eq.${threadId}` },
+        (payload) => onEvent(payload)
       )
       .subscribe();
   },
