@@ -8,6 +8,9 @@ import Toast from 'react-native-toast-message';
 import NetInfo from '@react-native-community/netinfo';
 import * as SplashScreen from 'expo-splash-screen';
 
+// Initialize Sentry and Analytics globally before React Native evaluates the App component.
+AnalyticsService.init();
+
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -25,11 +28,6 @@ function App() {
   useEffect(() => {
     // Hide splash screen unconditionally to prevent locking
     SplashScreen.hideAsync().catch(() => {});
-
-    // Bypass initial locking services
-    setTimeout(() => {
-      AnalyticsService.init();
-    }, 1000);
 
     const unsubscribe = NetInfo.addEventListener((state: any) => {
       setIsConnected(state.isConnected);

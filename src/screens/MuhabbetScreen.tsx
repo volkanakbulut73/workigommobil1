@@ -822,7 +822,7 @@ export default function MuhabbetScreen() {
           )}
 
           {/* Input Dock (Redesigned & Functional) */}
-          <View style={styles.inputDockNew}>
+          <View style={[styles.inputDockNew, { paddingBottom: Math.max(insets.bottom, 20) }]}>
             {/* Formatting Toolbar */}
             <View style={styles.formatToolbar}>
               <TouchableOpacity

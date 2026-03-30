@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Image } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/useAuthStore';
 import { useMessageStore } from '../store/useMessageStore';
 import { ChevronLeft, Send, Image as ImageIcon } from 'lucide-react-native';
@@ -22,6 +23,7 @@ const MessageBubble = React.memo(({ item, isMe }: { item: any, isMe: boolean }) 
 export function ChatScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const { threadId, title } = route.params || {};
   const profile = useAuthStore(state => state.profile);
   
@@ -146,7 +148,7 @@ export function ChatScreen() {
         )}
       </View>
 
-      <View style={styles.inputArea}>
+      <View style={[styles.inputArea, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         <TouchableOpacity style={styles.attachBtn}>
           <ImageIcon color="#aaa" size={20} />
         </TouchableOpacity>
