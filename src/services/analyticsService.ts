@@ -6,7 +6,7 @@ declare const __DEV__: boolean;
 const IS_PROD = !__DEV__;
 
 // Create a singleton instance of PostHog
-export let posthog: PostHog | null = null;
+export let posthog: any = null;
 
 class AnalyticsServiceImpl {
   public init() {

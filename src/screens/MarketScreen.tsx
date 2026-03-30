@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Layout } from '../components/Layout';
 import { Plus, Search, MapPin, SlidersHorizontal, Star } from 'lucide-react-native';
 import { useAuthStore } from '../store/useAuthStore';
@@ -91,11 +91,13 @@ export function MarketScreen() {
   const [activeTab, setActiveTab] = useState<'Pazar' | 'İlanlarım'>('Pazar');
   const [activeFilter, setActiveFilter] = useState('Tüm İlanlar');
 
-  useEffect(() => {
-    if (profile?.id) {
-      fetchListings(profile.id);
-    }
-  }, [profile?.id]);
+  useFocusEffect(
+    useCallback(() => {
+      if (profile?.id) {
+        fetchListings(profile.id);
+      }
+    }, [profile?.id, fetchListings])
+  );
 
   const onRefresh = useCallback(() => {
     if (profile?.id) {

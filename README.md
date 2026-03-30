@@ -79,6 +79,32 @@ Uygulamanın mesajlaşma sistemi, web versiyonu ile tam uyumlu ve senkronize bir
 - **Thread Listesi**: Okunmamış mesajı olan sohbetlerin yanında görsel bir işaret (mavi nokta) belirir.
 - **Web Senkronizasyonu**: Mesaj mobilden okunduğunda, web versiyonundaki bildirim sayısı ve tarayıcı sekme başlığı (örn: `(3) Workigom`) otomatik olarak güncellenir.
 
+## 📝 Standart Supabase Mesajlaşma Şablonu (Mobil & Web)
+
+**DİKKAT:** Web ve Mobil platformlar arasında mesajlaşma senkronizasyonunun bozulmaması için anlık mesaj ve thread işlemleri *kesinlikle* aşağıdaki standart yapılandırmaya sadık kalınarak yapılmalıdır. Kod üzerinde herhangi bir yanlışlık yapıldığında düzeltmeler doğrudan bu şablona göre yapılacaktır:
+
+### 1. Thread (Sohbet Kanalı) Bulma veya Oluşturma (`findOrCreateThread`)
+Her sohbet kanalı (`threads`), `buyer_id`, `seller_id` ve `type` parametreleri dikkate alınarak tekil olmalıdır. Ters yönlü sorgular da (A-B ve B-A) kontrol edilmelidir.
+```typescript
+// Yön 1: buyer_id = A, seller_id = B
+let query = supabase.from('threads').select('*').eq('buyer_id', buyerId).eq('seller_id', sellerId).eq('type', moduleType);
+// Yön 2: buyer_id = B, seller_id = A (Ters Yön Kontrolü)
+// Eğer ikisinde de kayıt yoksa, yeni insert işlemi: { buyer_id, seller_id, type, listing_id, last_message: null }
+```
+
+### 2. Mesaj Gönderme ve Bildirim Oluşturma (`sendMessage`)
+Bir mesaj gönderildiğinde, daima ardışık olarak şu 3 işlem gerçekleşmelidir:
+1. **Mesajı Kaydet:** `messages` tablosuna `{ thread_id, sender_id, receiver_id, content }` insert edilir.
+2. **Thread'i Güncelle:** `threads` tablosundaki `last_message` sütunu son atılan mesajın metniyle ve `updated_at` sütunu anlık tarihle güncellenir.
+3. **Bildirim Yarat:** Alıcı (receiver) için `notifications` tablosuna `{ user_id: receiverId, type: 'new_message', content, thread_id, read: false }` datası eklenir. (Okunmamış sayaçları bu tablo üzerinden eşleşir).
+
+### 3. Mesajları Çekme ve Optimistic UI
+- **Canlı Dinleme:** Supabase Realtime (`postgres_changes`) ile `messages` tablosundaki `INSERT` eventleri dinlenir.
+- **Optimistic UI:** Kullanıcı bir metin gönderdiğinde cevap beklemeden mesaj anında ekranda gösterilir (State array'e temp message eklenir). Realtime socket üzerinden aynı mesaj geri geldiğinde `sender_id !== user.id` kontrolü ile çiftleme (duplicate) engellenir. Sadece karşı tarafın attığı mesajlar state'e dahil edilir.
+
+### 4. Mesajları Okundu İşaretleme (`markThreadMessagesAsRead`)
+Canlı sohbet ekranına girildiğinde veya sohbet esnasında, thread'deki okuyucu bizsek (`receiver_id === user.id`) tüm mevcut mesajlar `read = true` olarak işaretlenir. Bu sayede web ve mobil platformlarda açık olan aynı hesap senkronize olarak bildirim işaretini anında siler.
+
 ## 🛠 Kurulum ve Çalıştırma
 
 **Ön gereksinimler:** Node.js yüklü (Tercihen v18 veya v20). Android/iOS Emülatör ya da fiziksel cihazda `Expo Go` kurulu olmalı.

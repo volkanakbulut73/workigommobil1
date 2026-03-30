@@ -29,7 +29,7 @@ export const useMarketStore = create<MarketStore>((set) => ({
       const allListings = (data || []) as unknown as SwapListing[];
       
       const myListings = userId ? allListings.filter(item => (item as any).owner_id === userId) : [];
-      const marketListings = userId ? allListings.filter(item => (item as any).owner_id !== userId) : allListings;
+      const marketListings = allListings;
 
       set({ listings: marketListings, myListings, loading: false });
     } catch (err: any) {
