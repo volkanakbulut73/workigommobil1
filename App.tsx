@@ -1,14 +1,25 @@
+import * as Sentry from '@sentry/react-native';
 import 'react-native-url-polyfill/auto';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AnalyticsService } from './src/services/analyticsService';
-import * as Sentry from '@sentry/react-native';
 import Toast from 'react-native-toast-message';
 import NetInfo from '@react-native-community/netinfo';
 import * as SplashScreen from 'expo-splash-screen';
 
-// Initialize Sentry and Analytics globally before React Native evaluates the App component.
+const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN;
+
+if (sentryDsn) {
+  Sentry.init({
+    dsn: sentryDsn,
+    enableAutoPerformanceTracing: true,
+    enableNativeFramesTracking: true,
+    tracesSampleRate: 1.0,
+  });
+}
+
+// Initialize Analytics globally
 AnalyticsService.init();
 
 // Keep the splash screen visible while we fetch resources

@@ -531,7 +531,7 @@ export default function MuhabbetScreen() {
   const openPrivateChat = async (selectedUser: {id: string, name: string}) => {
     if (selectedUser.id === profile?.id || selectedUser.id === 'bot-1') return;
     try {
-      const thread = await MessageService.findOrCreateThread(null, profile.id, selectedUser.id, 'private_chat');
+      const thread = await MessageService.findOrCreateThread(null, profile.id, selectedUser.id, 'private');
       if (thread) {
         navigation.navigate('Chat', { threadId: thread.id, title: selectedUser.name, receiverId: selectedUser.id });
       }

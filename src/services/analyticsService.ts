@@ -11,28 +11,11 @@ export let posthog: any = null;
 class AnalyticsServiceImpl {
   public init() {
     try {
-      if (!IS_PROD) {
-        console.log('[Analytics] INIT: Development mode, analytics disabled (logging to console)');
-        return;
-      }
-
-      const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN;
       const posthogKey = process.env.EXPO_PUBLIC_POSTHOG_API_KEY || process.env.POSTHOG_API_KEY;
-
-      if (sentryDsn) {
-        Sentry.init({
-          dsn: sentryDsn,
-          enableAutoPerformanceTracing: true, // Minimal performance tracing
-          enableNativeFramesTracking: true,
-          tracesSampleRate: 1.0,
-        });
-      } else {
-        console.warn('[Analytics] SENTRY_DSN missing in environment variables.');
-      }
 
       if (posthogKey) {
         posthog = new PostHog(posthogKey, {
-          host: 'https://eu.posthog.com', // or 'https://app.posthog.com' based on region, assuming EU by default for many GDPR compliant setups, but we can stick to defaults
+          host: 'https://eu.posthog.com',
         });
       } else {
         console.warn('[Analytics] POSTHOG_API_KEY missing in environment variables.');
