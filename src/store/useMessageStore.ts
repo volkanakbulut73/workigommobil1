@@ -84,8 +84,11 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
     const { data: messages, error } = await query;
 
     if (!error && messages) {
+      const { useBlockStore } = require('./useBlockStore');
+      const filteredMessages = messages.filter(m => !useBlockStore.getState().isBlocked(m.sender_id));
+      
       // Sort DESCENDING (newest first) for inverted FlatList
-      const sortedNew = messages.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const sortedNew = filteredMessages.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       
       if (lastCursor) {
         // Append older messages to the end
@@ -178,6 +181,11 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
       if (!newMessage || !newMessage.id) return;
       const isAlreadyInState = state.messages.some(m => m.id === newMessage.id);
       if (isAlreadyInState) return;
+
+      const { useBlockStore } = require('./useBlockStore');
+      if (useBlockStore.getState().isBlocked(newMessage.sender_id)) {
+        return; // Drop message from blocked user
+      }
 
       const newBuffer = [...state.realtimeBuffer, newMessage];
       set({ realtimeBuffer: newBuffer });

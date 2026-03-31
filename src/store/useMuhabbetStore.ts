@@ -132,6 +132,11 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
   },
 
   addMessage: (msg) => {
+    const { useBlockStore } = require('./useBlockStore');
+    if (useBlockStore.getState().isBlocked(msg.sender_id)) {
+      return; // Do not add message from blocked user
+    }
+
     // Keep only the last 100 messages for performance in broadcast
     set((state) => {
       const newMessages = [msg, ...state.messages];

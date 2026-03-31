@@ -18,6 +18,7 @@
     "@supabase/supabase-js": "^2.39.7",
     "base64-arraybuffer": "^1.0.2",
     "expo": "~54.0.33",
+    "expo-av": "~16.0.8",
     "expo-constants": "~18.0.13",
     "expo-device": "~8.0.10",
     "expo-image": "~3.0.11",

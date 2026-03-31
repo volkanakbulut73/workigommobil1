@@ -3,9 +3,13 @@ import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Keyboard
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMuhabbetStore } from '../store/useMuhabbetStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { useMessageStore } from '../store/useMessageStore';
 import { Layout } from '../components/Layout';
 import { supabase } from '../lib/supabase';
-import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type } from 'lucide-react-native';
+import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type, MessageSquareWarning } from 'lucide-react-native';
+import { MessageService } from '../services/messageService';
+import { useNotificationStore } from '../store/useNotificationStore';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -485,7 +489,9 @@ const styles = StyleSheet.create({
 
 export default function MuhabbetScreen() {
   const { profile } = useAuthStore();
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const { unreadMessageCount } = useNotificationStore();
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -504,6 +510,45 @@ export default function MuhabbetScreen() {
 
   const flatListRef = useRef<FlatList>(null);
   const slideAnim = useRef(new Animated.Value(-width)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (unreadMessageCount > 0) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.5, duration: 500, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 500, useNativeDriver: true })
+        ])
+      ).start();
+    } else {
+      pulseAnim.stopAnimation();
+      pulseAnim.setValue(1);
+    }
+  }, [unreadMessageCount]);
+
+  const lastTapRef = useRef<number>(0);
+
+  const openPrivateChat = async (selectedUser: {id: string, name: string}) => {
+    if (selectedUser.id === profile?.id || selectedUser.id === 'bot-1') return;
+    try {
+      const thread = await MessageService.findOrCreateThread(null, profile.id, selectedUser.id, 'private_chat');
+      if (thread) {
+        navigation.navigate('Chat', { threadId: thread.id, title: selectedUser.name, receiverId: selectedUser.id });
+      }
+    } catch (err) {
+      console.error("Error opening private chat:", err);
+    }
+  };
+
+  const handleUserDoubleTap = (selectedUser: {id: string, name: string}) => {
+    const now = Date.now();
+    const DOUBLE_PRESS_DELAY = 300;
+    if (lastTapRef.current && (now - lastTapRef.current) < DOUBLE_PRESS_DELAY) {
+      openPrivateChat(selectedUser);
+    } else {
+      lastTapRef.current = now;
+    }
+  };
 
   const ROOM_NAME = 'genel';
 
@@ -674,12 +719,16 @@ export default function MuhabbetScreen() {
         {/* Message Content Group (Top: Name/Time, Bottom: Bubble) */}
         <View style={[styles.messageContent, isMine ? styles.messageContentMine : styles.messageContentTheirs]}>
           {/* Sender Name and Time Above Bubble */}
-          <View style={[styles.nameTimeRow, isMine ? styles.nameTimeRowMine : styles.nameTimeRowTheirs]}>
+          <TouchableOpacity 
+            activeOpacity={0.8}
+            onPress={() => handleUserDoubleTap({ id: item.sender_id, name: item.sender_name || 'Anonim' })}
+            style={[styles.nameTimeRow, isMine ? styles.nameTimeRowMine : styles.nameTimeRowTheirs]}
+          >
             <Text style={styles.timeLabelNew}>{formatTime(item.created_at)}</Text>
             <Text style={[styles.senderLabelNew, isMine && styles.senderLabelMineNew]}>
               {isMine ? (profile?.full_name || 'Kullanıcı') : (item.sender_name || 'Anonim')}
             </Text>
-          </View>
+          </TouchableOpacity>
 
           {/* Message Bubble */}
           <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs, isBot && styles.bubbleBot]}>
@@ -690,7 +739,11 @@ export default function MuhabbetScreen() {
         </View>
 
         {/* Avatar next to bubble */}
-        <View style={[styles.avatarWrapper, isMine ? styles.avatarWrapperMine : styles.avatarWrapperTheirs]}>
+        <TouchableOpacity 
+          activeOpacity={0.9}
+          onPress={() => handleUserDoubleTap({ id: item.sender_id, name: item.sender_name || 'Anonim' })}
+          style={[styles.avatarWrapper, isMine ? styles.avatarWrapperMine : styles.avatarWrapperTheirs]}
+        >
           <View style={[styles.avatarCircle, isMine ? styles.avatarCircleMine : styles.avatarCircleTheirs, isBot && styles.botAvatarCircle]}>
             {isBot ? (
               <Bot color="#FF007F" size={16} />
@@ -701,7 +754,7 @@ export default function MuhabbetScreen() {
               />
             )}
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -745,9 +798,17 @@ export default function MuhabbetScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.headerRightNew}>
-            <TouchableOpacity style={styles.roundIconBtn}>
-              <Bell color="#aaaab6" size={20} />
-            </TouchableOpacity>
+            {unreadMessageCount > 0 ? (
+              <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+                <TouchableOpacity style={[styles.roundIconBtn, { backgroundColor: 'rgba(255,0,0,0.2)' }]} onPress={() => setShowUsersSidebar(true)}>
+                  <MessageSquareWarning color="#FF007F" size={20} />
+                </TouchableOpacity>
+              </Animated.View>
+            ) : (
+              <TouchableOpacity style={styles.roundIconBtn}>
+                <Bell color="#aaaab6" size={20} />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={styles.roundIconBtn}
               onPress={() => setShowUsersSidebar(true)}
@@ -923,22 +984,35 @@ export default function MuhabbetScreen() {
             data={presenceList}
             keyExtractor={(item, index) => item?.id || index.toString()}
             contentContainerStyle={styles.drawerList}
-            renderItem={({ item }) => (
-              <View style={styles.drawerUserRow}>
+            renderItem={({ item }) => {
+              const hasUnread = useNotificationStore.getState().unreadThreadIds.some(
+                tid => useMessageStore.getState().messages.some((m: any) => m.thread_id === tid && m.sender_id === item?.id && !m.read)
+              ) || false;
+
+              return (
+              <TouchableOpacity 
+                style={styles.drawerUserRow}
+                onPress={() => {
+                  setShowUsersSidebar(false);
+                  openPrivateChat({ id: item?.id, name: item?.name });
+                }}
+              >
                 <View style={[styles.drawerAvatar, item?.id === profile?.id && { backgroundColor: '#FF007F', borderColor: '#FF007F' }]}>
                   <Text style={[styles.drawerAvatarText, item?.id === profile?.id && { color: '#ffffff' }]}>
                     {(item?.name || 'U')[0].toUpperCase()}
                   </Text>
                 </View>
                 <View style={styles.drawerUserInfo}>
-                  <Text style={styles.drawerUserName}>
-                    {item?.id === profile?.id ? `${item?.name} (Siz)` : (item?.name || 'Anonim')}
+                  <Text style={[styles.drawerUserName, hasUnread && { color: '#FF007F', fontWeight: 'bold' }]}>
+                    {item?.name} {hasUnread && '(Yeni)'}
                   </Text>
-                  <Text style={styles.drawerUserSub}>Online</Text>
+                  <Text style={styles.drawerUserSub}>
+                    {item?.id === profile?.id ? 'SİZ' : 'KATILIMCI'}
+                  </Text>
                 </View>
-              </View>
-            )}
-            ListHeaderComponent={() => (
+              </TouchableOpacity>
+            )}}
+            ListHeaderComponent={(
               <View style={{ marginBottom: 16 }}>
                 <Text style={styles.drawerSectionTitle}>DROIDS (Yapay Zeka)</Text>
                 <View style={[styles.drawerUserRow, { marginTop: 8 }]}>
