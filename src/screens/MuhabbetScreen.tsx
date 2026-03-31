@@ -137,6 +137,9 @@ const styles = StyleSheet.create({
   messageContentMine: {
     alignItems: 'flex-end',
   },
+  messageContentTheirs: {
+    alignItems: 'flex-start',
+  },
   nameTimeRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -150,50 +153,51 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
   },
   timeLabelNew: {
-    color: '#666',
+    color: '#64748b',
     fontSize: 10,
     fontWeight: '600',
+    textTransform: 'uppercase',
   },
   senderLabelNew: {
-    color: '#FF007F',
+    color: '#94a3b8',
     fontSize: 12,
     fontWeight: 'bold',
   },
   senderLabelMineNew: {
-    color: '#FF007F',
+    color: '#94a3b8',
   },
 
   // Bubble
   bubble: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 18,
+    borderRadius: 16,
     maxWidth: '100%',
   },
   bubbleMine: {
-    backgroundColor: '#2e7d32', // Mat Green
+    backgroundColor: '#4f46e5', // bg-indigo-600
     borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopRightRadius: 2,
     borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 2,
+    borderBottomRightRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   bubbleTheirs: {
-    backgroundColor: '#1C2541', // Indigo Deep
+    backgroundColor: '#1e293b', // bg-slate-800
     borderTopLeftRadius: 2,
     borderTopRightRadius: 16,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(142, 255, 113, 0.05)',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   bubbleBot: {
-    backgroundColor: 'rgba(255, 0, 127, 0.05)',
+    backgroundColor: 'rgba(79, 70, 229, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 0, 127, 0.15)',
+    borderColor: 'rgba(79, 70, 229, 0.3)',
     paddingHorizontal: 20,
     paddingVertical: 14,
   },
@@ -206,7 +210,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   messageTextTheirs: {
-    color: '#ededf9',
+    color: '#f1f5f9', // text-slate-100
   },
   welcomeBanner: {
     paddingHorizontal: 24,
@@ -668,12 +672,12 @@ export default function MuhabbetScreen() {
     return (
       <View style={[styles.messageRow, isMine ? styles.messageRowMine : styles.messageRowTheirs]}>
         {/* Message Content Group (Top: Name/Time, Bottom: Bubble) */}
-        <View style={[styles.messageContent, isMine && styles.messageContentMine]}>
+        <View style={[styles.messageContent, isMine ? styles.messageContentMine : styles.messageContentTheirs]}>
           {/* Sender Name and Time Above Bubble */}
           <View style={[styles.nameTimeRow, isMine ? styles.nameTimeRowMine : styles.nameTimeRowTheirs]}>
             <Text style={styles.timeLabelNew}>{formatTime(item.created_at)}</Text>
             <Text style={[styles.senderLabelNew, isMine && styles.senderLabelMineNew]}>
-              {isMine ? 'SİZ' : (item.sender_name || 'Anonim')}
+              {isMine ? (profile?.full_name || 'Kullanıcı') : (item.sender_name || 'Anonim')}
             </Text>
           </View>
 
@@ -707,12 +711,14 @@ export default function MuhabbetScreen() {
     return (
       <View style={[styles.messageRow, styles.messageRowTheirs, { marginBottom: 12 }]}>
         <View style={[styles.avatarWrapper, styles.avatarWrapperTheirs]}>
-          <View style={[styles.avatarCircle, styles.botAvatarCircle]}>
-            <Bot color="#FF007F" size={16} />
+          <View style={[styles.avatarCircle, styles.botAvatarCircle, { borderColor: '#4f46e5' }]}>
+            <Bot color="#4f46e5" size={16} />
           </View>
         </View>
-        <View style={styles.messageContent}>
-          <Text style={[styles.senderLabelNew, { color: '#FF007F' }]}>WORKIGOM AI</Text>
+        <View style={[styles.messageContent, styles.messageContentTheirs]}>
+          <View style={[styles.nameTimeRow, styles.nameTimeRowTheirs]}>
+            <Text style={styles.senderLabelNew}>WORKIGOM AI</Text>
+          </View>
           <View style={[styles.bubble, styles.bubbleBot]}>
             <Text style={[styles.messageText, styles.messageTextTheirs, { opacity: 0.6 }]}>
               Workigom AI düşünüyor...
