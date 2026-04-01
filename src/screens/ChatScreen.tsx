@@ -501,9 +501,16 @@ export function ChatScreen() {
           </View>
         </View>
 
-        <TouchableOpacity onPress={() => setShowMenu(true)} style={styles.menuBtn}>
-          <MoreVertical color="#aaaab6" size={20} />
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={handleBlock} style={styles.blockHeaderBtn}>
+            <ShieldBan color="#FF007F" size={16} />
+            <Text style={styles.blockBtnText}>ENGELLE</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowMenu(true)} style={styles.menuBtn}>
+            <MoreVertical color="#aaaab6" size={20} />
+          </TouchableOpacity>
+        </View>
+
       </View>
 
       {/* Block status banner */}
@@ -730,6 +737,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  blockHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 0, 127, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 0, 127, 0.3)',
+  },
+  blockBtnText: {
+    color: '#FF007F',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+
 
   // Blocked Banner
   blockedBanner: {

@@ -485,7 +485,69 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginTop: 2,
   },
+  // Dropdown
+  dropdownModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  dropdownContainer: {
+    position: 'absolute',
+    top: 100, // Adjusted by insets in code
+    left: 20,
+    width: 200,
+    backgroundColor: '#1d1f2a',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 20,
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  dropdownItemActive: {
+    backgroundColor: 'rgba(255, 0, 127, 0.1)',
+  },
+  dropdownText: {
+    color: '#aaaab6',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  dropdownTextActive: {
+    color: '#FF007F',
+    fontWeight: '900',
+  },
 });
+
+const PulsingName = ({ name, isUnread, style }: { name: string, isUnread: boolean, style: any }) => {
+  const pulse = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (isUnread) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, { toValue: 0.4, duration: 800, useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 1, duration: 800, useNativeDriver: true })
+        ])
+      ).start();
+    } else {
+      pulse.stopAnimation();
+      pulse.setValue(1);
+    }
+  }, [isUnread]);
+
+  return (
+    <Animated.Text style={[style, isUnread && { opacity: pulse, color: '#FF007F', textShadowColor: '#FF007F', textShadowRadius: 8 }]}>
+      {name}
+    </Animated.Text>
+  );
+};
+
 
 export default function MuhabbetScreen() {
   const { profile } = useAuthStore();
@@ -503,10 +565,14 @@ export default function MuhabbetScreen() {
     sendMessage,
     leaveRoom
   } = useMuhabbetStore();
+  const { unreadSenderIds } = useNotificationStore();
 
   const [inputText, setInputText] = useState('');
   const [showUsersSidebar, setShowUsersSidebar] = useState(false);
+  const [showRoomDropdown, setShowRoomDropdown] = useState(false);
+  const [currentRoom, setCurrentRoom] = useState('genel');
   const [isBotTyping, setIsBotTyping] = useState(false);
+
 
   const flatListRef = useRef<FlatList>(null);
   const slideAnim = useRef(new Animated.Value(-width)).current;
@@ -554,13 +620,14 @@ export default function MuhabbetScreen() {
 
   useEffect(() => {
     if (profile?.id) {
-      initializeRoom(ROOM_NAME, profile.id, {
+      initializeRoom(currentRoom, profile.id, {
         name: profile.full_name,
         avatar: profile.avatar_url
       });
     }
     return () => leaveRoom();
-  }, [profile?.id]);
+  }, [profile?.id, currentRoom]);
+
 
   // Sidebar Slide Animation
   useEffect(() => {
@@ -629,6 +696,16 @@ export default function MuhabbetScreen() {
       } finally {
         setIsBotTyping(false);
       }
+    }
+  };
+
+  const getRoomDisplayName = (room: string) => {
+    switch (room) {
+      case 'genel': return 'Global Chat';
+      case 'pazar': return 'Pazar Alanı';
+      case 'destek': return 'Yardımlaşma';
+      case 'goygoy': return 'Goygoy';
+      default: return 'Sohbet';
     }
   };
 
@@ -725,10 +802,13 @@ export default function MuhabbetScreen() {
             style={[styles.nameTimeRow, isMine ? styles.nameTimeRowMine : styles.nameTimeRowTheirs]}
           >
             <Text style={styles.timeLabelNew}>{formatTime(item.created_at)}</Text>
-            <Text style={[styles.senderLabelNew, isMine && styles.senderLabelMineNew]}>
-              {isMine ? (profile?.full_name || 'Kullanıcı') : (item.sender_name || 'Anonim')}
-            </Text>
+            <PulsingName 
+              name={isMine ? (profile?.full_name || 'Kullanıcı') : (item.sender_name || 'Anonim')}
+              isUnread={unreadSenderIds.includes(item.sender_id)}
+              style={[styles.senderLabelNew, isMine && styles.senderLabelMineNew]}
+            />
           </TouchableOpacity>
+
 
           {/* Message Bubble */}
           <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs, isBot && styles.bubbleBot]}>
@@ -792,11 +872,12 @@ export default function MuhabbetScreen() {
         ]}>
           <View style={styles.headerLeftNew}>
             <View style={styles.pinkSquare} />
-            <TouchableOpacity style={styles.chatSelector}>
-              <Text style={styles.chatSelectorText}>Global Chat</Text>
+            <TouchableOpacity style={styles.chatSelector} onPress={() => setShowRoomDropdown(true)}>
+              <Text style={styles.chatSelectorText}>{getRoomDisplayName(currentRoom)}</Text>
               <ChevronDown color="#fff" size={16} />
             </TouchableOpacity>
           </View>
+
           <View style={styles.headerRightNew}>
             {unreadMessageCount > 0 ? (
               <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
@@ -984,12 +1065,7 @@ export default function MuhabbetScreen() {
             data={presenceList}
             keyExtractor={(item, index) => item?.id || index.toString()}
             contentContainerStyle={styles.drawerList}
-            renderItem={({ item }) => {
-              const hasUnread = useNotificationStore.getState().unreadThreadIds.some(
-                tid => useMessageStore.getState().messages.some((m: any) => m.thread_id === tid && m.sender_id === item?.id && !m.read)
-              ) || false;
-
-              return (
+            renderItem={({ item }) => (
               <TouchableOpacity 
                 style={styles.drawerUserRow}
                 onPress={() => {
@@ -1003,15 +1079,17 @@ export default function MuhabbetScreen() {
                   </Text>
                 </View>
                 <View style={styles.drawerUserInfo}>
-                  <Text style={[styles.drawerUserName, hasUnread && { color: '#FF007F', fontWeight: 'bold' }]}>
-                    {item?.name} {hasUnread && '(Yeni)'}
-                  </Text>
+                  <PulsingName 
+                    name={item?.name} 
+                    isUnread={unreadSenderIds.includes(item?.id)}
+                    style={styles.drawerUserName}
+                  />
                   <Text style={styles.drawerUserSub}>
                     {item?.id === profile?.id ? 'SİZ' : 'KATILIMCI'}
                   </Text>
                 </View>
               </TouchableOpacity>
-            )}}
+            )}
             ListHeaderComponent={(
               <View style={{ marginBottom: 16 }}>
                 <Text style={styles.drawerSectionTitle}>DROIDS (Yapay Zeka)</Text>
@@ -1021,7 +1099,7 @@ export default function MuhabbetScreen() {
                   </View>
                   <View style={styles.drawerUserInfo}>
                     <Text style={[styles.drawerUserName, { color: '#FF007F' }]}>Workigom AI</Text>
-                    <Text style={styles.drawerUserSub}>Geçerli Oda: Global Chat</Text>
+                    <Text style={styles.drawerUserSub}>Geçerli Oda: {getRoomDisplayName(currentRoom)}</Text>
                   </View>
                 </View>
               </View>
@@ -1029,8 +1107,39 @@ export default function MuhabbetScreen() {
           />
         </Animated.View>
 
+        {/* Room Dropdown Modal */}
+        <Modal 
+          visible={showRoomDropdown} 
+          transparent 
+          animationType="fade" 
+          onRequestClose={() => setShowRoomDropdown(false)}
+        >
+          <TouchableOpacity 
+            style={styles.dropdownModalOverlay} 
+            activeOpacity={1} 
+            onPress={() => setShowRoomDropdown(false)}
+          >
+            <View style={[styles.dropdownContainer, { top: insets.top + 60 }]}>
+              {['genel', 'pazar', 'destek', 'goygoy'].map((room) => (
+                <TouchableOpacity
+                  key={room}
+                  style={[styles.dropdownItem, currentRoom === room && styles.dropdownItemActive]}
+                  onPress={() => {
+                    setCurrentRoom(room);
+                    setShowRoomDropdown(false);
+                  }}
+                >
+                  <Text style={[styles.dropdownText, currentRoom === room && styles.dropdownTextActive]}>
+                    {getRoomDisplayName(room)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     </Layout>
   );
 }
+
 
