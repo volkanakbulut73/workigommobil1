@@ -164,7 +164,7 @@ export function MessagesListScreen() {
               <Text style={styles.emptySubText}>Mesajlaşmaya başlamak için bir ilan üzerinden veya Muhabbet ekranından birini bulun.</Text>
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => navigation.navigate('Chat')} // Assumes default path
+                onPress={() => navigation.navigate('MainTabs', { screen: 'Muhabbet' })}
               >
                 <Text style={styles.actionButtonText}>MESAJ GÖNDER</Text>
               </TouchableOpacity>

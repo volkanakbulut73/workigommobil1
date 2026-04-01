@@ -66,8 +66,8 @@ export const linking: LinkingOptions<any> = {
       Chat: 'messages/:threadId',
       Details: 'details/:id',
       Tracker: 'tracker/:id',
-      TalepDetail: 'talep/:id',
       MarketDetail: 'market/:id',
+
     },
   },
 };

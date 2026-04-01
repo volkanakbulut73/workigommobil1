@@ -1,29 +1,19 @@
 import * as Sentry from '@sentry/react-native';
-import PostHog from 'posthog-react-native';
 
 declare const __DEV__: boolean;
 
 const IS_PROD = !__DEV__;
 
-// Create a singleton instance of PostHog
+// PostHog disabled as per user request
 export let posthog: any = null;
+
 
 class AnalyticsServiceImpl {
   public init() {
-    try {
-      const posthogKey = process.env.EXPO_PUBLIC_POSTHOG_API_KEY || process.env.POSTHOG_API_KEY;
-
-      if (posthogKey) {
-        posthog = new PostHog(posthogKey, {
-          host: 'https://eu.posthog.com',
-        });
-      } else {
-        console.warn('[Analytics] POSTHOG_API_KEY missing in environment variables.');
-      }
-    } catch (error) {
-      console.error('[Analytics] Failed to initialize analytics:', error);
-    }
+    // Analytics initialization (PostHog disabled)
+    console.log('[Analytics] Service started (PostHog disabled)');
   }
+
 
   public identifyUser(userId: string, properties?: Record<string, any>) {
     try {
