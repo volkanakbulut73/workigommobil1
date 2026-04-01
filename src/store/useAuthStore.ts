@@ -30,18 +30,29 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ session: null, user: null, profile: null });
   },
   initialize: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    set({ session, user: session?.user ?? null, loading: false });
-
-    if (session?.user) {
-      const profile = await DBService.ensureUserProfile(
-        session.user.id, 
-        session.user.user_metadata?.full_name || 'Kullanıcı'
-      );
-      set({ profile });
-      if (profile) {
-        AnalyticsService.identifyUser(session.user.id, profile);
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.log('Session fetch error (expected if token expired):', error.message);
       }
+      
+      const session = data?.session || null;
+      set({ session, user: session?.user ?? null, loading: false });
+
+      if (session?.user) {
+        const profile = await DBService.ensureUserProfile(
+          session.user.id, 
+          session.user.user_metadata?.full_name || 'Kullanıcı'
+        );
+        set({ profile });
+        if (profile) {
+          AnalyticsService.identifyUser(session.user.id, profile);
+        }
+      }
+    } catch (e: any) {
+      console.log('Auth error:', e?.message || e);
+      set({ session: null, user: null, loading: false });
     }
 
     supabase.auth.onAuthStateChange(async (_event, session) => {

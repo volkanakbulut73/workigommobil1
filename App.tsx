@@ -1,8 +1,9 @@
 import 'react-native-url-polyfill/auto';
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, AppState } from 'react-native';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AnalyticsService } from './src/services/analyticsService';
+import { supabase } from './src/lib/supabase';
 import * as Sentry from '@sentry/react-native';
 import Toast from 'react-native-toast-message';
 import NetInfo from '@react-native-community/netinfo';
@@ -33,7 +34,18 @@ function App() {
       setIsConnected(state.isConnected);
     });
 
-    return () => unsubscribe();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        supabase.auth.startAutoRefresh();
+      } else {
+        supabase.auth.stopAutoRefresh();
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      subscription.remove();
+    };
   }, []);
 
   return (
