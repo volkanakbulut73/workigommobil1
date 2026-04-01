@@ -11,6 +11,11 @@ interface MuhabbetMessage {
   created_at: string;
 }
 
+interface MuhabbetPrivateChat {
+  id: string; // the other user's id
+  name: string;
+}
+
 interface MuhabbetState {
   messages: MuhabbetMessage[];
   onlineUsers: number;
@@ -18,10 +23,24 @@ interface MuhabbetState {
   currentBroadcastChannel: RealtimeChannel | null;
   currentPresenceChannel: RealtimeChannel | null;
   
+  // Private Room (Ephemeral)
+  myProfile: any;
+  activePrivateTab: MuhabbetPrivateChat | null;
+  privateMessages: Record<string, MuhabbetMessage[]>;
+  unreadPrivate: string[];
+  incomingInvite: { id: string, name: string } | null;
+
   initializeRoom: (roomName: string, userId: string, profile: any) => void;
   sendMessage: (roomName: string, message: Omit<MuhabbetMessage, 'id' | 'created_at'>) => Promise<void>;
   leaveRoom: () => void;
   addMessage: (msg: MuhabbetMessage) => void;
+  
+  // Private Room Actions
+  openPrivateChat: (targetUser: MuhabbetPrivateChat) => void;
+  closePrivateChat: () => void;
+  sendPrivateMessage: (targetId: string, content: string, targetName: string) => Promise<void>;
+  acceptInvite: () => void;
+  declineInvite: () => void;
 }
 
 export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
@@ -31,9 +50,17 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
   currentBroadcastChannel: null,
   currentPresenceChannel: null,
 
+  myProfile: null,
+  activePrivateTab: null,
+  privateMessages: {},
+  unreadPrivate: [],
+  incomingInvite: null,
+
   initializeRoom: (roomName, userId, profile) => {
     // 1. Leave if already in a room
     get().leaveRoom();
+
+    set({ myProfile: profile });
 
     const channelId = roomName === 'genel' ? 'public-chat' : roomName;
     const channel = supabase.channel(channelId);
@@ -79,6 +106,47 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
         created_at: data.timestamp ? new Date().toISOString() : data.created_at || new Date().toISOString()
       };
       get().addMessage(msg);
+    });
+
+    // Handle Private Invites
+    channel.on('broadcast', { event: 'private_invite' }, (payload) => {
+      const data = payload.payload;
+      const myId = get().myProfile?.id;
+      if (myId && data.targetId === myId) {
+        set({ incomingInvite: data.inviter });
+      }
+    });
+
+    // Handle Private Messages
+    channel.on('broadcast', { event: 'private_message' }, (payload) => {
+      const data = payload.payload;
+      const myId = get().myProfile?.id;
+      
+      const isMeTarget = data.targetId === myId;
+      const isMeSender = data.message.sender_id === myId;
+      
+      if (isMeTarget || isMeSender) {
+        const otherId = isMeTarget ? data.message.sender_id : data.targetId;
+        
+        set((state) => {
+          const currentMsgs = state.privateMessages[otherId] || [];
+          const newMsgs = [data.message, ...currentMsgs];
+          
+          let updatedUnread = state.unreadPrivate;
+          // If I am the target, and I am not currently looking at this tab, mark unread
+          if (isMeTarget && state.activePrivateTab?.id !== otherId && !state.unreadPrivate.includes(otherId)) {
+            updatedUnread = [...state.unreadPrivate, otherId];
+          }
+
+          return {
+            privateMessages: {
+              ...state.privateMessages,
+              [otherId]: newMsgs
+            },
+            unreadPrivate: updatedUnread
+          };
+        });
+      }
     });
 
     // 3. Setup Presence Channel
@@ -196,7 +264,91 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
       currentPresenceChannel: null,
       onlineUsers: 0,
       presenceList: [],
-      messages: []
+      messages: [],
+      activePrivateTab: null,
+      incomingInvite: null,
+      myProfile: null
+    });
+  },
+
+  openPrivateChat: (targetUser) => {
+    set((state) => ({ 
+      activePrivateTab: targetUser,
+      unreadPrivate: state.unreadPrivate.filter(id => id !== targetUser.id)
+    }));
+    
+    const { currentBroadcastChannel, myProfile } = get();
+    if (currentBroadcastChannel && myProfile) {
+      currentBroadcastChannel.send({
+        type: 'broadcast',
+        event: 'private_invite',
+        payload: {
+          targetId: targetUser.id,
+          inviter: { id: myProfile.id, name: myProfile.full_name }
+        }
+      });
+    }
+  },
+
+  closePrivateChat: () => set({ activePrivateTab: null }),
+
+  acceptInvite: () => {
+    const invite = get().incomingInvite;
+    if (invite) {
+      set({ 
+        activePrivateTab: invite, 
+        incomingInvite: null 
+      });
+    }
+  },
+
+  declineInvite: () => set({ incomingInvite: null }),
+
+  sendPrivateMessage: async (targetId, content, targetName) => {
+    const { currentBroadcastChannel, myProfile } = get();
+    if (!currentBroadcastChannel || !myProfile) return;
+
+    const fullMsg: MuhabbetMessage = {
+      id: Math.random().toString(),
+      sender_id: myProfile.id,
+      sender_name: myProfile.full_name || 'Anonim',
+      avatar_url: myProfile.avatar_url || '',
+      content: content,
+      created_at: new Date().toISOString()
+    };
+
+    const webPrivMsg = {
+        id: fullMsg.id,
+        text: fullMsg.content,
+        senderId: fullMsg.sender_id,
+        senderName: fullMsg.sender_name,
+        senderAvatar: fullMsg.avatar_url || null,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    // Broadcast only works because both users are on the same channel
+    await currentBroadcastChannel.send({
+      type: 'broadcast',
+      event: 'private_message',
+      payload: {
+        targetId,
+        targetName,
+        message: { ...fullMsg, ...webPrivMsg } // Keep both schemas
+      }
+    });
+    
+    // Optimistic addition is handled by our own broadcast listener (since isMeSender applies),
+    // but sometimes the client doesn't receive its own broadcast. We should add it manually just in case.
+    set((state) => {
+        const currentMsgs = state.privateMessages[targetId] || [];
+        // Prevent duplicate if broadcast listener already caught it
+        if (currentMsgs.some(m => m.id === fullMsg.id)) return state;
+        return {
+          privateMessages: {
+            ...state.privateMessages,
+            [targetId]: [fullMsg, ...currentMsgs]
+          }
+        };
     });
   }
 }));

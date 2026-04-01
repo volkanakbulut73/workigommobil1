@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, Dimensions, StatusBar as RNStatusBar, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, Dimensions, StatusBar as RNStatusBar, Image, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMuhabbetStore } from '../store/useMuhabbetStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -563,7 +563,16 @@ export default function MuhabbetScreen() {
     presenceList,
     initializeRoom,
     sendMessage,
-    leaveRoom
+    leaveRoom,
+    activePrivateTab,
+    privateMessages,
+    unreadPrivate,
+    incomingInvite,
+    openPrivateChat: openPrivateRoom,
+    closePrivateChat,
+    sendPrivateMessage,
+    acceptInvite,
+    declineInvite
   } = useMuhabbetStore();
   const { unreadSenderIds } = useNotificationStore();
 
@@ -594,16 +603,10 @@ export default function MuhabbetScreen() {
 
   const lastTapRef = useRef<number>(0);
 
-  const openPrivateChat = async (selectedUser: {id: string, name: string}) => {
+  const openPrivateChat = (selectedUser: {id: string, name: string}) => {
     if (selectedUser.id === profile?.id || selectedUser.id === 'bot-1') return;
-    try {
-      const thread = await MessageService.findOrCreateThread(null, profile.id, selectedUser.id, 'private');
-      if (thread) {
-        navigation.navigate('Chat', { threadId: thread.id, title: selectedUser.name, receiverId: selectedUser.id });
-      }
-    } catch (err) {
-      console.error("Error opening private chat:", err);
-    }
+    openPrivateRoom(selectedUser);
+    setShowUsersSidebar(false);
   };
 
   const handleUserDoubleTap = (selectedUser: {id: string, name: string}) => {
@@ -644,6 +647,14 @@ export default function MuhabbetScreen() {
     const content = inputText.trim();
     setInputText(''); // Optimistic UI clear
 
+    const isBotTriggered = content.toLowerCase().includes('@workigom') || content.toLowerCase().includes('/workigom');
+
+    // Private Message Check
+    if (activePrivateTab) {
+      await sendPrivateMessage(activePrivateTab.id, content, activePrivateTab.name);
+      return;
+    }
+
     // Normal message handling
     await sendMessage(ROOM_NAME, {
       sender_id: profile.id,
@@ -652,10 +663,7 @@ export default function MuhabbetScreen() {
       content: content
     });
 
-    // Check for bot trigger
-    const isBotTriggered = content.toLowerCase().includes('@workigom') || content.toLowerCase().includes('/workigom');
-
-    if (isBotTriggered) {
+    if (isBotTriggered && !activePrivateTab) {
       setIsBotTyping(true);
       try {
         // Use manual fetch to bypass 401 errors when verify_jwt = false
@@ -872,10 +880,19 @@ export default function MuhabbetScreen() {
         ]}>
           <View style={styles.headerLeftNew}>
             <View style={styles.pinkSquare} />
-            <TouchableOpacity style={styles.chatSelector} onPress={() => setShowRoomDropdown(true)}>
-              <Text style={styles.chatSelectorText}>{getRoomDisplayName(currentRoom)}</Text>
-              <ChevronDown color="#fff" size={16} />
-            </TouchableOpacity>
+            {activePrivateTab ? (
+              <View style={styles.chatSelector}>
+                <Text style={styles.chatSelectorText}>Özel: {activePrivateTab.name}</Text>
+                <TouchableOpacity onPress={closePrivateChat} style={{ marginLeft: 8 }}>
+                  <X color="#FF007F" size={16} />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.chatSelector} onPress={() => setShowRoomDropdown(true)}>
+                <Text style={styles.chatSelectorText}>{getRoomDisplayName(currentRoom)}</Text>
+                <ChevronDown color="#fff" size={16} />
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.headerRightNew}>
@@ -900,11 +917,30 @@ export default function MuhabbetScreen() {
         </View>
 
         {/* Welcome Pill */}
-        <View style={styles.welcomePillContainer}>
-          <View style={styles.welcomePill}>
-            <Text style={styles.welcomePillText}>GENEL SOHBET. ŞİFRELI OTURUMA HOŞ GELDİNİZ.</Text>
+        {!activePrivateTab && (
+          <View style={styles.welcomePillContainer}>
+            <View style={styles.welcomePill}>
+              <Text style={styles.welcomePillText}>GENEL SOHBET. ŞİFRELI OTURUMA HOŞ GELDİNİZ.</Text>
+            </View>
           </View>
-        </View>
+        )}
+        
+        {incomingInvite && (
+          <View style={{ backgroundColor: 'rgba(255, 0, 127, 0.15)', margin: 16, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#FF007F', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Text style={{ color: '#fff', fontSize: 13, fontWeight: 'bold' }}>{incomingInvite.name} size özel oda açtı!</Text>
+              <Text style={{ color: '#aaaab6', fontSize: 11, marginTop: 4 }}>Mesaja yanıt vermek için katılın.</Text>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity onPress={declineInvite} style={{ padding: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 8 }}>
+                <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>Reddet</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={acceptInvite} style={{ padding: 8, backgroundColor: '#FF007F', borderRadius: 8 }}>
+                <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>Katıl</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -915,7 +951,7 @@ export default function MuhabbetScreen() {
           {/* Messages */}
           <FlatList
             ref={flatListRef}
-            data={messages}
+            data={activePrivateTab ? (privateMessages[activePrivateTab.id] || []) : messages}
             keyExtractor={(item) => item.id}
             renderItem={renderMessage}
             ListHeaderComponent={renderTypingIndicator} // Bottom in inverted
@@ -1081,7 +1117,7 @@ export default function MuhabbetScreen() {
                 <View style={styles.drawerUserInfo}>
                   <PulsingName 
                     name={item?.name} 
-                    isUnread={unreadSenderIds.includes(item?.id)}
+                    isUnread={unreadSenderIds.includes(item?.id) || unreadPrivate.includes(item?.id)}
                     style={styles.drawerUserName}
                   />
                   <Text style={styles.drawerUserSub}>

@@ -27,7 +27,7 @@ export const useBlockStore = create<BlockState>((set, get) => ({
         .select('blocked_id')
         .eq('blocker_id', profile.id);
 
-      if (error && error.code !== '42P01') { // Ignore relation does not exist error initially
+      if (error && error.code !== '42P01' && error.code !== 'PGRST205') { // Ignore relation does not exist error initially
         console.error('Error fetching blocks:', error);
       } else if (data) {
         set({ blockedUsers: data.map(b => b.blocked_id) });

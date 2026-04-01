@@ -180,6 +180,17 @@ Farklı geliştirme evrelerinden ötürü Web ve Mobil platformlar farklı JSON 
   ```
 **NOT:** Dinleyiciler (listeners) gelen paketi okurken de aynı şekilde `payload.userId || payload.user_id` gibi bir fallback (yedekli) yaklaşımı kullanmalıdır. Bu yapılandırmaya uyulmazsa, çapraz platformlarda giren kullanıcılar "Kendisi/Anonim" görünür veya atılan mesajlar ortak ekrana düşmez.
 
+**3. Kullanıcıya Çift Tıklayarak Özel Mesaj (Private Room) Açma Paritesi**
+Global sohbet alanında (Muhabbet), bir kullanıcının represents (avatar veya ismi) üzerine çift tıklandığında (veya tıklandığında) çalışan akış **kesinlikle standart (Mesajlarım) veritabanı akışına GİRMEMELİDİR**. Bunun yerine **geçici (ephemeral) sohbet** olarak aynı `public-chat` kanalı üzerinden özel mesajlaşma yapılmalıdır.
+
+Bu kurgunun amacı, kullanıcıların normal pazarlaşma/yardım mesajları ile anlık Muhabbet fısıldaşmalarını (whisper) ayırmaktır:
+1. **Oda Kurulumu:** A kullanıcısı B'ye çift tıkladığında `activePrivateTab` (veya benzeri bir state) açılır ve UI "Özel Oda" moduna geçer.
+2. **Davet Yayını (Invite Broadcast):** A kullanıcısı, B kullanıcısına `public-chat` üzerinden `private_invite` event'i ile davet fırlatır (`payload: { targetId: B_ID, inviter: A_PROFILE }`).
+3. **Davet Kabulü:** B kullanıcısının UI sisteminde bir Banner veya Modal çıkar. "A size özel oda açtı" şeklinde. B kabul ederse o da `activePrivateTab` state'ini A'ya ayarlar.
+4. **Mesaj Gönderimi:** A veya B birbirlerine mesaj atarken, bu mesaj `public-chat` üzerinden `private_message` event'i olarak `payload: { targetId, targetName, message }` yayınlanır ve iki taraf kendi ara belleğine alır.
+
+Bu yapıya uyulmazsa, özel konuşmalar gereksiz yere veritabanındaki "Mesajlarım" menüsüne düşerek kullanıcı deneyimini bozar (Yanlış Kurgu).
+
 ---
 
 ## 📝 Standart Supabase Mesajlaşma Şablonu (Mobil & Web)
