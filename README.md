@@ -128,6 +128,58 @@ SELECT count(*) FROM messages WHERE receiver_id = '{userId}' AND read = false;
 
 Her değişiklikte `fetchCounts(userId)` çağrılır → badge anında güncellenir.
 
+### 🌍 Global Sohbet (Muhabbet) Ortak Altyapısı (Web & Mobil)
+
+**ÖNEMLİ KILAVUZ (ŞABLON):** "Muhabbet" (Global Sohbet) kanalının Web ve Mobil platformlar arasında kesintisiz çapraz çalışabilmesi (interoperability) ve kullanıcıların karşılıklı olarak çevrimiçi durumlarını/mesajlarını görebilmesi için aşağıdaki veritabanı/kanal yapılandırması kullanılmalıdır. Sistemde sorun yaşarsanız hata ayıklarken **ilk bakacağınız referans kaynağı** burasıdır.
+
+**1. Kanal ve Abonelik (Channel & Subscription)**
+- Her iki platform da **aynı kanal ismini** (`public-chat`) kullanmak zorundadır. Kesinlikle `broadcast-genel` veya `presence-genel` gibi parçalanmış kanallar **kullanılmamalıdır**.
+- Dinleyiciler (`on('broadcast')`, `on('presence')`) **mutlaka** kanal `subscribe()` komutu işletilmeden **önce** tanımlanmalıdır.
+
+**2. Veri Şablonları (Payload Schemas & Merge Strategy)**
+Farklı geliştirme evrelerinden ötürü Web ve Mobil platformlar farklı JSON anahtarları (schema) kullanmaktadır. Senkronizasyonun kopmaması için **mesaj ve presence takibi (track) sırasında her iki platformun beklediği anahtarlar birleştirilerek (merge)** iletilmelidir.
+
+* **Çevrimiçi Takibi (Presence Track) Şablonu:**
+  Web (`userId`, `name`, `avatar`) ve Mobil (`user_id`, `full_name`, `avatar_url`) yapılarının birleşimi:
+  ```typescript
+  await channel.track({
+    userId: user.id,          // Web uyumu için şart
+    user_id: user.id,         // Mobil uyumu için şart
+    name: profile.full_name,  // Web uyumu için şart
+    full_name: profile.full_name, // Mobil uyumu için şart
+    avatar: profile.avatar_url,   // Web uyumu için şart
+    avatar_url: profile.avatar_url, // Mobil uyumu için şart
+    onlineAt: new Date().toISOString()
+  });
+  ```
+
+* **Canlı Mesaj Yayını (Broadcast Payload) Şablonu:**
+  Web (`text`, `senderId`, `senderName`, `senderAvatar`) ve Mobil (`content`, `sender_id`, `sender_name`, `avatar_url`) yapılarının birleşimi:
+  ```typescript
+  await channel.send({
+    type: 'broadcast',
+    event: 'message', // Web tarafı bazen 'image-share' veya 'audio-share' gönderebilir, yakalanmalıdır.
+    payload: {
+      id: message.id,
+      // --- Web İçin Gereksinimler ---
+      text: message.content,
+      senderId: message.sender_id,
+      senderName: message.sender_name,
+      senderAvatar: message.avatar_url,
+      timestamp: new Date().toISOString(),
+      isBot: false,
+      roomId: 'public-chat',
+      // --- Mobil İçin Gereksinimler ---
+      content: message.content,
+      sender_id: message.sender_id,
+      sender_name: message.sender_name,
+      avatar_url: message.avatar_url,
+      created_at: new Date().toISOString()
+    }
+  });
+  ```
+**NOT:** Dinleyiciler (listeners) gelen paketi okurken de aynı şekilde `payload.userId || payload.user_id` gibi bir fallback (yedekli) yaklaşımı kullanmalıdır. Bu yapılandırmaya uyulmazsa, çapraz platformlarda giren kullanıcılar "Kendisi/Anonim" görünür veya atılan mesajlar ortak ekrana düşmez.
+
 ---
 
 ## 📝 Standart Supabase Mesajlaşma Şablonu (Mobil & Web)

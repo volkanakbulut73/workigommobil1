@@ -54,7 +54,7 @@ export function MainStack() {
       <Stack.Screen 
         name="Chat" 
         component={ChatScreen} 
-        options={({ route }: any) => ({ title: route.params?.title ?? 'Sohbet' })} 
+        options={{ headerShown: false }} 
       />
       <Stack.Screen 
         name="Notifications" 

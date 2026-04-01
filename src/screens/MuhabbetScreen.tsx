@@ -3,9 +3,13 @@ import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Keyboard
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMuhabbetStore } from '../store/useMuhabbetStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { useMessageStore } from '../store/useMessageStore';
 import { Layout } from '../components/Layout';
 import { supabase } from '../lib/supabase';
-import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type } from 'lucide-react-native';
+import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type, MessageSquareWarning } from 'lucide-react-native';
+import { MessageService } from '../services/messageService';
+import { useNotificationStore } from '../store/useNotificationStore';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -137,6 +141,9 @@ const styles = StyleSheet.create({
   messageContentMine: {
     alignItems: 'flex-end',
   },
+  messageContentTheirs: {
+    alignItems: 'flex-start',
+  },
   nameTimeRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -150,50 +157,51 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
   },
   timeLabelNew: {
-    color: '#666',
+    color: '#64748b',
     fontSize: 10,
     fontWeight: '600',
+    textTransform: 'uppercase',
   },
   senderLabelNew: {
-    color: '#FF007F',
+    color: '#94a3b8',
     fontSize: 12,
     fontWeight: 'bold',
   },
   senderLabelMineNew: {
-    color: '#FF007F',
+    color: '#94a3b8',
   },
 
   // Bubble
   bubble: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 18,
+    borderRadius: 16,
     maxWidth: '100%',
   },
   bubbleMine: {
-    backgroundColor: '#2e7d32', // Mat Green
+    backgroundColor: '#4f46e5', // bg-indigo-600
     borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopRightRadius: 2,
     borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 2,
+    borderBottomRightRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   bubbleTheirs: {
-    backgroundColor: '#1C2541', // Indigo Deep
+    backgroundColor: '#1e293b', // bg-slate-800
     borderTopLeftRadius: 2,
     borderTopRightRadius: 16,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(142, 255, 113, 0.05)',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   bubbleBot: {
-    backgroundColor: 'rgba(255, 0, 127, 0.05)',
+    backgroundColor: 'rgba(79, 70, 229, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 0, 127, 0.15)',
+    borderColor: 'rgba(79, 70, 229, 0.3)',
     paddingHorizontal: 20,
     paddingVertical: 14,
   },
@@ -206,7 +214,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   messageTextTheirs: {
-    color: '#ededf9',
+    color: '#f1f5f9', // text-slate-100
   },
   welcomeBanner: {
     paddingHorizontal: 24,
@@ -477,11 +485,75 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginTop: 2,
   },
+  // Dropdown
+  dropdownModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  dropdownContainer: {
+    position: 'absolute',
+    top: 100, // Adjusted by insets in code
+    left: 20,
+    width: 200,
+    backgroundColor: '#1d1f2a',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 20,
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  dropdownItemActive: {
+    backgroundColor: 'rgba(255, 0, 127, 0.1)',
+  },
+  dropdownText: {
+    color: '#aaaab6',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  dropdownTextActive: {
+    color: '#FF007F',
+    fontWeight: '900',
+  },
 });
+
+const PulsingName = ({ name, isUnread, style }: { name: string, isUnread: boolean, style: any }) => {
+  const pulse = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (isUnread) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, { toValue: 0.4, duration: 800, useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 1, duration: 800, useNativeDriver: true })
+        ])
+      ).start();
+    } else {
+      pulse.stopAnimation();
+      pulse.setValue(1);
+    }
+  }, [isUnread]);
+
+  return (
+    <Animated.Text style={[style, isUnread && { opacity: pulse, color: '#FF007F', textShadowColor: '#FF007F', textShadowRadius: 8 }]}>
+      {name}
+    </Animated.Text>
+  );
+};
+
 
 export default function MuhabbetScreen() {
   const { profile } = useAuthStore();
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const { unreadMessageCount } = useNotificationStore();
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -493,25 +565,69 @@ export default function MuhabbetScreen() {
     sendMessage,
     leaveRoom
   } = useMuhabbetStore();
+  const { unreadSenderIds } = useNotificationStore();
 
   const [inputText, setInputText] = useState('');
   const [showUsersSidebar, setShowUsersSidebar] = useState(false);
+  const [showRoomDropdown, setShowRoomDropdown] = useState(false);
+  const [currentRoom, setCurrentRoom] = useState('genel');
   const [isBotTyping, setIsBotTyping] = useState(false);
+
 
   const flatListRef = useRef<FlatList>(null);
   const slideAnim = useRef(new Animated.Value(-width)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (unreadMessageCount > 0) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.5, duration: 500, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 500, useNativeDriver: true })
+        ])
+      ).start();
+    } else {
+      pulseAnim.stopAnimation();
+      pulseAnim.setValue(1);
+    }
+  }, [unreadMessageCount]);
+
+  const lastTapRef = useRef<number>(0);
+
+  const openPrivateChat = async (selectedUser: {id: string, name: string}) => {
+    if (selectedUser.id === profile?.id || selectedUser.id === 'bot-1') return;
+    try {
+      const thread = await MessageService.findOrCreateThread(null, profile.id, selectedUser.id, 'private');
+      if (thread) {
+        navigation.navigate('Chat', { threadId: thread.id, title: selectedUser.name, receiverId: selectedUser.id });
+      }
+    } catch (err) {
+      console.error("Error opening private chat:", err);
+    }
+  };
+
+  const handleUserDoubleTap = (selectedUser: {id: string, name: string}) => {
+    const now = Date.now();
+    const DOUBLE_PRESS_DELAY = 300;
+    if (lastTapRef.current && (now - lastTapRef.current) < DOUBLE_PRESS_DELAY) {
+      openPrivateChat(selectedUser);
+    } else {
+      lastTapRef.current = now;
+    }
+  };
 
   const ROOM_NAME = 'genel';
 
   useEffect(() => {
     if (profile?.id) {
-      initializeRoom(ROOM_NAME, profile.id, {
+      initializeRoom(currentRoom, profile.id, {
         name: profile.full_name,
         avatar: profile.avatar_url
       });
     }
     return () => leaveRoom();
-  }, [profile?.id]);
+  }, [profile?.id, currentRoom]);
+
 
   // Sidebar Slide Animation
   useEffect(() => {
@@ -580,6 +696,16 @@ export default function MuhabbetScreen() {
       } finally {
         setIsBotTyping(false);
       }
+    }
+  };
+
+  const getRoomDisplayName = (room: string) => {
+    switch (room) {
+      case 'genel': return 'Global Chat';
+      case 'pazar': return 'Pazar Alanı';
+      case 'destek': return 'Yardımlaşma';
+      case 'goygoy': return 'Goygoy';
+      default: return 'Sohbet';
     }
   };
 
@@ -668,14 +794,21 @@ export default function MuhabbetScreen() {
     return (
       <View style={[styles.messageRow, isMine ? styles.messageRowMine : styles.messageRowTheirs]}>
         {/* Message Content Group (Top: Name/Time, Bottom: Bubble) */}
-        <View style={[styles.messageContent, isMine && styles.messageContentMine]}>
+        <View style={[styles.messageContent, isMine ? styles.messageContentMine : styles.messageContentTheirs]}>
           {/* Sender Name and Time Above Bubble */}
-          <View style={[styles.nameTimeRow, isMine ? styles.nameTimeRowMine : styles.nameTimeRowTheirs]}>
+          <TouchableOpacity 
+            activeOpacity={0.8}
+            onPress={() => handleUserDoubleTap({ id: item.sender_id, name: item.sender_name || 'Anonim' })}
+            style={[styles.nameTimeRow, isMine ? styles.nameTimeRowMine : styles.nameTimeRowTheirs]}
+          >
             <Text style={styles.timeLabelNew}>{formatTime(item.created_at)}</Text>
-            <Text style={[styles.senderLabelNew, isMine && styles.senderLabelMineNew]}>
-              {isMine ? 'SİZ' : (item.sender_name || 'Anonim')}
-            </Text>
-          </View>
+            <PulsingName 
+              name={isMine ? (profile?.full_name || 'Kullanıcı') : (item.sender_name || 'Anonim')}
+              isUnread={unreadSenderIds.includes(item.sender_id)}
+              style={[styles.senderLabelNew, isMine && styles.senderLabelMineNew]}
+            />
+          </TouchableOpacity>
+
 
           {/* Message Bubble */}
           <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs, isBot && styles.bubbleBot]}>
@@ -686,7 +819,11 @@ export default function MuhabbetScreen() {
         </View>
 
         {/* Avatar next to bubble */}
-        <View style={[styles.avatarWrapper, isMine ? styles.avatarWrapperMine : styles.avatarWrapperTheirs]}>
+        <TouchableOpacity 
+          activeOpacity={0.9}
+          onPress={() => handleUserDoubleTap({ id: item.sender_id, name: item.sender_name || 'Anonim' })}
+          style={[styles.avatarWrapper, isMine ? styles.avatarWrapperMine : styles.avatarWrapperTheirs]}
+        >
           <View style={[styles.avatarCircle, isMine ? styles.avatarCircleMine : styles.avatarCircleTheirs, isBot && styles.botAvatarCircle]}>
             {isBot ? (
               <Bot color="#FF007F" size={16} />
@@ -697,7 +834,7 @@ export default function MuhabbetScreen() {
               />
             )}
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -707,12 +844,14 @@ export default function MuhabbetScreen() {
     return (
       <View style={[styles.messageRow, styles.messageRowTheirs, { marginBottom: 12 }]}>
         <View style={[styles.avatarWrapper, styles.avatarWrapperTheirs]}>
-          <View style={[styles.avatarCircle, styles.botAvatarCircle]}>
-            <Bot color="#FF007F" size={16} />
+          <View style={[styles.avatarCircle, styles.botAvatarCircle, { borderColor: '#4f46e5' }]}>
+            <Bot color="#4f46e5" size={16} />
           </View>
         </View>
-        <View style={styles.messageContent}>
-          <Text style={[styles.senderLabelNew, { color: '#FF007F' }]}>WORKIGOM AI</Text>
+        <View style={[styles.messageContent, styles.messageContentTheirs]}>
+          <View style={[styles.nameTimeRow, styles.nameTimeRowTheirs]}>
+            <Text style={styles.senderLabelNew}>WORKIGOM AI</Text>
+          </View>
           <View style={[styles.bubble, styles.bubbleBot]}>
             <Text style={[styles.messageText, styles.messageTextTheirs, { opacity: 0.6 }]}>
               Workigom AI düşünüyor...
@@ -733,15 +872,24 @@ export default function MuhabbetScreen() {
         ]}>
           <View style={styles.headerLeftNew}>
             <View style={styles.pinkSquare} />
-            <TouchableOpacity style={styles.chatSelector}>
-              <Text style={styles.chatSelectorText}>Global Chat</Text>
+            <TouchableOpacity style={styles.chatSelector} onPress={() => setShowRoomDropdown(true)}>
+              <Text style={styles.chatSelectorText}>{getRoomDisplayName(currentRoom)}</Text>
               <ChevronDown color="#fff" size={16} />
             </TouchableOpacity>
           </View>
+
           <View style={styles.headerRightNew}>
-            <TouchableOpacity style={styles.roundIconBtn}>
-              <Bell color="#aaaab6" size={20} />
-            </TouchableOpacity>
+            {unreadMessageCount > 0 ? (
+              <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+                <TouchableOpacity style={[styles.roundIconBtn, { backgroundColor: 'rgba(255,0,0,0.2)' }]} onPress={() => setShowUsersSidebar(true)}>
+                  <MessageSquareWarning color="#FF007F" size={20} />
+                </TouchableOpacity>
+              </Animated.View>
+            ) : (
+              <TouchableOpacity style={styles.roundIconBtn}>
+                <Bell color="#aaaab6" size={20} />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={styles.roundIconBtn}
               onPress={() => setShowUsersSidebar(true)}
@@ -918,21 +1066,31 @@ export default function MuhabbetScreen() {
             keyExtractor={(item, index) => item?.id || index.toString()}
             contentContainerStyle={styles.drawerList}
             renderItem={({ item }) => (
-              <View style={styles.drawerUserRow}>
+              <TouchableOpacity 
+                style={styles.drawerUserRow}
+                onPress={() => {
+                  setShowUsersSidebar(false);
+                  openPrivateChat({ id: item?.id, name: item?.name });
+                }}
+              >
                 <View style={[styles.drawerAvatar, item?.id === profile?.id && { backgroundColor: '#FF007F', borderColor: '#FF007F' }]}>
                   <Text style={[styles.drawerAvatarText, item?.id === profile?.id && { color: '#ffffff' }]}>
                     {(item?.name || 'U')[0].toUpperCase()}
                   </Text>
                 </View>
                 <View style={styles.drawerUserInfo}>
-                  <Text style={styles.drawerUserName}>
-                    {item?.id === profile?.id ? `${item?.name} (Siz)` : (item?.name || 'Anonim')}
+                  <PulsingName 
+                    name={item?.name} 
+                    isUnread={unreadSenderIds.includes(item?.id)}
+                    style={styles.drawerUserName}
+                  />
+                  <Text style={styles.drawerUserSub}>
+                    {item?.id === profile?.id ? 'SİZ' : 'KATILIMCI'}
                   </Text>
-                  <Text style={styles.drawerUserSub}>Online</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             )}
-            ListHeaderComponent={() => (
+            ListHeaderComponent={(
               <View style={{ marginBottom: 16 }}>
                 <Text style={styles.drawerSectionTitle}>DROIDS (Yapay Zeka)</Text>
                 <View style={[styles.drawerUserRow, { marginTop: 8 }]}>
@@ -941,7 +1099,7 @@ export default function MuhabbetScreen() {
                   </View>
                   <View style={styles.drawerUserInfo}>
                     <Text style={[styles.drawerUserName, { color: '#FF007F' }]}>Workigom AI</Text>
-                    <Text style={styles.drawerUserSub}>Geçerli Oda: Global Chat</Text>
+                    <Text style={styles.drawerUserSub}>Geçerli Oda: {getRoomDisplayName(currentRoom)}</Text>
                   </View>
                 </View>
               </View>
@@ -949,8 +1107,39 @@ export default function MuhabbetScreen() {
           />
         </Animated.View>
 
+        {/* Room Dropdown Modal */}
+        <Modal 
+          visible={showRoomDropdown} 
+          transparent 
+          animationType="fade" 
+          onRequestClose={() => setShowRoomDropdown(false)}
+        >
+          <TouchableOpacity 
+            style={styles.dropdownModalOverlay} 
+            activeOpacity={1} 
+            onPress={() => setShowRoomDropdown(false)}
+          >
+            <View style={[styles.dropdownContainer, { top: insets.top + 60 }]}>
+              {['genel', 'pazar', 'destek', 'goygoy'].map((room) => (
+                <TouchableOpacity
+                  key={room}
+                  style={[styles.dropdownItem, currentRoom === room && styles.dropdownItemActive]}
+                  onPress={() => {
+                    setCurrentRoom(room);
+                    setShowRoomDropdown(false);
+                  }}
+                >
+                  <Text style={[styles.dropdownText, currentRoom === room && styles.dropdownTextActive]}>
+                    {getRoomDisplayName(room)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     </Layout>
   );
 }
+
 
