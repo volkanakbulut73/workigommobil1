@@ -36,16 +36,10 @@ export function TrackerScreen() {
 
   const fetchTransaction = async () => {
     try {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select(`*, seeker:profiles!seeker_id(full_name), supporter:profiles!supporter_id(full_name)`)
-        .eq('id', id)
-        .single();
-        
-      if (error) throw error;
-      setTransaction(data);
+      const tx = await DBService.getTransactionById(id);
+      if (tx) setTransaction(tx);
     } catch (err: any) {
-      console.error(err);
+      console.error('TrackerScreen fetchTransaction error:', err);
     } finally {
       setLoading(false);
     }
