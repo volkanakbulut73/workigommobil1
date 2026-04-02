@@ -106,10 +106,25 @@ export function TrackerScreen() {
   };
 
   const handleCancel = () => {
-    Alert.alert('Emin misiniz?', 'İşlemi iptal etmek istediğinize emin misiniz?', [
+    const isMeSeeker = profile?.id === transaction?.seeker_id;
+    const confirmMsg = isMeSeeker
+      ? 'Talebi tamamen iptal etmek istediğinize emin misiniz? Talep silinecektir.'
+      : 'İşlemden çekilmek istediğinize emin misiniz? Talep yeni bir destekçi arayacak.';
+
+    Alert.alert('Emin misiniz?', confirmMsg, [
       { text: 'Hayır', style: 'cancel' },
-      { text: 'Evet', style: 'destructive', onPress: () => {
-          DBService.updateTransactionStatus(id, 'cancelled').then(() => navigation.navigate('MainTabs', { screen: 'Talepler' }));
+      { text: 'Evet', style: 'destructive', onPress: async () => {
+        try {
+          if (isMeSeeker) {
+            await DBService.cancelTransactionBySeeker(id);
+          } else {
+            await DBService.cancelTransactionBySupporter(id);
+          }
+          navigation.navigate('MainTabs', { screen: 'Talepler' });
+        } catch (err) {
+          console.error(err);
+          Alert.alert('Hata', 'İptal edilirken bir hata oluştu');
+        }
       }}
     ]);
   };

@@ -155,6 +155,60 @@ export const DBService = {
     });
   },
 
+  // Seeker iptal ederse → talep tamamen iptal olur
+  async cancelTransactionBySeeker(transactionId: string) {
+    const { data, error } = await supabase
+      .from('transactions')
+      .update({ status: 'cancelled' })
+      .eq('id', transactionId)
+      .select();
+
+    if (error) throw error;
+
+    const channel = supabase.channel('public-chat');
+    channel.subscribe(async (s: string) => {
+      if (s === 'SUBSCRIBED') {
+        await channel.send({
+          type: 'broadcast',
+          event: 'transaction_updated',
+          payload: { transactionId }
+        });
+        supabase.removeChannel(channel);
+      }
+    });
+
+    return data?.[0] || null;
+  },
+
+  // Supporter iptal ederse → talep listeye geri döner, başka supporter aranır
+  async cancelTransactionBySupporter(transactionId: string) {
+    const { data, error } = await supabase
+      .from('transactions')
+      .update({
+        status: 'waiting-supporter',
+        supporter_id: null,
+        support_percentage: 12,
+      })
+      .eq('id', transactionId)
+      .select();
+
+    if (error) throw error;
+
+    const channel = supabase.channel('public-chat');
+    channel.subscribe(async (s: string) => {
+      if (s === 'SUBSCRIBED') {
+        await channel.send({
+          type: 'broadcast',
+          event: 'transaction_updated',
+          payload: { transactionId }
+        });
+        supabase.removeChannel(channel);
+      }
+    });
+
+    return data?.[0] || null;
+  },
+
   async uploadImage(base64: string, bucket: string = 'images') {
     const { decode } = require('base64-arraybuffer');
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
