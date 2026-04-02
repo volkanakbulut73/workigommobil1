@@ -101,11 +101,10 @@ export const DBService = {
       .or(`seeker_id.eq.${userId},supporter_id.eq.${userId}`)
       .in('status', ['waiting-supporter', 'waiting-cash-payment', 'cash-paid', 'qr-uploaded'])
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
 
     if (error) throw error;
-    return data || null;
+    return data?.[0] || null;
   },
 
   async getTransactionById(transactionId: string) {
@@ -113,10 +112,10 @@ export const DBService = {
       .from('transactions')
       .select(`*, seeker:profiles!seeker_id(full_name), supporter:profiles!supporter_id(full_name)`)
       .eq('id', transactionId)
-      .maybeSingle();
+      .limit(1);
 
     if (error) throw error;
-    return data || null;
+    return data?.[0] || null;
   },
 
   async updateTransactionStatus(transactionId: string, status: Transaction['status'], updates: Partial<Transaction> = {}) {
@@ -124,11 +123,11 @@ export const DBService = {
       .from('transactions')
       .update({ status, ...updates })
       .eq('id', transactionId)
-      .select()
-      .maybeSingle();
+      .select();
 
     if (error) throw error;
-    if (!data) throw new Error('Güncelleme yapılamadı. RLS yetkisi yok veya kayıt bulunamadı.');
+    const tx = data?.[0];
+    if (!tx) throw new Error('Güncelleme yapılamadı. RLS yetkisi yok veya kayıt bulunamadı.');
     
     // Broadcast to public-chat to trigger Realtime UI updates
     const channel = supabase.channel('public-chat');
@@ -143,7 +142,7 @@ export const DBService = {
       }
     });
 
-    return data as Transaction;
+    return tx as Transaction;
   },
 
   async acceptTransaction(transactionId: string, supporterId: string, supportPercentage: number) {
