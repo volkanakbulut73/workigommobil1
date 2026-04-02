@@ -19,6 +19,7 @@ Bu uygulama kullanıcıların ilan açabildikleri, takas yapabildikleri (Market)
   - `useAuthStore` (Oturum / Kullanıcı yönetimi)
   - `useMarketStore` (Market ilanları)
   - `useMessageStore` (Sohbetler ve Canlı Dinleme)
+  - `useMuhabbetStore` (Global Sohbet + Ephemeral Özel Oda yönetimi)
   - `useNotificationStore` (Bildirim yönetimi)
 
 **Navigasyon:**
@@ -56,8 +57,9 @@ src/
    - Kullanıcılar arası etkileşim, talep açma / kabul etme sistemi.
    - **Canlı (Realtime)** işlem takibi ve durum güncelleme.
 3. **Mesajlaşma (Sohbet & Muhabbet):**
-   - Anlık özel mesajlaşma (Private Threads API).
+   - Anlık özel mesajlaşma (Private Threads API — Mesajlarım sayfası).
    - "Muhabbet" sosyal global chat ekranı.
+   - **Ephemeral Özel Oda (Whisper):** Muhabbet içinde çift tıklayarak açılan anlık özel sohbet. Veritabanına kayıt **AÇMAZ**, `public-chat` broadcast kanalı üzerinden çalışır.
 4. **Push Bildirimleri:**
    - `expo-device` ve `expo-notifications` kullanılarak anlık cihaz bildirimleri.
 
@@ -361,6 +363,10 @@ Aşağıdaki tablolar **AKTİF** olmalıdır:
 | Zil ikonunda gereksiz mesaj bildirimi | `sendMessage` içinde notification oluşturuluyor | `sendMessage`'dan notification INSERT'i sil |
 | Sohbet listesinde silinen mesaj hala görünüyor | `deleteMessage`'da `threads.last_message` güncellenmiyor | `deleteMessage`'a last_message güncelleme ekle |
 | Mesajlar ekranında sonsuz loading | `fetchThreads`'de try/catch/finally eksik | `fetchThreads`'e try/catch/finally ekle |
+| **"database error saving new user"** | `auth.users` üzerinde eski `handle_new_user` trigger'ı `profiles` tablosuyla uyumsuz | Trigger'ı kaldır: `DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;` — Profil oluşturma JIT (`ensureUserProfile`) ile yapılıyor |
+| **Muhabbet'te isim "Kullanıcı" görünüyor** | Kayıt sırasında `full_name` alınmıyordu, `ensureUserProfile` fallback `'Kullanıcı'` yazıyordu | Kayıt formuna "Ad Soyad" alanı ekle, `signUp` → `options.data.full_name` olarak gönder. Profil düzenlemede `DBService.updateProfile` ile DB'ye yaz. `useAuthStore.initialize` da DB↔metadata senkronizasyonu yapsın |
+| **Çift tıklama özel sohbeti Mesajlarım'a düşüyor** | `findOrCreateThread` kullanılarak veritabanı thread'i açılıyordu | Ephemeral (geçici) `private_invite` + `private_message` broadcast sistemi kullan |
+| **Profil ismi güncellenince sohbette yansımıyor** | `ProfileScreen.handleSave` sadece auth metadata güncelliyordu, `profiles` tablosu güncellenmiyordu | `handleSave` içinde `DBService.updateProfile` ile hem auth hem DB güncelle |
 
 ---
 
@@ -372,6 +378,12 @@ Aşağıdaki tablolar **AKTİF** olmalıdır:
 4. **Her Realtime dinleyicide `*` (tüm event'ler) kullan** — INSERT, UPDATE ve DELETE olaylarını yakalamak için
 5. **Optimistic UI'da gerçek ID'yi yerine koy** — silme işleminin çalışması için `tempId` → `realId` dönüşümü şart
 6. **`fetchThreads` ve `fetchMessages`'da `try/catch/finally` kullan** — RLS hatası sonsuz loading döngüsüne neden olur
+7. **`initializeRoom`'a tam profil objesi geç** — `{name, avatar}` gibi kısmi obje göndermek presence tracking'de ismi `'Kullanıcı'` yapar
+8. **`auth.users` üzerinde `handle_new_user` trigger'ı KULLANMA** — Profil oluşturma `DBService.ensureUserProfile()` (JIT) ile zaten yapılıyor; eski trigger şema uyumsuzluğu yaratır
+9. **Muhabbet'teki çift tıklama özel sohbeti `findOrCreateThread` ile AÇMA** — Bu, mesajları "Mesajlarım" sayfasına düşürür. Bunun yerine ephemeral `private_invite` + `private_message` broadcast kullan
+10. **Kayıt formunda `full_name` alanı ZORUNLU olmalı** — `signUp` → `options.data.full_name` olarak gönder. Bu isim `ensureUserProfile` ile DB'ye yazılır
+11. **Profil güncelleme 3 katman günceller** — Auth metadata (`supabase.auth.updateUser`) + DB (`DBService.updateProfile`) + Yerel state (`setProfile`). Biri eksik kalırsa sohbette eski isim görünür
+12. **`useAuthStore.initialize` DB↔metadata senkronizasyonu yapar** — DB'de `'Kullanıcı'` varsa ama metadata'da gerçek isim varsa, DB otomatik güncellenir
 
 ---
 
@@ -395,3 +407,204 @@ npx expo start
 ```
 
 Uygulamayı Android'de derlemek için `npm run android`, iOS ortamında ise `npm run ios` veya `npx expo run:ios` komutları kullanılabilir.
+
+---
+
+## 🚨 Kritik Supabase Yapılandırma Uyarıları
+
+### Auth Trigger (handle_new_user) — KALDIRILDI
+
+Supabase projelerinde `auth.users` tablosuna yeni kullanıcı eklendiğinde otomatik profil oluşturmak için genellikle bir `handle_new_user` trigger fonksiyonu tanımlanır. **Bu trigger Workigom projesinde KALDIRILMIŞTIR.** Sebepleri:
+
+1. Trigger'daki sütun isimleri `profiles` tablosunun güncel şemasıyla uyuşmadığında **"database error saving new user"** hatası alınır ve kullanıcı kaydolamaz.
+2. Uygulama zaten **JIT (Just-In-Time)** profil oluşturma kullanmaktadır (`DBService.ensureUserProfile`).
+3. Bu sayede profil şeması değişse bile trigger'ı ayrıca güncellemeye gerek kalmaz.
+
+**Eğer yanlışlıkla tekrar eklenirse kaldırmak için:**
+```sql
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
+```
+
+### initializeRoom Profile Geçişi — TAM OBJEYİ GEÇ
+
+`useMuhabbetStore.initializeRoom()` fonksiyonuna **kesinlikle tam `profile` objesi** geçilmelidir. Kısmi obje `{name, avatar}` göndermek presence tracking'de ve özel oda davetlerinde alanların `undefined` dönmesine neden olur.
+
+```typescript
+// ✅ DOĞRU:
+initializeRoom(currentRoom, profile.id, profile);
+
+// ❌ YANLIŞ:
+initializeRoom(currentRoom, profile.id, { name: profile.full_name, avatar: profile.avatar_url });
+```
+
+---
+
+## 👤 Profil İsmi Yapılandırması (Kayıt → Sohbet Gösterimi)
+
+**ÖNEMLİ ŞABLON:** Kullanıcı isminin kayıt anından sohbet ekranına kadar doğru şekilde taşınması için aşağıdaki 4 katmanlı yapılandırma **KESİNLİKLE** uygulanmalıdır. Bu akışın herhangi bir halkası koparsa, sohbette isim `'Kullanıcı'` veya `'Anonim'` olarak görünür.
+
+### Katman 1: Kayıt Formu (`AuthScreen.tsx`)
+
+Kayıt formunda **"Ad Soyad" alanı zorunludur**. Girilen isim Supabase Auth'a `user_metadata.full_name` olarak kaydedilir.
+
+```typescript
+// Kayıt modunda Ad Soyad input'u gösterilir
+const [fullName, setFullName] = useState('');
+
+// Kayıt olurken validasyon
+if (mode === 'signup' && !fullName.trim()) {
+  Alert.alert('Hata', 'Lütfen ad soyad alanını doldurun.');
+  return;
+}
+
+// signUp çağrısında options.data ile metadata'ya yazılır
+await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    data: { full_name: fullName.trim() }  // ← Bu isim profil ismi olur
+  }
+});
+```
+
+### Katman 2: Profil Oluşturma — JIT (`useAuthStore.ts` → `DBService.ensureUserProfile`)
+
+Oturum açıldığında `useAuthStore.initialize()` çalışır ve `user_metadata.full_name` değerini alarak `profiles` tablosunda profil oluşturur.
+
+```typescript
+// useAuthStore.initialize() içinde:
+const metadataName = session.user.user_metadata?.full_name;
+const profile = await DBService.ensureUserProfile(
+  session.user.id,
+  metadataName || 'Kullanıcı'  // Fallback sadece isim hiç yoksa
+);
+
+// Otomatik senkronizasyon: DB'de 'Kullanıcı' varsa ama metadata'da gerçek isim varsa, DB güncellenir
+if (profile?.full_name === 'Kullanıcı' && metadataName && metadataName !== 'Kullanıcı') {
+  const updated = await DBService.updateProfile(session.user.id, { full_name: metadataName });
+  set({ profile: updated });
+}
+```
+
+**Aynı mantık `onAuthStateChange` handler'ında da uygulanır** — her oturum değişikliğinde DB↔metadata senkronizasyonu yapılır.
+
+### Katman 3: Profil Düzenleme (`ProfileScreen.tsx`)
+
+Kullanıcı profil ismini değiştirdiğinde **3 yer birden güncellenir**:
+
+```typescript
+const handleSave = async () => {
+  // 1. Auth metadata güncelle
+  await supabase.auth.updateUser({
+    data: { full_name: editName, avatar_url: avatarUri }
+  });
+
+  // 2. profiles tablosunu güncelle (DB) — ŞART!
+  await DBService.updateProfile(profile.id, {
+    full_name: editName,
+    avatar_url: avatarUri
+  });
+
+  // 3. Yerel state güncelle
+  setProfile({ ...profile, full_name: editName, avatar_url: avatarUri });
+};
+```
+
+**⚠️ 2. adım (DB güncelleme) yapılmazsa**, sohbette eski isim görünmeye devam eder çünkü Muhabbet store profili DB'den okur.
+
+### Katman 4: Sohbet Gösterimi (`useMuhabbetStore.ts`)
+
+Muhabbet sayfası açıldığında `initializeRoom` tam profil objesi ile çağrılır ve presence tracking'de `profile.full_name` kullanılır:
+
+```typescript
+// MuhabbetScreen.tsx:
+initializeRoom(currentRoom, profile.id, profile);  // ← TAM profil objesi
+
+// useMuhabbetStore.ts → initializeRoom içinde:
+await channel.track({
+  userId: userId,
+  user_id: userId,
+  name: profile.full_name || 'Kullanıcı',       // Web uyumu
+  full_name: profile.full_name || 'Kullanıcı',   // Mobil uyumu
+  avatar: profile.avatar_url,
+  avatar_url: profile.avatar_url,
+  onlineAt: new Date().toISOString()
+});
+```
+
+### Akış Diyagramı
+
+```
+Kayıt Formu (Ad Soyad)
+  │
+  ▼
+supabase.auth.signUp({ options.data.full_name })
+  │
+  ▼
+user_metadata.full_name = "Gerçek İsim"
+  │
+  ▼
+useAuthStore.initialize()
+  │
+  ▼
+DBService.ensureUserProfile(userId, metadataName)
+  │
+  ├─ Profil yoksa → INSERT { full_name: "Gerçek İsim" }
+  └─ Profil varsa & full_name == 'Kullanıcı' → UPDATE { full_name: metadataName }
+  │
+  ▼
+set({ profile }) → profile.full_name = "Gerçek İsim"
+  │
+  ▼
+initializeRoom(room, userId, profile)
+  │
+  ▼
+channel.track({ name: profile.full_name }) → Sohbette "Gerçek İsim" görünür ✅
+```
+
+### Dosya Referansları
+
+| Dosya | Sorumluluk |
+|-------|------------|
+| `src/screens/AuthScreen.tsx` | Kayıt formunda `fullName` alanı, `signUp` → `options.data.full_name` |
+| `src/store/useAuthStore.ts` | `initialize()` ve `onAuthStateChange` → `ensureUserProfile` + DB↔metadata senkronizasyonu |
+| `src/services/dbService.ts` | `ensureUserProfile()` → profil yoksa oluştur, `updateProfile()` → profil güncelle |
+| `src/screens/ProfileScreen.tsx` | `handleSave()` → auth metadata + DB + yerel state 3'lü güncelleme |
+| `src/store/useMuhabbetStore.ts` | `initializeRoom()` → `channel.track({ name: profile.full_name })` |
+| `src/screens/MuhabbetScreen.tsx` | `initializeRoom(currentRoom, profile.id, profile)` — tam profile objesi geçişi |
+
+---
+
+## 📋 Değişiklik Günlüğü (Changelog)
+
+### v2.5.0 — 02 Nisan 2026
+
+**🔧 Düzeltmeler:**
+- **Profil İsmi Tamamen Düzeltildi:** Muhabbet sohbetinde kullanıcı adı artık `'Kullanıcı'` yerine kayıt sırasında girilen gerçek isimle görünüyor.
+  - Kayıt formuna zorunlu "Ad Soyad" alanı eklendi (`AuthScreen.tsx`)
+  - `signUp` çağrısına `options.data.full_name` parametresi eklendi
+  - `useAuthStore.initialize()` DB↔metadata otomatik senkronizasyonu eklendi (eski kullanıcılar için)
+  - `ProfileScreen.handleSave()` artık `DBService.updateProfile` ile DB'ye de yazıyor
+
+**📝 Dosya Değişiklikleri:**
+| Dosya | Değişiklik |
+|-------|------------|
+| `src/screens/AuthScreen.tsx` | `fullName` state ve "Ad Soyad" input eklendi, `signUp` → `options.data.full_name` |
+| `src/store/useAuthStore.ts` | `initialize()` ve `onAuthStateChange` → DB↔metadata senkronizasyonu eklendi |
+| `src/screens/ProfileScreen.tsx` | `handleSave()` → `DBService.updateProfile` eklendi, `DBService` import eklendi |
+| `README.md` | Profil İsmi Yapılandırması şablonu, güncellenmiş sorun giderme, altın kurallar |
+
+### v2.4.0 — 02 Nisan 2026
+
+**🔧 Düzeltmeler:**
+- **Kayıt Hatası Giderildi:** Supabase `auth.users` üzerindeki eski `handle_new_user` trigger'ı kaldırıldı.
+- **Özel Sohbet Kurgusu Düzeltildi:** Muhabbet'te çift tıklama ile açılan özel sohbet artık veritabanına thread kaydı açmıyor.
+
+**✨ Yeni Özellikler:**
+- **Ephemeral Özel Oda (Whisper) Sistemi:** Muhabbet sayfasında çift tıkla → özel sohbet.
+- **Özel Oda Header:** Aktif özel odada header "Özel: [Kullanıcı Adı]" olarak değişiyor.
+- **Okunmamış Özel Mesaj Göstergesi:** Nabız animasyonu ile vurgulanıyor.
+
+---
+*Son Güncelleme: 02 Nisan 2026*

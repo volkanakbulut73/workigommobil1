@@ -8,6 +8,7 @@ import { AnalyticsService } from '../services/analyticsService';
 export default function AuthScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
 
@@ -17,10 +18,21 @@ export default function AuthScreen() {
       return;
     }
 
+    if (mode === 'signup' && !fullName.trim()) {
+      Alert.alert('Hata', 'Lütfen ad soyad alanını doldurun.');
+      return;
+    }
+
     setLoading(true);
     const { error } = mode === 'signin' 
       ? await supabase.auth.signInWithPassword({ email, password })
-      : await supabase.auth.signUp({ email, password });
+      : await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            data: { full_name: fullName.trim() }
+          }
+        });
 
     if (error) {
       Alert.alert('Hata', error.message);
@@ -41,6 +53,16 @@ export default function AuthScreen() {
       <View style={styles.form}>
         <Text style={styles.title}>Workigom</Text>
         <Text style={styles.subtitle}>Mobile-First Platform</Text>
+
+        {mode === 'signup' && (
+          <Input
+            label="Ad Soyad"
+            onChangeText={(text) => setFullName(text)}
+            value={fullName}
+            placeholder="Adınız Soyadınız"
+            autoCapitalize={'words'}
+          />
+        )}
 
         <Input
           label="E-posta"

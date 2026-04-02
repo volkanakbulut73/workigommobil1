@@ -41,10 +41,25 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ session, user: session?.user ?? null, loading: false });
 
       if (session?.user) {
+        const metadataName = session.user.user_metadata?.full_name;
         const profile = await DBService.ensureUserProfile(
           session.user.id, 
-          session.user.user_metadata?.full_name || 'Kullanıcı'
+          metadataName || 'Kullanıcı'
         );
+        
+        // If the database profile still has the fallback 'Kullanıcı' name
+        // but auth metadata has a real name, sync it to the database
+        if (profile && profile.full_name === 'Kullanıcı' && metadataName && metadataName !== 'Kullanıcı') {
+          try {
+            const updated = await DBService.updateProfile(session.user.id, { full_name: metadataName });
+            set({ profile: updated });
+            AnalyticsService.identifyUser(session.user.id, updated);
+            return;
+          } catch (syncErr) {
+            console.log('Profile name sync error:', syncErr);
+          }
+        }
+        
         set({ profile });
         if (profile) {
           AnalyticsService.identifyUser(session.user.id, profile);
@@ -58,10 +73,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     supabase.auth.onAuthStateChange(async (_event, session) => {
       set({ session, user: session?.user ?? null });
       if (session?.user) {
+        const metadataName = session.user.user_metadata?.full_name;
         const profile = await DBService.ensureUserProfile(
           session.user.id, 
-          session.user.user_metadata?.full_name || 'Kullanıcı'
+          metadataName || 'Kullanıcı'
         );
+        
+        // Sync name from auth metadata to database if database has fallback
+        if (profile && profile.full_name === 'Kullanıcı' && metadataName && metadataName !== 'Kullanıcı') {
+          try {
+            const updated = await DBService.updateProfile(session.user.id, { full_name: metadataName });
+            set({ profile: updated });
+            return;
+          } catch (syncErr) {
+            console.log('Profile name sync error (auth change):', syncErr);
+          }
+        }
+        
         set({ profile });
         if (profile) {
           AnalyticsService.identifyUser(session.user.id, profile);

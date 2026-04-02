@@ -7,7 +7,9 @@ import { useMessageStore } from '../store/useMessageStore';
 import { useBlockStore } from '../store/useBlockStore';
 import { Layout } from '../components/Layout';
 import { supabase } from '../lib/supabase';
-import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type, MessageSquareWarning } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Audio } from 'expo-av';
+import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type, MessageSquareWarning, Image as ImageIcon, Mic, Square } from 'lucide-react-native';
 import { MessageService } from '../services/messageService';
 import { useNotificationStore } from '../store/useNotificationStore';
 import { useNavigation } from '@react-navigation/native';
@@ -556,8 +558,16 @@ export default function MuhabbetScreen() {
   const insets = useSafeAreaInsets();
   const { unreadMessageCount } = useNotificationStore();
   const [selection, setSelection] = useState({ start: 0, end: 0 });
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  
+  // Audio Recording States
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
+
+  const flatListRef = useRef<FlatList>(null);
   const {
     messages,
     onlineUsers,
@@ -589,7 +599,6 @@ export default function MuhabbetScreen() {
   }, [profile?.id]);
 
 
-  const flatListRef = useRef<FlatList>(null);
   const slideAnim = useRef(new Animated.Value(-width)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -645,68 +654,157 @@ export default function MuhabbetScreen() {
   }, [showUsersSidebar]);
 
   const handleSend = async () => {
-    if (!inputText.trim() || !profile) return;
+    if (!inputText.trim()) return;
 
-    const content = inputText.trim();
-    setInputText(''); // Optimistic UI clear
-
-    const isBotTriggered = content.toLowerCase().includes('@workigom') || content.toLowerCase().includes('/workigom');
-
-    // Private Message Check
-    if (activePrivateTab) {
-      await sendPrivateMessage(activePrivateTab.id, content, activePrivateTab.name);
-      return;
-    }
-
-    // Normal message handling
-    await sendMessage(ROOM_NAME, {
-      sender_id: profile.id,
-      sender_name: profile.full_name || 'Anonim',
-      avatar_url: profile.avatar_url || '',
-      content: content
-    });
-
-    if (isBotTriggered && !activePrivateTab) {
-      setIsBotTyping(true);
-      try {
-        // Use manual fetch to bypass 401 errors when verify_jwt = false
-        const response = await fetch('https://toqroogfufzgxsxemfeh.supabase.co/functions/v1/gemini-bot', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: content,
-            user_name: profile.full_name || 'Anonim'
-          }),
+    try {
+      if (activePrivateTab) {
+        await sendPrivateMessage(activePrivateTab.id, inputText.trim(), activePrivateTab.name);
+      } else {
+        await sendMessage('genel', {
+          sender_id: profile?.id,
+          sender_name: profile?.full_name || 'Anonim',
+          avatar_url: profile?.avatar_url || '',
+          content: inputText.trim()
         });
+      }
+      setInputText('');
+      setShowEmojiPicker(false);
+      setShowColorPicker(false);
+    } catch (error) {
+      console.error('Mesaj gönderme hatası:', error);
+    }
+  };
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("Gemini Bot Fetch Error:", response.status, errorText);
-          throw new Error(`HTTP ${response.status}: ${errorText}`);
+  const handlePickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        quality: 0.5,
+        base64: true, // We need base64 for ephemeral broadcast
+      });
+
+      if (!result.canceled && result.assets[0].base64) {
+        setImageLoading(true);
+        const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+        
+        // Approximate size check
+        const sizeInBytes = Math.ceil((base64Image.length * 3) / 4);
+        if (sizeInBytes > 700 * 1024) {
+           alert('Görsel sıkıştırılmasına rağmen çok büyük.');
+           setImageLoading(false);
+           return;
         }
 
-        const data = await response.json();
-        const botReply = data?.response || "Sanırım sistemlerimde bir arıza var...";
-
-        await sendMessage(ROOM_NAME, {
-          sender_id: 'bot-1',
-          sender_name: 'Workigom AI',
-          avatar_url: '',
-          content: botReply
-        });
-      } catch (err) {
-        console.error("Bot error details:", err);
-        await sendMessage(ROOM_NAME, {
-          sender_id: 'bot-1',
-          sender_name: 'Workigom AI',
-          avatar_url: '',
-          content: "Bağlantı hatası oluştu, Workigom AI'a ulaşılamıyor."
-        });
-      } finally {
-        setIsBotTyping(false);
+        if (activePrivateTab) {
+          await sendPrivateMessage(activePrivateTab.id, 'Görsel paylaşıldı.', activePrivateTab.name, base64Image);
+        } else {
+          // Send to global using Web compat schema ('event: image-share')
+          const { currentBroadcastChannel } = useMuhabbetStore.getState();
+          if (currentBroadcastChannel) {
+             const payload = {
+                id: Math.random().toString(),
+                text: 'Görsel paylaşıldı.',
+                senderId: profile?.id,
+                senderName: profile?.full_name || 'Anonim',
+                senderAvatar: profile?.avatar_url || '',
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                imageUrl: base64Image,
+                roomId: 'public-chat'
+             };
+             await currentBroadcastChannel.send({ type: 'broadcast', event: 'image-share', payload });
+             useMuhabbetStore.getState().addMessage({
+                id: payload.id,
+                sender_id: payload.senderId,
+                sender_name: payload.senderName,
+                avatar_url: payload.senderAvatar,
+                content: payload.text,
+                created_at: new Date().toISOString(),
+                imageUrl: base64Image
+             });
+          }
+        }
+        setImageLoading(false);
       }
+    } catch (error) {
+      console.error('Image pick error:', error);
+      setImageLoading(false);
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const permission = await Audio.requestPermissionsAsync();
+      if (permission.status !== 'granted') {
+        alert('Mikrofon izni reddedildi');
+        return;
+      }
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.LOW_QUALITY
+      );
+      setRecording(recording);
+      setRecordingTime(0);
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error('Kayıt başlatılamadı:', err);
+    }
+  };
+
+  const stopRecordingAndSend = async () => {
+    if (!recording) return;
+    try {
+      if (timerRef.current) clearInterval(timerRef.current);
+      setRecording(null);
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+
+      if (uri) {
+        // Read file using fetch since expo-file-system requires native install rebuild
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64Audio = reader.result as string;
+          if (activePrivateTab) {
+            await sendPrivateMessage(activePrivateTab.id, 'Ses paylaşıldı.', activePrivateTab.name, undefined, base64Audio);
+          } else {
+            const { currentBroadcastChannel } = useMuhabbetStore.getState();
+            if (currentBroadcastChannel) {
+               const payload = {
+                  id: Math.random().toString(),
+                  text: 'Ses paylaşıldı.',
+                  senderId: profile?.id,
+                  senderName: profile?.full_name || 'Anonim',
+                  senderAvatar: profile?.avatar_url || '',
+                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  audioUrl: base64Audio,
+                  roomId: 'public-chat'
+               };
+               await currentBroadcastChannel.send({ type: 'broadcast', event: 'audio-share', payload });
+               useMuhabbetStore.getState().addMessage({
+                  id: payload.id,
+                  sender_id: payload.senderId,
+                  sender_name: payload.senderName,
+                  avatar_url: payload.senderAvatar,
+                  content: payload.text,
+                  created_at: new Date().toISOString(),
+                  audioUrl: base64Audio
+               });
+            }
+          }
+        };
+        reader.readAsDataURL(blob);
+      }
+    } catch (err) {
+      console.error('Kayıt durdurulamadı:', err);
     }
   };
 
@@ -795,44 +893,58 @@ export default function MuhabbetScreen() {
     setSelection({ start: start + emoji.length, end: start + emoji.length });
   };
 
-  const EMOJI_SET_INNER = EMOJI_SET; // Just for reference or local use if needed
-
-
-  const renderMessage = ({ item }: { item: any }) => {
-    const isMine = item.sender_id === profile?.id;
-    const isBot = item.sender_id === 'bot-1';
+  const renderMessage = ({ item: msg }: { item: any }) => {
+    const isMine = msg.sender_id === profile?.id;
+    const isBot = msg.sender_id === 'bot-1';
 
     return (
       <View style={[styles.messageRow, isMine ? styles.messageRowMine : styles.messageRowTheirs]}>
-        {/* Message Content Group (Top: Name/Time, Bottom: Bubble) */}
-        <View style={[styles.messageContent, isMine ? styles.messageContentMine : styles.messageContentTheirs]}>
-          {/* Sender Name and Time Above Bubble */}
-          <TouchableOpacity 
-            activeOpacity={0.8}
-            onPress={() => handleUserDoubleTap({ id: item.sender_id, name: item.sender_name || 'Anonim' })}
-            style={[styles.nameTimeRow, isMine ? styles.nameTimeRowMine : styles.nameTimeRowTheirs]}
-          >
-            <Text style={styles.timeLabelNew}>{formatTime(item.created_at)}</Text>
-            <PulsingName 
-              name={isMine ? (profile?.full_name || 'Kullanıcı') : (item.sender_name || 'Anonim')}
-              isUnread={unreadSenderIds.includes(item.sender_id)}
-              style={[styles.senderLabelNew, isMine && styles.senderLabelMineNew]}
-            />
-          </TouchableOpacity>
-
-
-          {/* Message Bubble */}
-          <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs, isBot && styles.bubbleBot]}>
-            <Text style={[styles.messageText, isMine ? styles.messageTextMine : styles.messageTextTheirs]}>
-              {item.content}
+        {/* Message Content */}
+        <View style={isMine ? styles.messageContentMine : styles.messageContentTheirs}>
+          <View style={isMine ? styles.nameTimeRowMine : styles.nameTimeRowTheirs}>
+            {!isMine && (
+              <Text 
+                style={styles.senderLabelNew}
+                onLongPress={() => {
+                  const targetUser = presenceList.find(u => u.id === msg.sender_id);
+                  if (targetUser && typeof unblockUser === 'function') {
+                     // Extra action if needed
+                  }
+                }}
+              >
+                {msg.sender_name}
+              </Text>
+            )}
+            <Text style={styles.timeLabelNew}>
+              {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
+          </View>
+          
+          <View style={[
+            styles.bubble,
+            isMine ? styles.bubbleMine : styles.bubbleTheirs,
+            msg.sender_id === 'bot-1' && styles.bubbleBot
+          ]}>
+            {msg.imageUrl && (
+              <Image source={{ uri: msg.imageUrl }} style={{ width: 200, height: 200, borderRadius: 8, marginBottom: 8 }} resizeMode="cover" />
+            )}
+            {msg.audioUrl ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isMine ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)', padding: 8, borderRadius: 12, gap: 8 }}>
+                <Mic size={16} color={isMine ? "#fff" : "#cbd5e1"} />
+                <Text style={isMine ? styles.messageTextMine : styles.messageTextTheirs}>Ses Mesajı Oynatılamıyor</Text>
+              </View>
+            ) : (
+              <Text style={[styles.messageText, isMine ? styles.messageTextMine : styles.messageTextTheirs]}>
+                {msg.content}
+              </Text>
+            )}
           </View>
         </View>
 
         {/* Avatar next to bubble */}
         <TouchableOpacity 
           activeOpacity={0.9}
-          onPress={() => handleUserDoubleTap({ id: item.sender_id, name: item.sender_name || 'Anonim' })}
+          onPress={() => handleUserDoubleTap({ id: msg.sender_id, name: msg.sender_name || 'Anonim' })}
           style={[styles.avatarWrapper, isMine ? styles.avatarWrapperMine : styles.avatarWrapperTheirs]}
         >
           <View style={[styles.avatarCircle, isMine ? styles.avatarCircleMine : styles.avatarCircleTheirs, isBot && styles.botAvatarCircle]}>
@@ -840,7 +952,7 @@ export default function MuhabbetScreen() {
               <Bot color="#FF007F" size={16} />
             ) : (
               <Image
-                source={{ uri: (isMine ? profile?.avatar_url : item.avatar_url) || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }}
+                source={{ uri: (isMine ? profile?.avatar_url : msg.avatar_url) || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y' }}
                 style={styles.avatarImage}
               />
             )}
@@ -946,9 +1058,9 @@ export default function MuhabbetScreen() {
         )}
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
           style={styles.keyboardContainer}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : -40}
         >
 
           {/* Messages */}
@@ -958,16 +1070,7 @@ export default function MuhabbetScreen() {
             keyExtractor={(item) => item.id}
             renderItem={renderMessage}
             ListHeaderComponent={renderTypingIndicator} // Bottom in inverted
-            ListFooterComponent={() => (
-              <View style={styles.welcomeBanner}>
-                <View style={styles.welcomeDivider} />
-                <View style={styles.welcomeBox}>
-                  <Text style={styles.welcomeTitle}>GENEL SOHBET. ŞİFRELİ OTURUMA HOŞ GELDİNİZ.</Text>
-                  <Text style={styles.welcomeSub}>WORKIGOM{'<'}CHAT{'>'}</Text>
-                </View>
-                <View style={styles.welcomeDivider} />
-              </View>
-            )}
+
             inverted
             contentContainerStyle={styles.listContent}
             onScroll={() => showEmojiPicker && setShowEmojiPicker(false)}
@@ -1051,6 +1154,38 @@ export default function MuhabbetScreen() {
               >
                 <Smile color={showEmojiPicker ? '#FF007F' : '#aaaab6'} size={18} />
               </TouchableOpacity>
+
+              {!!activePrivateTab && (
+                <>
+                  <View style={styles.toolbarDivider} />
+
+                  {!recording && (
+                    <TouchableOpacity
+                      style={styles.toolbarBtn}
+                      onPress={handlePickImage}
+                      disabled={imageLoading}
+                    >
+                      <ImageIcon color={imageLoading ? '#444' : '#aaaab6'} size={18} />
+                    </TouchableOpacity>
+                  )}
+                  {recording ? (
+                    <TouchableOpacity
+                      style={[styles.toolbarBtn, { backgroundColor: 'rgba(255,0,0,0.1)', borderRadius: 8, paddingHorizontal: 8 }]}
+                      onPress={stopRecordingAndSend}
+                    >
+                      <Square color="#FF0000" size={14} fill="#FF0000" />
+                      <Text style={{ color: '#FF0000', fontSize: 10, marginLeft: 4, fontWeight: 'bold' }}>{recordingTime}s</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.toolbarBtn}
+                      onPress={startRecording}
+                    >
+                      <Mic color="#aaaab6" size={18} />
+                    </TouchableOpacity>
+                  )}
+                </>
+              )}
             </View>
 
             <View style={styles.inputRowNew}>

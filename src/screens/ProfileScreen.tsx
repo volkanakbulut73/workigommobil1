@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/useAuthStore';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../lib/supabase';
+import { DBService } from '../services/dbService';
 import { 
   Settings, 
   Menu,
@@ -70,15 +71,22 @@ export function ProfileScreen() {
 
   const handleSave = async () => {
     try {
-      // Supabase user update simulation due to missing buckets/backend limits
-      // In a real scenario, you'd upload the avatarUri back to Supabase Storage here.
+      // 1. Update auth metadata
       const { data, error } = await supabase.auth.updateUser({
         data: { full_name: editName, avatar_url: avatarUri }
       });
       
       if (error) throw error;
+
+      // 2. Persist to profiles database table so chat and other screens read the correct name
+      if (profile?.id) {
+        await DBService.updateProfile(profile.id, {
+          full_name: editName,
+          avatar_url: avatarUri
+        });
+      }
       
-      // Update local profile state if editing happens cleanly
+      // 3. Update local profile state
       setProfile({
         ...profile,
         full_name: editName,

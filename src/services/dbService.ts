@@ -125,7 +125,7 @@ export const DBService = {
       .update({ status, ...updates })
       .eq('id', transactionId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data as Transaction;

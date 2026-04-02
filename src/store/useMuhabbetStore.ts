@@ -9,6 +9,8 @@ interface MuhabbetMessage {
   avatar_url?: string;
   content: string;
   created_at: string;
+  imageUrl?: string;
+  audioUrl?: string;
 }
 
 interface MuhabbetPrivateChat {
@@ -38,7 +40,7 @@ interface MuhabbetState {
   // Private Room Actions
   openPrivateChat: (targetUser: MuhabbetPrivateChat) => void;
   closePrivateChat: () => void;
-  sendPrivateMessage: (targetId: string, content: string, targetName: string) => Promise<void>;
+  sendPrivateMessage: (targetId: string, content: string, targetName: string, imageUrl?: string, audioUrl?: string) => Promise<void>;
   acceptInvite: () => void;
   declineInvite: () => void;
 }
@@ -75,7 +77,9 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
         sender_name: data.senderName || data.sender_name,
         avatar_url: data.senderAvatar || data.avatar_url,
         content: data.text || data.content,
-        created_at: data.timestamp ? new Date().toISOString() : data.created_at || new Date().toISOString()
+        created_at: data.timestamp ? new Date().toISOString() : data.created_at || new Date().toISOString(),
+        imageUrl: data.imageUrl,
+        audioUrl: data.audioUrl
       };
       get().addMessage(msg);
     });
@@ -88,8 +92,9 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
         sender_id: data.senderId || data.sender_id,
         sender_name: data.senderName || data.sender_name,
         avatar_url: data.senderAvatar || data.avatar_url,
-        content: `[Görsel] ${data.text || ''}`, // Mobile doesn't render imageUrl natively yet, fallback text
-        created_at: data.timestamp ? new Date().toISOString() : data.created_at || new Date().toISOString()
+        content: `[Görsel] ${data.text || ''}`, // Fallback
+        created_at: data.timestamp ? new Date().toISOString() : data.created_at || new Date().toISOString(),
+        imageUrl: data.imageUrl
       };
       get().addMessage(msg);
     });
@@ -102,8 +107,9 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
         sender_id: data.senderId || data.sender_id,
         sender_name: data.senderName || data.sender_name,
         avatar_url: data.senderAvatar || data.avatar_url,
-        content: `[Ses Dosyası] ${data.text || ''}`, // Mobile doesn't render audio natively yet, fallback text
-        created_at: data.timestamp ? new Date().toISOString() : data.created_at || new Date().toISOString()
+        content: `[Ses Dosyası] ${data.text || ''}`, // Fallback
+        created_at: data.timestamp ? new Date().toISOString() : data.created_at || new Date().toISOString(),
+        audioUrl: data.audioUrl
       };
       get().addMessage(msg);
     });
@@ -240,7 +246,9 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
       senderAvatar: fullMsg.avatar_url || null,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isBot: fullMsg.sender_id === 'bot-1',
-      roomId: roomName === 'genel' ? 'public-chat' : roomName
+      roomId: roomName === 'genel' ? 'public-chat' : roomName,
+      imageUrl: fullMsg.imageUrl,
+      audioUrl: fullMsg.audioUrl
     };
 
     // Merge both to handle any client
@@ -311,7 +319,7 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
 
   declineInvite: () => set({ incomingInvite: null }),
 
-  sendPrivateMessage: async (targetId, content, targetName) => {
+  sendPrivateMessage: async (targetId, content, targetName, imageUrl, audioUrl) => {
     const { currentBroadcastChannel, myProfile } = get();
     if (!currentBroadcastChannel || !myProfile) return;
 
@@ -321,7 +329,9 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
       sender_name: myProfile.full_name || 'Anonim',
       avatar_url: myProfile.avatar_url || '',
       content: content,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      imageUrl,
+      audioUrl
     };
 
     const webPrivMsg = {
@@ -331,6 +341,8 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
         senderName: fullMsg.sender_name,
         senderAvatar: fullMsg.avatar_url || null,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        imageUrl,
+        audioUrl
     };
 
     // Broadcast only works because both users are on the same channel
