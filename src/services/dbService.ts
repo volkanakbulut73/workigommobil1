@@ -128,6 +128,14 @@ export const DBService = {
       .maybeSingle();
 
     if (error) throw error;
+    
+    // Broadcast to public-chat to trigger Realtime UI updates without relying on postgres replication
+    supabase.channel('public-chat').send({
+      type: 'broadcast',
+      event: 'transaction_updated',
+      payload: { transactionId }
+    }).catch(err => console.error('Broadcast err:', err));
+
     return data as Transaction;
   },
 

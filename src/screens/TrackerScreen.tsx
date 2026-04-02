@@ -56,14 +56,11 @@ export function TrackerScreen() {
       fetchTransaction();
       
       const channel = supabase
-        .channel(`tracker-${id}`)
-        .on('postgres_changes', {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'transactions',
-          filter: `id=eq.${id}`
-        }, () => {
-          fetchTransaction();
+        .channel('public-chat')
+        .on('broadcast', { event: 'transaction_updated' }, (payload) => {
+          if (payload.payload?.transactionId === id) {
+            fetchTransaction();
+          }
         })
         .subscribe();
         
