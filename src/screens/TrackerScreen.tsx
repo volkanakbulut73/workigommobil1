@@ -67,7 +67,14 @@ export function TrackerScreen() {
         })
         .subscribe();
         
-      return () => { (supabase as any).removeChannel(channel); };
+      const interval = setInterval(() => {
+        fetchTransaction();
+      }, 3000);
+        
+      return () => { 
+        (supabase as any).removeChannel(channel); 
+        clearInterval(interval);
+      };
     } else {
       setLoading(false);
     }
