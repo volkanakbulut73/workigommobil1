@@ -112,6 +112,10 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
     channel.on('broadcast', { event: 'private_invite' }, (payload) => {
       const data = payload.payload;
       const myId = get().myProfile?.id;
+      
+      const { useBlockStore } = require('./useBlockStore');
+      if (data.inviter?.id && useBlockStore.getState().isBlocked(data.inviter.id)) return;
+
       if (myId && data.targetId === myId) {
         set({ incomingInvite: data.inviter });
       }
@@ -122,6 +126,9 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
       const data = payload.payload;
       const myId = get().myProfile?.id;
       
+      const { useBlockStore } = require('./useBlockStore');
+      if (data.message?.sender_id && useBlockStore.getState().isBlocked(data.message.sender_id)) return;
+
       const isMeTarget = data.targetId === myId;
       const isMeSender = data.message.sender_id === myId;
       

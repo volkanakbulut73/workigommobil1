@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMuhabbetStore } from '../store/useMuhabbetStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { useMessageStore } from '../store/useMessageStore';
+import { useBlockStore } from '../store/useBlockStore';
 import { Layout } from '../components/Layout';
 import { supabase } from '../lib/supabase';
 import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type, MessageSquareWarning } from 'lucide-react-native';
@@ -581,6 +582,11 @@ export default function MuhabbetScreen() {
   const [showRoomDropdown, setShowRoomDropdown] = useState(false);
   const [currentRoom, setCurrentRoom] = useState('genel');
   const [isBotTyping, setIsBotTyping] = useState(false);
+  const { blockedUsers, fetchBlocks, blockUser, unblockUser, isBlocked } = useBlockStore();
+
+  useEffect(() => {
+    fetchBlocks();
+  }, [profile?.id]);
 
 
   const flatListRef = useRef<FlatList>(null);
@@ -604,7 +610,7 @@ export default function MuhabbetScreen() {
   const lastTapRef = useRef<number>(0);
 
   const openPrivateChat = (selectedUser: {id: string, name: string}) => {
-    if (selectedUser.id === profile?.id || selectedUser.id === 'bot-1') return;
+    if (selectedUser.id === profile?.id || selectedUser.id === 'bot-1' || isBlocked(selectedUser.id)) return;
     openPrivateRoom(selectedUser);
     setShowUsersSidebar(false);
   };
@@ -623,10 +629,7 @@ export default function MuhabbetScreen() {
 
   useEffect(() => {
     if (profile?.id) {
-      initializeRoom(currentRoom, profile.id, {
-        name: profile.full_name,
-        avatar: profile.avatar_url
-      });
+      initializeRoom(currentRoom, profile.id, profile);
     }
     return () => leaveRoom();
   }, [profile?.id, currentRoom]);
@@ -1101,12 +1104,16 @@ export default function MuhabbetScreen() {
             data={presenceList}
             keyExtractor={(item, index) => item?.id || index.toString()}
             contentContainerStyle={styles.drawerList}
-            renderItem={({ item }) => (
+            renderItem={({ item }) => {
+              const blocked = isBlocked(item?.id);
+              return (
               <TouchableOpacity 
-                style={styles.drawerUserRow}
+                style={[styles.drawerUserRow, blocked && { opacity: 0.5 }]}
                 onPress={() => {
-                  setShowUsersSidebar(false);
-                  openPrivateChat({ id: item?.id, name: item?.name });
+                  if (!blocked) {
+                    setShowUsersSidebar(false);
+                    openPrivateChat({ id: item?.id, name: item?.name });
+                  }
                 }}
               >
                 <View style={[styles.drawerAvatar, item?.id === profile?.id && { backgroundColor: '#FF007F', borderColor: '#FF007F' }]}>
@@ -1118,14 +1125,31 @@ export default function MuhabbetScreen() {
                   <PulsingName 
                     name={item?.name} 
                     isUnread={unreadSenderIds.includes(item?.id) || unreadPrivate.includes(item?.id)}
-                    style={styles.drawerUserName}
+                    style={[styles.drawerUserName, blocked && { textDecorationLine: 'line-through', color: '#ff4d4d' }]}
                   />
                   <Text style={styles.drawerUserSub}>
-                    {item?.id === profile?.id ? 'SİZ' : 'KATILIMCI'}
+                    {item?.id === profile?.id ? 'SİZ' : (blocked ? 'ENGELLENDİ' : 'KATILIMCI')}
                   </Text>
                 </View>
+                
+                {item?.id !== profile?.id && item?.id !== 'bot-1' && (
+                  <TouchableOpacity
+                    style={{ padding: 8, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 8 }}
+                    onPress={async (e) => {
+                      e.stopPropagation();
+                      if (blocked) {
+                        await unblockUser(item.id);
+                      } else {
+                        await blockUser(item.id);
+                        if (activePrivateTab?.id === item.id) closePrivateChat();
+                      }
+                    }}
+                  >
+                    <X color={blocked ? "#ff4d4d" : "#aaaab6"} size={16} />
+                  </TouchableOpacity>
+                )}
               </TouchableOpacity>
-            )}
+            )}}
             ListHeaderComponent={(
               <View style={{ marginBottom: 16 }}>
                 <Text style={styles.drawerSectionTitle}>DROIDS (Yapay Zeka)</Text>
