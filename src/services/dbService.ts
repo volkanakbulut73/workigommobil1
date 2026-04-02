@@ -102,9 +102,9 @@ export const DBService = {
       .in('status', ['waiting-supporter', 'waiting-cash-payment', 'cash-paid', 'qr-uploaded'])
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') throw error; // PGRST116 is no rows returned
+    if (error) throw error;
     return data || null;
   },
 
@@ -113,9 +113,9 @@ export const DBService = {
       .from('transactions')
       .select(`*, seeker:profiles!seeker_id(full_name), supporter:profiles!supporter_id(full_name)`)
       .eq('id', transactionId)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') throw error;
+    if (error) throw error;
     return data || null;
   },
 
