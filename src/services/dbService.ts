@@ -128,13 +128,20 @@ export const DBService = {
       .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('Güncelleme yapılamadı. RLS yetkisi yok veya kayıt bulunamadı.');
     
-    // Broadcast to public-chat to trigger Realtime UI updates without relying on postgres replication
-    supabase.channel('public-chat').send({
-      type: 'broadcast',
-      event: 'transaction_updated',
-      payload: { transactionId }
-    }).catch(err => console.error('Broadcast err:', err));
+    // Broadcast to public-chat to trigger Realtime UI updates
+    const channel = supabase.channel('public-chat');
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.send({
+          type: 'broadcast',
+          event: 'transaction_updated',
+          payload: { transactionId }
+        });
+        supabase.removeChannel(channel);
+      }
+    });
 
     return data as Transaction;
   },
