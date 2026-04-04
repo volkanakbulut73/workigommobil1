@@ -24,7 +24,7 @@ export const MessageService = {
    * Fetches a single thread detail with related data.
    */
   getThreadDetails: async (threadId: string) => {
-    const { data, error } = await supabase
+    const { data: qData, error } = await supabase
       .from('threads')
       .select(`
         *,
@@ -33,7 +33,8 @@ export const MessageService = {
         listing:swap_listings(title, photo_url, required_balance)
       `)
       .eq('id', threadId)
-      .single();
+      .limit(1);
+    const data = qData?.[0];
 
     if (error) throw error;
     return data;
@@ -68,7 +69,8 @@ export const MessageService = {
     if (listingId) query = query.eq('listing_id', listingId);
     else query = query.is('listing_id', null);
 
-    const { data: existingData } = await query.maybeSingle();
+    const { data: existingArray } = await query.limit(1);
+    const existingData = existingArray?.[0];
     if (existingData) return existingData;
 
     // Try reverse direction
@@ -76,11 +78,12 @@ export const MessageService = {
     if (listingId) query2 = query2.eq('listing_id', listingId);
     else query2 = query2.is('listing_id', null);
 
-    const { data: existingData2 } = await query2.maybeSingle();
+    const { data: existingArray2 } = await query2.limit(1);
+    const existingData2 = existingArray2?.[0];
     if (existingData2) return existingData2;
 
     // Create new
-    const { data: newData, error: createError } = await supabase
+    const { data: cData, error: createError } = await supabase
       .from('threads')
       .insert({
         listing_id: listingId,
@@ -90,21 +93,21 @@ export const MessageService = {
         last_message: null
       })
       .select()
-      .single();
+      .limit(1);
 
     if (createError) throw createError;
-    return newData;
+    return cData?.[0];
   },
 
   /**
    * Sends a message and triggers notification.
    */
   sendMessage: async (threadId: string, senderId: string, receiverId: string, content: string) => {
-    const { data: message, error: msgError } = await supabase
+    const { data: mData, error: msgError } = await supabase
       .from('messages')
       .insert({ thread_id: threadId, sender_id: senderId, receiver_id: receiverId, content })
       .select()
-      .single();
+      .limit(1);
 
     if (msgError) throw msgError;
 
@@ -117,7 +120,7 @@ export const MessageService = {
     // Create notification for receiver (REMOVED - no longer using new_message for the bell icon)
     // Removed to prevent redundant notifications
 
-    return message;
+    return mData?.[0];
   },
 
   /**

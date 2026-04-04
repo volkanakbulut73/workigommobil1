@@ -1,14 +1,24 @@
 import { supabase } from '../lib/supabase';
-import { Profile, Transaction } from '../types';
+import { Profile, Transaction } from '@workigom/shared';
+
+const withTimeout = <T>(promise: PromiseLike<T>, ms: number = 10000): Promise<T> => {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error('İstek zaman aşımına uğradı, lütfen bağlantınızı kontrol edin.')), ms)
+    )
+  ]);
+};
 
 export const DBService = {
   supabase,
   async getProfile(userId: string) {
-    const { data, error } = await supabase
+    const { data: qData, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .limit(1);
+    const data = qData?.[0];
 
     if (error && error.code !== 'PGRST116') throw error;
     return data as Profile | null;
@@ -19,17 +29,21 @@ export const DBService = {
       const profile = await this.getProfile(userId);
       if (profile) return profile;
 
-      const { data, error } = await supabase
+      const { data: iData, error } = await supabase
         .from('profiles')
         .insert({
           id: userId,
           full_name: fullName,
-          avatar_url: `https://ui-avatars.com/api/?name=${fullName.replace(' ', '+')}&background=random&color=fff`,
+          avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random&color=fff`,
           rating: 5.0,
-          wallet_balance: 0
+          location: 'İSTANBUL',
+          referral_code: 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+          wallet_balance: 0,
+          total_earnings: 0
         })
         .select()
-        .single();
+        .limit(1);
+      const data = iData?.[0];
 
       if (error) {
         if (error.code === '23505') {
@@ -45,19 +59,20 @@ export const DBService = {
   },
 
   async updateProfile(userId: string, updates: Partial<Profile>) {
-    const { data, error } = await supabase
+    const { data: uData, error } = await supabase
       .from('profiles')
       .update(updates)
       .eq('id', userId)
       .select()
-      .single();
+      .limit(1);
+    const data = uData?.[0];
 
     if (error) throw error;
     return data as Profile;
   },
 
   async createTransactionRequest(seekerId: string, amount: number, listingTitle: string) {
-    const { data, error } = await supabase
+    const { data: tData, error } = await supabase
       .from('transactions')
       .insert({
         seeker_id: seekerId,
@@ -66,21 +81,30 @@ export const DBService = {
         status: 'waiting-supporter',
       })
       .select()
-      .single();
+      .limit(1);
+    const data = tData?.[0];
 
     if (error) throw error;
     return data as Transaction;
   },
 
   async getPendingTransactions() {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select(`*, profiles!seeker_id(full_name, rating, avatar_url)`)
-      .eq('status', 'waiting-supporter')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('transactions')
+          .select(`*, profiles!seeker_id(full_name, rating, avatar_url)`)
+          .eq('status', 'waiting-supporter')
+          .order('created_at', { ascending: false }),
+        15000
+      ) as any;
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      console.warn('Pending fetch failed:', e);
+      return [];
+    }
   },
 
   async getUserTransactions(userId: string) {
@@ -149,10 +173,13 @@ export const DBService = {
     // Ensure profile exists for supporter
     await this.ensureUserProfile(supporterId);
     
-    return this.updateTransactionStatus(transactionId, 'waiting-cash-payment', { 
-      supporter_id: supporterId, 
-      support_percentage: supportPercentage 
-    });
+    return withTimeout(
+      this.updateTransactionStatus(transactionId, 'waiting-cash-payment', { 
+        supporter_id: supporterId, 
+        support_percentage: supportPercentage 
+      }),
+      10000
+    );
   },
 
   // Seeker iptal ederse → talep tamamen iptal olur

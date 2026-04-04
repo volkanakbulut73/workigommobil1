@@ -27,11 +27,12 @@ export function TalepDetailScreen() {
 
   const loadTransaction = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: qData, error } = await supabase
         .from('transactions')
         .select(`*, profiles!seeker_id(full_name, avatar_url)`)
         .eq('id', id)
-        .single();
+        .limit(1);
+      const data = qData?.[0];
         
       if (error) throw error;
       setTransaction(data);

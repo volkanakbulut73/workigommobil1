@@ -31,17 +31,18 @@ export function MarketDetailScreen() {
 
   const fetchListing = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: qData, error } = await supabase
         .from('swap_listings')
         .select(`*, profiles(full_name, avatar_url, rating)`)
         .eq('id', id)
-        .single();
+        .limit(1);
+      const data = qData?.[0];
         
       if (error) throw error;
       setListing(data);
       AnalyticsService.trackEvent('listing_viewed', { 
         listingId: id, 
-        ownerId: data.owner_id || data.user_id 
+        ownerId: data.owner_id 
       });
     } catch (err) {
       console.error('Fetch detail error', err);
@@ -77,7 +78,7 @@ export function MarketDetailScreen() {
     setStartingChat(true);
 
     try {
-      const listingOwnerId = listing.owner_id || listing.user_id; // some schemas use owner_id
+      const listingOwnerId = listing.owner_id;
       
       const thread = await MessageService.findOrCreateThread(id, profile.id, listingOwnerId, 'market');
       
@@ -123,7 +124,7 @@ export function MarketDetailScreen() {
     );
   }
 
-  const isOwner = profile?.id === (listing.owner_id || listing.user_id);
+  const isOwner = profile?.id === listing.owner_id;
   const sellerInfo = listing.profiles || {};
   const sellerName = sellerInfo.full_name || 'Anonim';
   const sellerAvatar = sellerInfo.avatar_url || `https://ui-avatars.com/api/?name=${sellerName.replace(' ', '+')}&background=random&color=fff&rounded=true`;

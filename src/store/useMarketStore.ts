@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
-import { SwapListing } from '../types';
+import { SwapListing } from '@workigom/shared';
 
 interface MarketStore {
   listings: SwapListing[];

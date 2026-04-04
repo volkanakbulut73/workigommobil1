@@ -1,14 +1,14 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
-import { Thread, Message } from '../types';
+import { MessageThread, Message } from '@workigom/shared';
 import { RealtimeService } from '../services/realtimeService';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { useNotificationStore } from './useNotificationStore';
 import { AnalyticsService } from '../services/analyticsService';
 
 interface MessageState {
-  threads: Thread[];
-  activeThread: Thread | null;
+  threads: MessageThread[];
+  activeThread: MessageThread | null;
   messages: Message[];
   loading: boolean;
   page: number;
@@ -130,11 +130,12 @@ export const useMessageStore = create<MessageState>()((set, get) => ({
     get().addMessageOptimistically(optimisticMessage);
 
     try {
-      const { data: sent, error } = await supabase
+      const { data: sData, error } = await supabase
         .from('messages')
         .insert({ thread_id: threadId, sender_id: senderId, receiver_id: receiverId, content })
         .select()
-        .single();
+        .limit(1);
+      const sent = sData?.[0];
 
       if (error) throw error;
 
