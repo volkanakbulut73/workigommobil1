@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Send } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/useAuthStore';
-import type { SupportTicket } from '@workigom/shared';
+import type { SupportTicket } from '../types';
 
 const CATEGORIES = [
     { label: 'Ödeme İşlemleri', value: 'payment' },

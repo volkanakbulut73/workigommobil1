@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Animated, Image, Dimensions } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Transaction } from '@workigom/shared';
+import { Transaction } from '../types';
 import { DBService } from '../services/dbService';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/useAuthStore';

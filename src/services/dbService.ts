@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { Profile, Transaction } from '@workigom/shared';
+import { Profile, Transaction } from '../types';
 
 const withTimeout = <T>(promise: PromiseLike<T>, ms: number = 10000): Promise<T> => {
   return Promise.race([

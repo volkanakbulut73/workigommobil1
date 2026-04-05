@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
-import { MessageThread, Message } from '@workigom/shared';
+import { MessageThread, Message } from '../types';
 import { RealtimeService } from '../services/realtimeService';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { useNotificationStore } from './useNotificationStore';
