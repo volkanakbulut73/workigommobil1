@@ -11,6 +11,7 @@ import {
   Platform,
   Alert
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/useAuthStore';
 import * as ImagePicker from 'expo-image-picker';
@@ -33,6 +34,7 @@ import {
 } from 'lucide-react-native';
 
 export function ProfileScreen() {
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { signOut, user, profile, setProfile } = useAuthStore();
 
@@ -283,6 +285,14 @@ export function ProfileScreen() {
                   <Text style={styles.navText}>Bildirim Ayarları</Text>
                 </View>
                 <ChevronRight color="#aaaab6" size={20} />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.navRow} activeOpacity={0.7} onPress={() => navigation.navigate('Support')}>
+                <View style={styles.navLeft}>
+                  <ShieldCheck color="#8eff71" size={20} />
+                  <Text style={[styles.navText, { color: '#8eff71' }]}>Sorun Bildir (Destek)</Text>
+                </View>
+                <ChevronRight color="#8eff71" size={20} />
               </TouchableOpacity>
             </View>
           </View>

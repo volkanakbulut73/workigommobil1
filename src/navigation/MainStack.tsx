@@ -9,6 +9,7 @@ import { ChatScreen } from '../screens/ChatScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { TalepDetailScreen } from '../screens/TalepDetailScreen';
 import { TrackerScreen } from '../screens/TrackerScreen';
+import SupportScreen from '../screens/SupportScreen';
 
 const Stack = createStackNavigator();
 
@@ -65,6 +66,11 @@ export function MainStack() {
         name="Details" 
         component={TalepDetailScreen} 
         options={{ title: 'Detaylar' }} 
+      />
+      <Stack.Screen 
+        name="Support" 
+        component={SupportScreen} 
+        options={{ headerShown: false }} 
       />
     </Stack.Navigator>
   );
