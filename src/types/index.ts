@@ -4,6 +4,7 @@ export type Profile = {
     avatar_url: string | null;
     rating: number;
     location: string | null;
+    city: string | null;
     wallet_balance: number;
     total_earnings: number;
     iban: string | null;
@@ -29,6 +30,8 @@ export type Transaction = {
     status: TransactionStatus;
     support_percentage: number;
     qr_url: string | null;
+    city: string | null;
+    district: string | null;
     created_at: string;
     qr_uploaded_at: string | null;
     completed_at: string | null;
@@ -43,6 +46,8 @@ export type SwapListing = {
     required_balance: number;
     photo_url: string | null;
     location: string | null;
+    city: string | null;
+    district: string | null;
     created_at: string;
     profiles?: Partial<Profile>;
 };

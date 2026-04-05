@@ -71,7 +71,7 @@ export const DBService = {
     return data as Profile;
   },
 
-  async createTransactionRequest(seekerId: string, amount: number, listingTitle: string) {
+  async createTransactionRequest(seekerId: string, amount: number, listingTitle: string, city?: string, district?: string) {
     const { data: tData, error } = await supabase
       .from('transactions')
       .insert({
@@ -79,6 +79,8 @@ export const DBService = {
         amount,
         listing_title: listingTitle,
         status: 'waiting-supporter',
+        city: city || null,
+        district: district || null,
       })
       .select()
       .limit(1);

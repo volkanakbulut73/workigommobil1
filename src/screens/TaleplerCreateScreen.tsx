@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, Modal, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { DBService } from '../services/dbService';
 import { useAuthStore } from '../store/useAuthStore';
 import { AnalyticsService } from '../services/analyticsService';
-import { ChevronLeft, Wallet, FileText, CheckCircle2, Users, Zap, ShieldCheck } from 'lucide-react-native';
+import { ChevronLeft, Wallet, FileText, CheckCircle2, Users, Zap, ShieldCheck, MapPin, ChevronDown, X } from 'lucide-react-native';
+import { getCities, getDistricts } from '../data/locations';
 
 export function TaleplerCreateScreen() {
   const navigation = useNavigation<any>();
@@ -13,6 +14,10 @@ export function TaleplerCreateScreen() {
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [city, setCity] = useState('');
+  const [district, setDistrict] = useState('');
+  const [showCityPicker, setShowCityPicker] = useState(false);
+  const [showDistrictPicker, setShowDistrictPicker] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleNext = () => {
@@ -22,6 +27,12 @@ export function TaleplerCreateScreen() {
         return;
       }
       setStep(2);
+    } else if (step === 2) {
+      if (!city || !district) {
+        Alert.alert('Hata', 'Lütfen il ve ilçe seçin.');
+        return;
+      }
+      setStep(3);
     }
   };
 
@@ -37,7 +48,9 @@ export function TaleplerCreateScreen() {
       const tx = await DBService.createTransactionRequest(
         userId,
         Number(amount),
-        description.trim() || 'Paylaşım Talebi'
+        description.trim() || 'Paylaşım Talebi',
+        city,
+        district
       );
       AnalyticsService.trackEvent('talep_created', { amount: Number(amount) });
       navigation.replace('Tracker', { id: tx.id });
@@ -53,7 +66,7 @@ export function TaleplerCreateScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => step === 2 ? setStep(1) : navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => step > 1 ? setStep(step - 1) : navigation.goBack()} style={styles.backBtn}>
           <ChevronLeft color="#8eff71" size={24} />
           <Text style={styles.backText}>Geri</Text>
         </TouchableOpacity>
@@ -66,6 +79,7 @@ export function TaleplerCreateScreen() {
         <View style={styles.progressContainer}>
           <View style={[styles.progressStep, step >= 1 && styles.progressActive]} />
           <View style={[styles.progressStep, step >= 2 && styles.progressActive]} />
+          <View style={[styles.progressStep, step >= 3 && styles.progressActive]} />
         </View>
 
         {step === 1 && (
@@ -149,6 +163,105 @@ export function TaleplerCreateScreen() {
 
         {step === 2 && (
           <View style={styles.stepContainer}>
+            <Text style={styles.title}>Konum Bilgisi</Text>
+            <Text style={styles.subtitle}>Talebinizin gösterileceği il ve ilçeyi seçin.</Text>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>İL</Text>
+              <TouchableOpacity
+                style={styles.pickerBtn}
+                onPress={() => setShowCityPicker(true)}
+              >
+                <MapPin color="#8eff71" size={18} />
+                <Text style={[styles.pickerBtnText, !city && { color: '#666' }]}>
+                  {city || 'İl Seçin'}
+                </Text>
+                <ChevronDown color="#8eff71" size={18} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>İLÇE</Text>
+              <TouchableOpacity
+                style={[styles.pickerBtn, !city && { opacity: 0.4 }]}
+                onPress={() => city && setShowDistrictPicker(true)}
+                disabled={!city}
+              >
+                <MapPin color="#8eff71" size={18} />
+                <Text style={[styles.pickerBtnText, !district && { color: '#666' }]}>
+                  {district || 'İlçe Seçin'}
+                </Text>
+                <ChevronDown color="#8eff71" size={18} />
+              </TouchableOpacity>
+            </View>
+
+            {city && district && (
+              <View style={styles.locationBadge}>
+                <MapPin color="#8eff71" size={14} />
+                <Text style={styles.locationBadgeText}>{city} / {district}</Text>
+              </View>
+            )}
+
+            <TouchableOpacity style={styles.btnPrimary} onPress={handleNext}>
+              <Text style={styles.btnPrimaryText}>Devam Et</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* City Picker Modal */}
+        <Modal visible={showCityPicker} animationType="slide" transparent>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>İl Seçin</Text>
+                <TouchableOpacity onPress={() => setShowCityPicker(false)}>
+                  <X color="#8eff71" size={24} />
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={getCities()}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[styles.modalItem, city === item && styles.modalItemActive]}
+                    onPress={() => { setCity(item); setDistrict(''); setShowCityPicker(false); }}
+                  >
+                    <Text style={[styles.modalItemText, city === item && styles.modalItemTextActive]}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </View>
+        </Modal>
+
+        {/* District Picker Modal */}
+        <Modal visible={showDistrictPicker} animationType="slide" transparent>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>İlçe Seçin ({city})</Text>
+                <TouchableOpacity onPress={() => setShowDistrictPicker(false)}>
+                  <X color="#8eff71" size={24} />
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={city ? getDistricts(city) : []}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[styles.modalItem, district === item && styles.modalItemActive]}
+                    onPress={() => { setDistrict(item); setShowDistrictPicker(false); }}
+                  >
+                    <Text style={[styles.modalItemText, district === item && styles.modalItemTextActive]}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </View>
+        </Modal>
+
+        {step === 3 && (
+          <View style={styles.stepContainer}>
             <View style={styles.summaryIconBox}>
               <CheckCircle2 color="#8eff71" size={48} />
             </View>
@@ -159,6 +272,11 @@ export function TaleplerCreateScreen() {
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Açıklama</Text>
                 <Text style={styles.summaryValue}>{description}</Text>
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Konum</Text>
+                <Text style={styles.summaryValue}>{city} / {district}</Text>
               </View>
               <View style={styles.divider} />
               <View style={styles.summaryRow}>
@@ -432,5 +550,80 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.1)',
     marginVertical: 16,
+  },
+  pickerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#222531',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    gap: 10,
+  },
+  pickerBtnText: {
+    flex: 1,
+    color: '#ededf9',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  locationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(142, 255, 113, 0.08)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#8eff71',
+    marginBottom: 8,
+  },
+  locationBadgeText: {
+    color: '#8eff71',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#11131c',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '70%',
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(142, 255, 113, 0.1)',
+  },
+  modalTitle: {
+    color: '#ededf9',
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  modalItem: {
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  modalItemActive: {
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+  },
+  modalItemText: {
+    color: '#ededf9',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  modalItemTextActive: {
+    color: '#8eff71',
+    fontWeight: '900',
   },
 });
