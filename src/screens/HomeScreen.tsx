@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Animated, FlatList } from 'react-native';
 import { useAuthStore } from '../store/useAuthStore';
 import { useNavigation } from '@react-navigation/native';
-import { Zap, Landmark, ArrowRightLeft, Activity, CreditCard, Gift, Send, QrCode, ChevronRight, Trophy, Bell, ArrowRight } from 'lucide-react-native';
+import { Zap, Landmark, ArrowRightLeft, Activity, CreditCard, Gift, Send, QrCode, ChevronRight, Trophy, ArrowRight } from 'lucide-react-native';
 import { Layout } from '../components/Layout';
 
 const { width } = Dimensions.get('window');
@@ -49,9 +49,6 @@ export default function HomeScreen() {
             <Text style={styles.userNameText}>{profile?.full_name?.split(' ')[0] || 'Dostum'}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate('Notifications')}>
-          <Bell color="#8eff71" size={24} />
-        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
