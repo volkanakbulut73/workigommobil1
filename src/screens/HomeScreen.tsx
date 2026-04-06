@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Animated, FlatList } from 'react-native';
 import { useAuthStore } from '../store/useAuthStore';
 import { useNavigation } from '@react-navigation/native';
-import { Zap, Landmark, ArrowRightLeft, Activity, CreditCard, Gift, Send, QrCode, ChevronRight, Trophy, Store, Utensils, ArrowRight } from 'lucide-react-native';
+import { Zap, Landmark, ArrowRightLeft, Activity, CreditCard, Gift, Send, QrCode, ChevronRight, Trophy, Bell, ArrowRight } from 'lucide-react-native';
 import { Layout } from '../components/Layout';
 
 const { width } = Dimensions.get('window');
@@ -15,67 +15,88 @@ const mockLiveTransactions = [
 ];
 
 export default function HomeScreen() {
-  const { profile } = useAuthStore();
   const navigation = useNavigation<any>();
+  const { profile } = useAuthStore();
+  
+  const [activeBanner, setActiveBanner] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const screenWidth = width - 28;
+
+  const banners = [
+    { id: 1, image: require('../../assets/ban1.png'), badge: 'CANLI İŞLEM', title: 'Hızlı & Güvenli QR Takas', subtitle: 'Saniyeler içinde eşleş, anında kazan.' },
+    { id: 2, image: require('../../assets/ban2.png'), badge: 'SİBER GÜVENLİK', title: 'Sıfır Hata Güvencesi', subtitle: 'Tüm işlemler blok zinciri düzeyinde korunur.' },
+    { id: 3, image: require('../../assets/ban3.png'), badge: 'P2P GÜCÜ', title: 'Topluluk İle Birlikte Kazan', subtitle: 'Binlerce kullanıcı ile hemen eşleş.' }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const nextIndex = (activeBanner + 1) % banners.length;
+      setActiveBanner(nextIndex);
+      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [activeBanner]);
 
   return (
     <Layout>
-      {/* TopAppBar */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <View style={styles.avatarContainer}>
-            <Image
-              source={{ uri: profile?.avatar_url || 'https://ui-avatars.com/api/?name=User&background=33f20d&color=0a0b1e' }}
-              style={styles.avatar}
-            />
+          <TouchableOpacity style={styles.avatarContainer} onPress={() => navigation.navigate('Profile')}>
+            <Image source={{ uri: profile?.avatar_url || 'https://ui-avatars.com/api/?name=User&background=33f20d&color=0a0b1e' }} style={styles.avatar} />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.greetingText}>Selam, </Text>
+            <Text style={styles.userNameText}>{profile?.full_name?.split(' ')[0] || 'Dostum'}</Text>
           </View>
         </View>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.greetingText}>Selam, </Text>
-          <Text style={styles.userNameText}>{profile?.full_name?.split(' ')[0] || 'Dostum'}</Text>
-        </View>
-        <View style={styles.headerRight} />
+        <TouchableOpacity style={styles.headerRight} onPress={() => navigation.navigate('Notifications')}>
+          <Bell color="#8eff71" size={24} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
-
-        {/* === CYBERPUNK HERO BANNER === */}
-        <TouchableOpacity style={styles.heroBanner} activeOpacity={0.9} onPress={() => navigation.navigate('TaleplerCreate')}>
-          {/* Glow orbs */}
-          <View style={styles.heroGlowGreen} />
-          <View style={styles.heroGlowCyan} />
-
-          {/* Badge */}
-          <View style={styles.heroBadge}>
-            <View style={styles.heroBadgeDot} />
-            <Text style={styles.heroBadgeText}>CANLI İŞLEM AĞI</Text>
+        
+        <View style={styles.heroWrapper}>
+          <FlatList
+            ref={flatListRef}
+            data={banners}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id.toString()}
+            onMomentumScrollEnd={(e) => {
+              const index = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+              setActiveBanner(index);
+            }}
+            renderItem={({ item }) => (
+              <View style={[styles.heroBanner, { width: screenWidth }]}>
+                <Image source={item.image} style={styles.heroBackgroundImage} />
+                <View style={styles.heroOverlay} />
+                <View style={styles.heroContent}>
+                  <View style={styles.heroBadge}>
+                    <View style={styles.heroBadgeDot} />
+                    <Text style={styles.heroBadgeText}>{item.badge}</Text>
+                  </View>
+                  <Text style={styles.heroTitle}>
+                    {item.title.split('&')[0]}
+                    {item.title.includes('&') && <Text style={styles.heroTitleGreen}>&{item.title.split('&')[1]}</Text>}
+                  </Text>
+                  <Text style={styles.heroSubtitle}>{item.subtitle}</Text>
+                  <TouchableOpacity style={styles.heroCta} onPress={() => navigation.navigate('TaleplerCreate')}>
+                    <Text style={styles.heroCtaText}>Hemen Katıl</Text>
+                    <ArrowRight color="#0a0b1e" size={12} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          />
+          <View style={styles.indicators}>
+            {banners.map((_, i) => (
+              <View key={i} style={[styles.indicator, activeBanner === i ? styles.indicatorActive : styles.indicatorInactive]} />
+            ))}
           </View>
+        </View>
 
-          {/* Title */}
-          <Text style={styles.heroTitle}>
-            Hızlı ve Güvenli{' '}
-            <Text style={styles.heroTitleGreen}>QR Takas</Text>
-          </Text>
-
-          {/* Subtitle */}
-          <Text style={styles.heroSubtitle}>
-            Sistem sürekli aktif. Saniyeler içinde eşleş, hesabını öde ve anında kazanmaya başla.
-          </Text>
-
-          {/* CTA Button */}
-          <TouchableOpacity style={styles.heroCta} activeOpacity={0.8} onPress={() => navigation.navigate('TaleplerCreate')}>
-            <Text style={styles.heroCtaText}>Tüm İşlemleri Keşfet</Text>
-            <ArrowRight color="#0a0b1e" size={16} />
-          </TouchableOpacity>
-
-          {/* QR icon decorative */}
-          <View style={styles.heroQrWrapper}>
-            <View style={styles.heroQrBorder} />
-            <QrCode color="#8eff71" size={36} style={{ opacity: 0.6 }} />
-          </View>
-        </TouchableOpacity>
-
-        {/* === STAT CARDS === */}
         <View style={styles.statsRow}>
           {/* Toplam Tasarruf */}
           <View style={[styles.statCard, styles.statCardGreen]}>
@@ -238,131 +259,173 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0c0e16' },
-  contentContainer: { paddingHorizontal: 16, paddingTop: 76, paddingBottom: 40, gap: 12 },
+  contentContainer: { paddingHorizontal: 14, paddingTop: 72, paddingBottom: 32, gap: 10 },
 
-  // Header
+  // Header (Top bar)
   header: {
-    position: 'absolute', top: 0, left: 0, right: 0, height: 64,
+    position: 'absolute', top: 0, left: 0, right: 0, height: 60,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 24, backgroundColor: 'rgba(12,14,22,0.98)', zIndex: 50,
-    borderBottomWidth: 1, borderBottomColor: 'rgba(142,255,113,0.08)',
+    paddingHorizontal: 20, backgroundColor: 'rgba(12,14,22,1)', zIndex: 50,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(142,255,113,0.1)',
   },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  avatarContainer: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#1d1f2a', alignItems: 'center', justifyContent: 'center' },
-  avatar: { width: 32, height: 32, borderRadius: 16 },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  avatarContainer: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#1d1f2a', alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 30, height: 30, borderRadius: 15 },
   headerTitleContainer: { flexDirection: 'row', alignItems: 'center' },
-  greetingText: { fontSize: 16, fontWeight: '500', color: '#aaaab6' },
-  userNameText: { fontSize: 16, fontWeight: 'bold', color: '#8eff71' },
-  headerRight: { width: 40, height: 40 },
+  greetingText: { fontSize: 14, fontWeight: '500', color: '#aaaab6' },
+  userNameText: { fontSize: 14, fontWeight: 'bold', color: '#8eff71' },
+  headerRight: { width: 36, height: 36 },
 
-  // Hero Banner
+  // Hero Banner (Super Compact)
+  heroWrapper: {
+    position: 'relative',
+    marginTop: 4,
+  },
   heroBanner: {
-    position: 'relative', overflow: 'hidden', borderRadius: 20,
-    backgroundColor: '#0a0b1e', borderWidth: 1, borderColor: 'rgba(142,255,113,0.15)',
-    padding: 20, paddingBottom: 22, gap: 8, marginTop: 12,
-    shadowColor: '#8eff71', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.1, shadowRadius: 20,
+    position: 'relative', overflow: 'hidden', borderRadius: 18,
+    backgroundColor: '#0a0b1e', borderWidth: 1, borderColor: 'rgba(142,255,113,0.12)',
+    minHeight: 160,
+    shadowColor: '#8eff71', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.1, shadowRadius: 15,
+  },
+  heroBackgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(10, 11, 30, 0.75)',
+  },
+  heroContent: {
+    padding: 16,
+    flex: 1,
+    justifyContent: 'center',
+    gap: 6,
   },
   heroGlowGreen: {
-    position: 'absolute', top: -60, right: -40, width: 160, height: 160,
-    backgroundColor: 'rgba(142,255,113,0.08)', borderRadius: 80,
+    position: 'absolute', top: -50, right: -30, width: 140, height: 140,
+    backgroundColor: 'rgba(142,255,113,0.06)', borderRadius: 70,
   },
   heroGlowCyan: {
-    position: 'absolute', bottom: -40, left: -30, width: 120, height: 120,
-    backgroundColor: 'rgba(34,211,238,0.06)', borderRadius: 60,
+    position: 'absolute', bottom: -30, left: -20, width: 100, height: 100,
+    backgroundColor: 'rgba(34,211,238,0.04)', borderRadius: 50,
   },
   heroBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
-    backgroundColor: 'rgba(142,255,113,0.1)', borderWidth: 1, borderColor: 'rgba(142,255,113,0.25)',
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
+    flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start',
+    backgroundColor: 'rgba(142,255,113,0.1)', borderWidth: 1, borderColor: 'rgba(142,255,113,0.2)',
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20,
+    marginBottom: 2,
   },
-  heroBadgeDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#8eff71' },
-  heroBadgeText: { color: '#8eff71', fontSize: 9, fontWeight: '900', letterSpacing: 2, textTransform: 'uppercase' },
-  heroTitle: { fontSize: 24, fontWeight: '900', color: '#ffffff', letterSpacing: -1, lineHeight: 30, zIndex: 2 },
+  heroBadgeDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#8eff71' },
+  heroBadgeText: { color: '#8eff71', fontSize: 8, fontWeight: '900', letterSpacing: 2, textTransform: 'uppercase' },
+  heroTitle: { fontSize: 20, fontWeight: '900', color: '#ffffff', letterSpacing: -0.8, lineHeight: 26, zIndex: 2 },
   heroTitleGreen: { color: '#8eff71' },
-  heroSubtitle: { fontSize: 12, color: 'rgba(203,213,225,0.8)', lineHeight: 18, maxWidth: '85%' as any, zIndex: 2 },
+  heroSubtitle: { fontSize: 11, color: 'rgba(203,213,225,0.7)', lineHeight: 16, maxWidth: '80%' as any, zIndex: 2 },
   heroCta: {
     flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
-    backgroundColor: '#8eff71', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 12, marginTop: 4,
-    shadowColor: '#8eff71', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12,
+    backgroundColor: '#8eff71', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, marginTop: 4,
+    shadowColor: '#8eff71', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10,
   },
-  heroCtaText: { color: '#0a0b1e', fontSize: 13, fontWeight: '900' },
+  heroCtaText: { color: '#0a0b1e', fontSize: 11, fontWeight: '900' },
   heroQrWrapper: {
-    position: 'absolute', right: 16, bottom: 16, width: 60, height: 60,
+    position: 'absolute', right: 12, bottom: 12, width: 44, height: 44,
     alignItems: 'center', justifyContent: 'center', zIndex: 1,
+    opacity: 0.4,
   },
   heroQrBorder: {
-    position: 'absolute', inset: 0, width: 60, height: 60,
-    borderWidth: 1, borderColor: 'rgba(142,255,113,0.2)', borderRadius: 14,
+    position: 'absolute', inset: 0, width: 44, height: 44,
+    borderWidth: 1, borderColor: 'rgba(142,255,113,0.15)', borderRadius: 10,
+  },
+  indicators: {
+    position: 'absolute',
+    bottom: 12,
+    right: 16,
+    flexDirection: 'row',
+    gap: 4,
+  },
+  indicator: {
+    height: 3,
+    borderRadius: 2,
+  },
+  indicatorActive: {
+    width: 14,
+    backgroundColor: '#8eff71',
+  },
+  indicatorInactive: {
+    width: 6,
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
 
   // Stats
   statsRow: { flexDirection: 'row', gap: 10 },
   statCard: {
-    flex: 1, backgroundColor: 'rgba(22,23,45,0.8)', borderRadius: 16,
-    padding: 14, justifyContent: 'space-between', overflow: 'hidden', minHeight: 110,
+    flex: 1, backgroundColor: 'rgba(22,23,45,0.8)', borderRadius: 14,
+    padding: 12, justifyContent: 'space-between', overflow: 'hidden', minHeight: 90,
     borderWidth: 1,
   },
-  statCardGreen: { borderColor: 'rgba(142,255,113,0.15)' },
-  statCardIndigo: { borderColor: 'rgba(99,102,241,0.15)' },
-  statCardCyan: { borderColor: 'rgba(34,211,238,0.15)' },
+  statCardGreen: { borderColor: 'rgba(142,255,113,0.12)' },
+  statCardIndigo: { borderColor: 'rgba(99,102,241,0.12)' },
+  statCardCyan: { borderColor: 'rgba(34,211,238,0.12)' },
   statCardFull: {
-    backgroundColor: 'rgba(22,23,45,0.8)', borderRadius: 16,
-    padding: 14, overflow: 'hidden', borderWidth: 1, gap: 6,
+    backgroundColor: 'rgba(22,23,45,0.8)', borderRadius: 14,
+    padding: 12, overflow: 'hidden', borderWidth: 1, gap: 4,
   },
   statGlow: {
-    position: 'absolute', top: -40, right: -20, width: 100, height: 100,
-    backgroundColor: 'rgba(142,255,113,0.1)', borderRadius: 50,
+    position: 'absolute', top: -30, right: -15, width: 80, height: 80,
+    backgroundColor: 'rgba(142,255,113,0.08)', borderRadius: 40,
   },
-  statTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  statTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   statIconBox: {
-    width: 32, height: 32, borderRadius: 10, backgroundColor: '#0a0b1e',
-    borderWidth: 1, borderColor: 'rgba(142,255,113,0.3)', alignItems: 'center', justifyContent: 'center',
+    width: 28, height: 28, borderRadius: 8, backgroundColor: '#0a0b1e',
+    borderWidth: 1, borderColor: 'rgba(142,255,113,0.25)', alignItems: 'center', justifyContent: 'center',
   },
   statBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(142,255,113,0.1)', borderWidth: 1, borderColor: 'rgba(142,255,113,0.2)',
-    paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6,
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: 'rgba(142,255,113,0.1)', borderWidth: 1, borderColor: 'rgba(142,255,113,0.15)',
+    paddingHorizontal: 5, paddingVertical: 2, borderRadius: 5,
   },
-  statBadgeDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#8eff71' },
-  statBadgeLabel: { color: '#8eff71', fontSize: 7, fontWeight: '900', letterSpacing: 1 },
-  statLabel: { color: '#aaaab6', fontSize: 9, fontWeight: '900', letterSpacing: 2, textTransform: 'uppercase' as any, marginBottom: 2 },
-  statValue: { fontSize: 22, fontWeight: '900', color: '#ffffff', letterSpacing: -1 },
-  statUnit: { fontSize: 11, fontWeight: '700', color: '#64748b' },
+  statBadgeDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#8eff71' },
+  statBadgeLabel: { color: '#8eff71', fontSize: 6, fontWeight: '900', letterSpacing: 1 },
+  statLabel: { color: '#aaaab6', fontSize: 8, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase' as any, marginBottom: 1 },
+  statValue: { fontSize: 18, fontWeight: '900', color: '#ffffff', letterSpacing: -0.5 },
+  statUnit: { fontSize: 10, fontWeight: '700', color: '#64748b' },
 
   // Live Feed
-  section: { gap: 10 },
+  section: { gap: 8 },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 2,
+    marginBottom: 2,
   },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#ef4444' },
-  sectionTitle: { fontSize: 18, fontWeight: '900', color: '#ffffff', letterSpacing: -0.5 },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#ef4444' },
+  sectionTitle: { fontSize: 16, fontWeight: '900', color: '#ffffff', letterSpacing: -0.4 },
   seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  seeAllText: { color: '#8eff71', fontSize: 10, fontWeight: '900', letterSpacing: 2 },
+  seeAllText: { color: '#8eff71', fontSize: 9, fontWeight: '900', letterSpacing: 1.5 },
 
   feedCard: {
-    backgroundColor: 'rgba(22,23,45,0.6)', borderRadius: 20, overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(142,255,113,0.08)',
+    backgroundColor: 'rgba(22,23,45,0.5)', borderRadius: 16, overflow: 'hidden',
+    borderWidth: 1, borderColor: 'rgba(142,255,113,0.06)',
   },
-  feedItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
-  feedItemBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
-  feedLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  feedItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10 },
+  feedItemBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.03)' },
+  feedLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
   feedIconBox: {
-    width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(142,255,113,0.08)',
-    borderWidth: 1, borderColor: 'rgba(142,255,113,0.15)', alignItems: 'center', justifyContent: 'center',
+    width: 32, height: 32, borderRadius: 8, backgroundColor: 'rgba(142,255,113,0.06)',
+    borderWidth: 1, borderColor: 'rgba(142,255,113,0.12)', alignItems: 'center', justifyContent: 'center',
   },
-  feedTitle: { fontSize: 13, fontWeight: '700', color: '#ffffff', marginBottom: 2 },
-  feedTime: { fontSize: 9, fontWeight: '700', color: '#64748b', letterSpacing: 1, textTransform: 'uppercase' as any },
-  feedRight: { alignItems: 'flex-end', gap: 4 },
-  feedAmount: { fontSize: 14, fontWeight: '900', color: '#ffffff' },
+  feedTitle: { fontSize: 12, fontWeight: '700', color: '#ffffff', marginBottom: 1 },
+  feedTime: { fontSize: 8, fontWeight: '700', color: '#64748b', letterSpacing: 1, textTransform: 'uppercase' as any },
+  feedRight: { alignItems: 'flex-end', gap: 2 },
+  feedAmount: { fontSize: 13, fontWeight: '900', color: '#ffffff' },
   feedStatus: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(142,255,113,0.08)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(142,255,113,0.2)',
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: 'rgba(142,255,113,0.06)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 20,
+    borderWidth: 1, borderColor: 'rgba(142,255,113,0.15)',
   },
-  feedStatusPending: { backgroundColor: 'rgba(234,179,8,0.08)', borderColor: 'rgba(234,179,8,0.2)' },
-  feedStatusDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#8eff71' },
-  feedStatusText: { fontSize: 8, fontWeight: '900', color: '#8eff71', letterSpacing: 1 },
+  feedStatusPending: { backgroundColor: 'rgba(234,179,8,0.06)', borderColor: 'rgba(234,179,8,0.15)' },
+  feedStatusDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#8eff71' },
+  feedStatusText: { fontSize: 7, fontWeight: '900', color: '#8eff71', letterSpacing: 1 },
 
   // Leaderboard
   leaderCard: {
