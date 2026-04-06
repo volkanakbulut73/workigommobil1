@@ -71,22 +71,6 @@ export default function HomeScreen() {
             renderItem={({ item }) => (
               <View style={[styles.heroBanner, { width: screenWidth }]}>
                 <Image source={item.image} style={styles.heroBackgroundImage} />
-                <View style={styles.heroOverlay} />
-                <View style={styles.heroContent}>
-                  <View style={styles.heroBadge}>
-                    <View style={styles.heroBadgeDot} />
-                    <Text style={styles.heroBadgeText}>{item.badge}</Text>
-                  </View>
-                  <Text style={styles.heroTitle}>
-                    {item.title.split('&')[0]}
-                    {item.title.includes('&') && <Text style={styles.heroTitleGreen}>&{item.title.split('&')[1]}</Text>}
-                  </Text>
-                  <Text style={styles.heroSubtitle}>{item.subtitle}</Text>
-                  <TouchableOpacity style={styles.heroCta} onPress={() => navigation.navigate('TaleplerCreate')}>
-                    <Text style={styles.heroCtaText}>Hemen Katıl</Text>
-                    <ArrowRight color="#0a0b1e" size={12} />
-                  </TouchableOpacity>
-                </View>
               </View>
             )}
           />
