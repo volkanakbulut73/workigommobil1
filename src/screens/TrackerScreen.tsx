@@ -310,6 +310,7 @@ export function TrackerScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
         <View style={styles.titleSection}>
+          <Text style={styles.listingIdText}>{transaction.listing_id || 'REQ-ID'}</Text>
           <Text style={styles.mainTitle}>İşlem Detayları</Text>
           <Text style={styles.subTitle}>Tahmini tamamlanma: <Text style={{color: '#00e5ff', fontWeight:'bold'}}>2 dk</Text></Text>
         </View>
@@ -413,6 +414,7 @@ const styles = StyleSheet.create({
   
   content: { paddingTop: 10, paddingHorizontal: 20, paddingBottom: 40 },
   titleSection: { marginBottom: 32 },
+  listingIdText: { color: 'rgba(0, 229, 255, 0.5)', fontSize: 13, fontWeight: 'bold', marginBottom: 4, letterSpacing: 1 },
   mainTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff', textShadowColor: 'rgba(0, 229, 255, 0.5)', textShadowRadius: 8, marginBottom: 8 },
   subTitle: { fontSize: 14, color: '#aaaab6' },
 

@@ -19,6 +19,11 @@ Bu uygulama kullanıcıların ilan açabildikleri, takas yapabildikleri (Market)
   - `useAuthStore` (Oturum / Kullanıcı yönetimi)
   - `useMarketStore` (Market ilanları)
   - `useMessageStore` (Sohbetler ve Canlı Dinleme)
+
+# 🆕 Nisan 2026 Güncellemeleri
+- 🆔 **SENTINEL ID Sistemi**: Market için `WRK-XXXX`, talepler için `REQ-XXXX` şeklinde benzersiz numaralandırma.
+- ⏳ **30 Günlük İlan Döngüsü**: Tüm ilanlar ve talepler 30 gün sonunda otomatik pasife çekilir, "Yinele" butonu ile uzatılabilir.
+- 🚀 **Performans Optimizasyonları**: Expo Image ve Supabase Realtime entegrasyonu.
   - `useNotificationStore` (Bildirim yönetimi)
 
 **Navigasyon:**

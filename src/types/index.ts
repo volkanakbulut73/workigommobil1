@@ -9,23 +9,28 @@ export interface Profile {
 
 export interface Transaction {
   id: string;
+  listing_id: string | null;
   seeker_id: string;
   supporter_id: string | null;
   amount: number;
-  status: 'waiting-supporter' | 'waiting-cash-payment' | 'cash-paid' | 'qr-uploaded' | 'completed' | 'cancelled';
+  status: 'pending' | 'waiting-supporter' | 'waiting-cash-payment' | 'cash-paid' | 'qr-uploaded' | 'completed' | 'cancelled';
   listing_title: string;
   support_percentage: number;
   created_at: string;
+  expiry_date: string | null;
 }
 
 export interface SwapListing {
   id: string;
+  listing_id: string | null;
   user_id: string;
   title: string;
   description: string;
   photo_url: string;
   required_balance: number;
+  status: 'active' | 'pending' | 'completed' | 'rejected' | 'expired';
   created_at: string;
+  expiry_date: string | null;
 }
 
 export interface Message {

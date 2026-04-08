@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../store/useAuthStore';
 import { supabase } from '../lib/supabase';
 import { AnalyticsService } from '../services/analyticsService';
+import { generateListingId } from '../services/dbService';
 import { ChevronLeft, Camera, Wallet, Image as ImageIcon, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
@@ -81,6 +82,9 @@ export function MarketCreateScreen() {
       }
 
       // 2. Insert Listing
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 30);
+
       const { error: insertError } = await supabase
         .from('swap_listings')
         .insert([
@@ -90,6 +94,9 @@ export function MarketCreateScreen() {
             description: description.trim(),
             required_balance: Number(amount),
             photo_url: mainPhotoUrl,
+            status: 'pending',
+            listing_id: generateListingId('WRK'),
+            expiry_date: expiryDate.toISOString()
           }
         ]);
 
