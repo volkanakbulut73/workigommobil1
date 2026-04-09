@@ -102,6 +102,7 @@ export function TalepDetailScreen() {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.subtitle}>
+          {transaction.listing_id || 'REQ-ID'}{'\n'}
           {transaction.profiles?.full_name || 'Kullanıcı'} için paylaşım oranını seçin
         </Text>
 

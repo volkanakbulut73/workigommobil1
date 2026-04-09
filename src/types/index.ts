@@ -13,6 +13,7 @@ export type Profile = {
 };
 
 export type TransactionStatus =
+    | 'pending'
     | 'waiting-supporter'
     | 'waiting-cash-payment'
     | 'cash-paid'
@@ -23,6 +24,7 @@ export type TransactionStatus =
 
 export type Transaction = {
     id: string;
+    listing_id: string | null;
     seeker_id: string;
     supporter_id: string | null;
     amount: number;
@@ -33,22 +35,29 @@ export type Transaction = {
     city: string | null;
     district: string | null;
     created_at: string;
+    expiry_date: string | null;
     qr_uploaded_at: string | null;
     completed_at: string | null;
     profiles?: Partial<Profile>;
 };
 
+export type SwapListingStatus = 'active' | 'pending' | 'completed' | 'rejected' | 'expired';
+
 export type SwapListing = {
     id: string;
+    listing_id: string | null;
+    user_id?: string;
     owner_id: string;
     title: string;
     description: string | null;
     required_balance: number;
     photo_url: string | null;
-    location: string | null;
+    location?: string | null;
     city: string | null;
     district: string | null;
+    status: SwapListingStatus;
     created_at: string;
+    expiry_date: string | null;
     profiles?: Partial<Profile>;
 };
 

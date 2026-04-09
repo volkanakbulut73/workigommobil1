@@ -3,13 +3,14 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Act
 import { Image as ExpoImage } from 'expo-image';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Layout } from '../components/Layout';
-import { Plus, Search, MapPin, SlidersHorizontal, Star } from 'lucide-react-native';
+import { Plus, Search, MapPin, SlidersHorizontal, Star, RefreshCw } from 'lucide-react-native';
 import { useAuthStore } from '../store/useAuthStore';
 import { useMarketStore } from '../store/useMarketStore';
+import { DBService } from '../services/dbService';
 
 const blurhash = '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
 
-const ListingCard = React.memo(({ item, onPress }: { item: any, onPress: (id: string) => void }) => {
+const ListingCard = React.memo(({ item, onPress, onRenew, isOwn }: { item: any, onPress: (id: string) => void, onRenew?: (id: string) => void, isOwn?: boolean }) => {
   const photoUrls = item.photo_url ? item.photo_url.split(',') : [];
   const mainPhoto = photoUrls.length > 0 ? photoUrls[0] : null;
   const sellerInfo = item.profiles || {};
@@ -45,7 +46,7 @@ const ListingCard = React.memo(({ item, onPress }: { item: any, onPress: (id: st
         </View>
         
         <View style={styles.listingBadge}>
-          <Text style={styles.listingBadgeText}>İLAN</Text>
+          <Text style={styles.listingBadgeText}>{item.listing_id || 'İLAN'}</Text>
         </View>
       </View>
 
@@ -54,26 +55,35 @@ const ListingCard = React.memo(({ item, onPress }: { item: any, onPress: (id: st
         <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
         <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
         
-        <View style={styles.cardFooter}>
-          <View style={styles.sellerRow}>
-            <ExpoImage 
-              source={{ uri: sellerAvatar }} 
-              style={styles.sellerAvatar as any} 
-              placeholder={blurhash}
-              contentFit="cover"
-              transition={200}
-              cachePolicy="memory-disk"
-            />
-            <View>
-              <Text style={styles.sellerLabel}>Satıcı</Text>
-              <Text style={styles.sellerName} numberOfLines={1}>{sellerName}</Text>
+        {isOwn ? (
+          <TouchableOpacity 
+            style={styles.renewBtn}
+            onPress={() => onRenew?.(item.id)}
+          >
+            <Text style={styles.renewBtnText}>YİNELE</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.cardFooter}>
+            <View style={styles.sellerRow}>
+              <ExpoImage 
+                source={{ uri: sellerAvatar }} 
+                style={styles.sellerAvatar as any} 
+                placeholder={blurhash}
+                contentFit="cover"
+                transition={200}
+                cachePolicy="memory-disk"
+              />
+              <View>
+                <Text style={styles.sellerLabel}>Satıcı</Text>
+                <Text style={styles.sellerName} numberOfLines={1}>{sellerName}</Text>
+              </View>
+            </View>
+            <View style={styles.priceContainer}>
+              <Text style={styles.priceLabel}>Fiyat</Text>
+              <Text style={styles.priceText}>₺{Number(item.required_balance).toLocaleString('tr-TR')}</Text>
             </View>
           </View>
-          <View style={styles.priceContainer}>
-            <Text style={styles.priceLabel}>Fiyat</Text>
-            <Text style={styles.priceText}>₺{Number(item.required_balance).toLocaleString('tr-TR')}</Text>
-          </View>
-        </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -114,9 +124,23 @@ export function MarketScreen() {
     navigation.navigate('MarketDetail', { id });
   }, [navigation]);
 
+  const handleRenew = useCallback(async (id: string) => {
+    try {
+      await DBService.renewListing(id);
+      if (profile?.id) fetchListings(profile.id);
+    } catch (err) {
+      console.error('Renew error', err);
+    }
+  }, [profile?.id, fetchListings]);
+
   const renderItem = useCallback(({ item }: { item: any }) => (
-    <ListingCard item={item} onPress={handlePress} />
-  ), [handlePress]);
+    <ListingCard 
+      item={item} 
+      onPress={handlePress} 
+      isOwn={activeTab === 'İlanlarım'} 
+      onRenew={handleRenew}
+    />
+  ), [handlePress, activeTab, handleRenew]);
 
   const keyExtractor = useCallback((item: any) => item.id, []);
 
@@ -321,5 +345,20 @@ const styles = StyleSheet.create({
     borderRadius: 32, backgroundColor: '#39ff14', justifyContent: 'center', alignItems: 'center',
     shadowColor: '#39ff14', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
     borderWidth: 1, borderColor: 'rgba(57, 255, 20, 0.5)', zIndex: 10,
+  },
+  renewBtn: {
+    backgroundColor: 'rgba(57, 255, 20, 0.1)',
+    borderWidth: 1,
+    borderColor: '#39ff14',
+    borderRadius: 8,
+    paddingVertical: 6,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  renewBtnText: {
+    color: '#39ff14',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 2,
   },
 });

@@ -37,6 +37,7 @@ const TalepCardItem = React.memo(({ item, isMine, profile, onAccept, onCancel, o
           </View>
         </View>
         <View style={styles.amountBox}>
+          <Text style={styles.amountId}>{item.listing_id || 'REQ-NEW'}</Text>
           <Text style={styles.amountLabel}>MENÜ TUTARI</Text>
           <Text style={styles.amountValue}>{Number(item.amount).toLocaleString('tr-TR')}₺</Text>
         </View>
@@ -567,6 +568,14 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 4,
+  },
+  amountId: {
+    color: '#39ff14',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
+    marginBottom: 2,
+    alignSelf: 'flex-end',
   },
   amountValue: {
     color: '#8eff71',

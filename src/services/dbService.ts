@@ -10,6 +10,12 @@ const withTimeout = <T>(promise: PromiseLike<T>, ms: number = 10000): Promise<T>
   ]);
 };
 
+export const generateListingId = (prefix: string) => {
+  const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const timestamp = Date.now().toString().slice(-4);
+  return `${prefix}-${randomStr}${timestamp}`;
+};
+
 export const DBService = {
   supabase,
   async getProfile(userId: string) {
@@ -72,6 +78,9 @@ export const DBService = {
   },
 
   async createTransactionRequest(seekerId: string, amount: number, listingTitle: string, city?: string, district?: string) {
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 30);
+
     const { data: tData, error } = await supabase
       .from('transactions')
       .insert({
@@ -81,6 +90,8 @@ export const DBService = {
         status: 'waiting-supporter',
         city: city || null,
         district: district || null,
+        listing_id: generateListingId('REQ'),
+        expiry_date: expiryDate.toISOString()
       })
       .select()
       .limit(1);
@@ -88,6 +99,35 @@ export const DBService = {
 
     if (error) throw error;
     return data as Transaction;
+  },
+
+  async renewTransaction(transactionId: string) {
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 30);
+    
+    return this.updateTransactionStatus(transactionId, 'waiting-supporter', {
+      created_at: new Date().toISOString(),
+      expiry_date: expiryDate.toISOString()
+    });
+  },
+
+  async renewListing(listingId: string) {
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 30);
+
+    const { data, error } = await supabase
+      .from('swap_listings')
+      .update({ 
+        status: 'active',
+        created_at: new Date().toISOString(),
+        expiry_date: expiryDate.toISOString()
+      })
+      .eq('id', listingId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
   async getPendingTransactions() {

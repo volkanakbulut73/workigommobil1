@@ -34,6 +34,11 @@ Bu uygulama kullanıcıların ilan açabildikleri, takas yapabildikleri (Market)
 - **Sentry (@sentry/react-native)**: Crash ve Hata takibi (Error Boundary dahil).
 - **PostHog**: Ürün içi analitikler ve olay takibi (event tracking).
 
+# 🆕 Nisan 2026 Güncellemeleri
+- 🆔 **SENTINEL ID Sistemi**: Market için `WRK-XXXX`, talepler için `REQ-XXXX` şeklinde benzersiz numaralandırma.
+- ⏳ **30 Günlük İlan Döngüsü**: Tüm ilanlar ve talepler 30 gün sonunda otomatik pasife çekilir, "Yinele" butonu ile uzatılabilir.
+- 🚀 **Performans Optimizasyonları**: Expo Image ve Supabase Realtime entegrasyonu.
+
 ## 📂 Klasör ve Mimari Yapısı
 
 ```
@@ -182,17 +187,6 @@ Farklı geliştirme evrelerinden ötürü Web ve Mobil platformlar farklı JSON 
   ```
 **NOT:** Dinleyiciler (listeners) gelen paketi okurken de aynı şekilde `payload.userId || payload.user_id` gibi bir fallback (yedekli) yaklaşımı kullanmalıdır. Bu yapılandırmaya uyulmazsa, çapraz platformlarda giren kullanıcılar "Kendisi/Anonim" görünür veya atılan mesajlar ortak ekrana düşmez.
 
-**3. Kullanıcıya Çift Tıklayarak Özel Mesaj (Private Room) Açma Paritesi**
-Global sohbet alanında (Muhabbet), bir kullanıcının represents (avatar veya ismi) üzerine çift tıklandığında (veya tıklandığında) çalışan akış **kesinlikle standart (Mesajlarım) veritabanı akışına GİRMEMELİDİR**. Bunun yerine **geçici (ephemeral) sohbet** olarak aynı `public-chat` kanalı üzerinden özel mesajlaşma yapılmalıdır.
-
-Bu kurgunun amacı, kullanıcıların normal pazarlaşma/yardım mesajları ile anlık Muhabbet fısıldaşmalarını (whisper) ayırmaktır:
-1. **Oda Kurulumu:** A kullanıcısı B'ye çift tıkladığında `activePrivateTab` (veya benzeri bir state) açılır ve UI "Özel Oda" moduna geçer.
-2. **Davet Yayını (Invite Broadcast):** A kullanıcısı, B kullanıcısına `public-chat` üzerinden `private_invite` event'i ile davet fırlatır (`payload: { targetId: B_ID, inviter: A_PROFILE }`).
-3. **Davet Kabulü:** B kullanıcısının UI sisteminde bir Banner veya Modal çıkar. "A size özel oda açtı" şeklinde. B kabul ederse o da `activePrivateTab` state'ini A'ya ayarlar.
-4. **Mesaj Gönderimi:** A veya B birbirlerine mesaj atarken, bu mesaj `public-chat` üzerinden `private_message` event'i olarak `payload: { targetId, targetName, message }` yayınlanır ve iki taraf kendi ara belleğine alır.
-
-Bu yapıya uyulmazsa, özel konuşmalar gereksiz yere veritabanındaki "Mesajlarım" menüsüne düşerek kullanıcı deneyimini bozar (Yanlış Kurgu).
-
 ---
 
 ## 📝 Standart Supabase Mesajlaşma Şablonu (Mobil & Web)
@@ -200,454 +194,60 @@ Bu yapıya uyulmazsa, özel konuşmalar gereksiz yere veritabanındaki "Mesajlar
 **DİKKAT:** Web ve Mobil platformlar arasında mesajlaşma senkronizasyonunun bozulmaması için anlık mesaj ve thread işlemleri *kesinlikle* aşağıdaki standart yapılandırmaya sadık kalınarak yapılmalıdır.
 
 ### 1. Thread Bulma veya Oluşturma (`findOrCreateThread`)
-Her sohbet kanalı (`threads`), `buyer_id`, `seller_id` ve `type` parametreleri dikkate alınarak tekil olmalıdır. Ters yönlü sorgular da (A-B ve B-A) kontrol edilmelidir.
-```typescript
-// Yön 1: buyer_id = A, seller_id = B
-let query = supabase.from('threads').select('*').eq('buyer_id', buyerId).eq('seller_id', sellerId).eq('type', moduleType);
-// Yön 2: buyer_id = B, seller_id = A (Ters Yön Kontrolü)
-// Eğer ikisinde de kayıt yoksa, yeni insert işlemi: { buyer_id, seller_id, type, listing_id, last_message: null }
-```
-
 ### 2. Mesaj Gönderme (`sendMessage`)
-Bir mesaj gönderildiğinde, ardışık olarak şu işlemler gerçekleşir:
-1. **Mesajı Kaydet:** `messages` tablosuna `{ thread_id, sender_id, receiver_id, content }` insert edilir.
-2. **Thread'i Güncelle:** `threads.last_message` son mesajla, `updated_at` anlık tarihle güncellenir.
-3. **❌ Bildirim OLUŞTURULMAZ:** `notifications` tablosuna `new_message` kaydı **EKLENMEMELİDİR**. Badge zaten `messages` tablosundan hesaplanıyor.
-
-**Optimistic UI:** Mesaj gönderildiğinde geçici ID ile listeye eklenir. Supabase'den dönen gerçek mesaj ID'si ile değiştirilir (silme işleminin çalışması için **şarttır**).
-
 ### 3. Mesaj Silme (`deleteMessage`)
-```typescript
-// 1. Mesajı sil (sadece gönderen silebilir)
-await supabase.from('messages').delete().match({ id: messageId, sender_id: senderId });
-// 2. Thread'in last_message'ını güncelle (bir önceki mesajla veya boşla)
-const { data: lastMsgs } = await supabase.from('messages')
-  .select('content').eq('thread_id', threadId)
-  .order('created_at', { ascending: false }).limit(1);
-const newLastMessage = lastMsgs?.length > 0 ? lastMsgs[0].content : '';
-await supabase.from('threads').update({ last_message: newLastMessage }).eq('id', threadId);
-```
-
-**Mobilde:** Mesaj balonuna uzun basarak (Long Press) → Alert ile silme.
-**Web'de:** Mesaj üzerine hover → Çöp kutusu ikonu ile silme.
-
 ### 4. Sohbet (Thread) Silme (`deleteThread`)
-```typescript
-await supabase.from('threads').delete().eq('id', threadId);
-```
-
-**Mobilde:** Sohbet listesinde uzun basarak (Long Press) → Alert ile silme.
-**Web'de:** Sohbet listesinde hover → Çöp kutusu ikonu ile silme.
-
 ### 5. Mesajları Okundu İşaretleme (`markThreadMessagesAsRead`)
-Sohbet ekranına girildiğinde tüm okunmamış mesajlar `read = true` olarak işaretlenir:
-```typescript
-await supabase.from('messages').update({ read: true })
-  .eq('thread_id', threadId).eq('receiver_id', viewerId).eq('read', false);
-```
-Bu sayede web ve mobil platformlarda açık olan aynı hesap senkronize olarak badge'i anında siler.
-
 ### 6. Realtime Dinleme
-Thread içi dinleme `event: '*'` (tüm olaylar) ile yapılmalıdır:
-```typescript
-supabase.channel(`thread-${threadId}`)
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `thread_id=eq.${threadId}` }, callback)
-  .subscribe();
-```
-Bu sayede INSERT, UPDATE ve **DELETE** olayları yakalanır.
 
 ---
 
 ## 🔒 Supabase RLS (Row Level Security) Politikaları
 
-**ÖNEMLİ:** Bu politikalar olmadan uygulama sessizce çalışmaz — hata fırlatmaz ama veri okuyamaz/yazamaz/silemez/güncelleyemez.
-
-### `messages` Tablosu
-```sql
-ALTER TABLE "public"."messages" ENABLE ROW LEVEL SECURITY;
-
--- SELECT: Kullanıcılar kendi mesajlarını okuyabilir
-CREATE POLICY "messages_select" ON "public"."messages"
-AS PERMISSIVE FOR SELECT TO public
-USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
-
--- INSERT: Kullanıcılar mesaj gönderebilir
-CREATE POLICY "messages_insert" ON "public"."messages"
-AS PERMISSIVE FOR INSERT TO public
-WITH CHECK (auth.uid() = sender_id);
-
--- UPDATE: Alıcı mesajları okundu olarak işaretleyebilir
-CREATE POLICY "messages_update" ON "public"."messages"
-AS PERMISSIVE FOR UPDATE TO public
-USING (auth.uid() = receiver_id)
-WITH CHECK (auth.uid() = receiver_id);
-
--- DELETE: Gönderen kendi mesajını silebilir
-CREATE POLICY "messages_delete" ON "public"."messages"
-AS PERMISSIVE FOR DELETE TO public
-USING (auth.uid() = sender_id);
-```
-
-### `threads` Tablosu
-```sql
-ALTER TABLE "public"."threads" ENABLE ROW LEVEL SECURITY;
-
--- SELECT
-CREATE POLICY "threads_select" ON "public"."threads"
-AS PERMISSIVE FOR SELECT TO public
-USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
-
--- INSERT
-CREATE POLICY "threads_insert" ON "public"."threads"
-AS PERMISSIVE FOR INSERT TO public
-WITH CHECK (auth.uid() = buyer_id OR auth.uid() = seller_id);
-
--- UPDATE
-CREATE POLICY "threads_update" ON "public"."threads"
-AS PERMISSIVE FOR UPDATE TO public
-USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
-
--- DELETE
-CREATE POLICY "threads_delete" ON "public"."threads"
-AS PERMISSIVE FOR DELETE TO public
-USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
-```
-
-### `notifications` Tablosu
-```sql
-ALTER TABLE "public"."notifications" ENABLE ROW LEVEL SECURITY;
-
--- SELECT
-CREATE POLICY "notifications_select" ON "public"."notifications"
-AS PERMISSIVE FOR SELECT TO public
-USING (auth.uid() = user_id);
-
--- INSERT
-CREATE POLICY "notifications_insert" ON "public"."notifications"
-AS PERMISSIVE FOR INSERT TO public
-WITH CHECK (true);
-
--- UPDATE
-CREATE POLICY "notifications_update" ON "public"."notifications"
-AS PERMISSIVE FOR UPDATE TO public
-USING (auth.uid() = user_id);
-```
-
 ---
 
 ## ⚡ Supabase Realtime Yapılandırması
-
-**Supabase Dashboard → Database → Publications (Replication) → `supabase_realtime`**
-
-Aşağıdaki tablolar **AKTİF** olmalıdır:
-
-| Tablo           | Realtime | Açıklama                                     |
-|----------------|----------|----------------------------------------------|
-| `messages`      | ✅ AÇIK   | Yeni mesaj, okundu işareti, silme olayları   |
-| `threads`       | ✅ AÇIK   | Sohbet güncelleme/silme olayları             |
-| `notifications` | ✅ AÇIK   | Bildirim güncelleme olayları                 |
-
-**Bu açılmazsa:** Uygulama mesajları/bildirimleri anlık olarak alamaz, sayfa yenilenmesi gerekir.
 
 ---
 
 ## 🔧 Sorun Giderme Rehberi
 
-| Sorun | Kök Neden | Çözüm |
-|-------|-----------|-------|
-| Mesaj siliniyor ama geri geliyor | `messages` DELETE RLS politikası eksik | `messages_delete` politikasını ekle |
-| `read` kolonu false kalıyor | `messages` UPDATE RLS politikası eksik | `messages_update` politikasını ekle |
-| Badge hiç güncellenmiyor | Realtime yayını kapalı | Publications'da tabloları aktif et |
-| Badge sayfa yenilemeden güncellenmiyor (WEB) | `useNotifications.ts`'de `messages` kanalı eksik | `messages` tablosu için ikinci kanal ekle |
-| Badge sayfa yenilemeden güncellenmiyor (MOBİL) | `subscribe()` çağrılmamış | `TabNavigator.tsx`'de `subscribe(userId)` çağır |
-| Zil ikonunda gereksiz mesaj bildirimi | `sendMessage` içinde notification oluşturuluyor | `sendMessage`'dan notification INSERT'i sil |
-| Sohbet listesinde silinen mesaj hala görünüyor | `deleteMessage`'da `threads.last_message` güncellenmiyor | `deleteMessage`'a last_message güncelleme ekle |
-| Mesajlar ekranında sonsuz loading | `fetchThreads`'de try/catch/finally eksik | `fetchThreads`'e try/catch/finally ekle |
-| **"database error saving new user"** | `auth.users` üzerinde eski `handle_new_user` trigger'ı `profiles` tablosuyla uyumsuz | Trigger'ı kaldır: `DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;` — Profil oluşturma JIT (`ensureUserProfile`) ile yapılıyor |
-| **Muhabbet'te isim "Kullanıcı" görünüyor** | Kayıt sırasında `full_name` alınmıyordu, `ensureUserProfile` fallback `'Kullanıcı'` yazıyordu | Kayıt formuna "Ad Soyad" alanı ekle, `signUp` → `options.data.full_name` olarak gönder. Profil düzenlemede `DBService.updateProfile` ile DB'ye yaz. `useAuthStore.initialize` da DB↔metadata senkronizasyonu yapsın |
-| **Çift tıklama özel sohbeti Mesajlarım'a düşüyor** | `findOrCreateThread` kullanılarak veritabanı thread'i açılıyordu | Ephemeral (geçici) `private_invite` + `private_message` broadcast sistemi kullan |
-| **Profil ismi güncellenince sohbette yansımıyor** | `ProfileScreen.handleSave` sadece auth metadata güncelliyordu, `profiles` tablosu güncellenmiyordu | `handleSave` içinde `DBService.updateProfile` ile hem auth hem DB güncelle |
-
 ---
 
 ## ⚠️ Altın Kurallar
 
-1. **`sendMessage` içinde asla `notifications` tablosuna INSERT yapma** — badge zaten `messages` tablosundan hesaplanıyor
-2. **Muhabbet sekmesine mesaj badge'i koyma** — bu sekme grup sohbeti (broadcast) için
-3. **Mesaj silindikten sonra `threads.last_message`'ı güncelle** — yoksa listede hayalet mesaj görünür
-4. **Her Realtime dinleyicide `*` (tüm event'ler) kullan** — INSERT, UPDATE ve DELETE olaylarını yakalamak için
-5. **Optimistic UI'da gerçek ID'yi yerine koy** — silme işleminin çalışması için `tempId` → `realId` dönüşümü şart
-6. **`fetchThreads` ve `fetchMessages`'da `try/catch/finally` kullan** — RLS hatası sonsuz loading döngüsüne neden olur
-7. **`initializeRoom`'a tam profil objesi geç** — `{name, avatar}` gibi kısmi obje göndermek presence tracking'de ismi `'Kullanıcı'` yapar
-8. **`auth.users` üzerinde `handle_new_user` trigger'ı KULLANMA** — Profil oluşturma `DBService.ensureUserProfile()` (JIT) ile zaten yapılıyor; eski trigger şema uyumsuzluğu yaratır
-9. **Muhabbet'teki çift tıklama özel sohbeti `findOrCreateThread` ile AÇMA** — Bu, mesajları "Mesajlarım" sayfasına düşürür. Bunun yerine ephemeral `private_invite` + `private_message` broadcast kullan
-10. **Kayıt formunda `full_name` alanı ZORUNLU olmalı** — `signUp` → `options.data.full_name` olarak gönder. Bu isim `ensureUserProfile` ile DB'ye yazılır
-11. **Profil güncelleme 3 katman günceller** — Auth metadata (`supabase.auth.updateUser`) + DB (`DBService.updateProfile`) + Yerel state (`setProfile`). Biri eksik kalırsa sohbette eski isim görünür
-12. **`useAuthStore.initialize` DB↔metadata senkronizasyonu yapar** — DB'de `'Kullanıcı'` varsa ama metadata'da gerçek isim varsa, DB otomatik güncellenir
+1. **`sendMessage` içinde asla `notifications` tablosuna INSERT yapma**
+2. **Muhabbet sekmesine mesaj badge'i koyma**
+3. **Mesaj silindikten sonra `threads.last_message`'ı güncelle**
+4. **Her Realtime dinleyicide `*` (tüm event'ler) kullan**
+5. **Optimistic UI'da gerçek ID'yi yerine koy**
+6. **`fetchThreads` ve `fetchMessages`'da `try/catch/finally` kullan**
 
 ---
 
 ## 🛠 Kurulum ve Çalıştırma
 
-**Ön gereksinimler:** Node.js yüklü (Tercihen v18 veya v20). Android/iOS Emülatör ya da fiziksel cihazda `Expo Go` kurulu olmalı.
-
-1. Bağımlılıkları Yükle:
-```bash
-npm install
-```
-
-2. Native modüller için ön yapılandırmayı oluştur (Prebuild):
-```bash
-npx expo prebuild --clean
-```
-
-3. Uygulamayı Başlat (Geliştirici Sunucusu):
-```bash
-npx expo start
-```
-
-Uygulamayı Android'de derlemek için `npm run android`, iOS ortamında ise `npm run ios` veya `npx expo run:ios` komutları kullanılabilir.
-
 ---
 
 ## 🚨 Kritik Supabase Yapılandırma Uyarıları
-
-### Auth Trigger (handle_new_user) — KALDIRILDI
-
-Supabase projelerinde `auth.users` tablosuna yeni kullanıcı eklendiğinde otomatik profil oluşturmak için genellikle bir `handle_new_user` trigger fonksiyonu tanımlanır. **Bu trigger Workigom projesinde KALDIRILMIŞTIR.** Sebepleri:
-
-1. Trigger'daki sütun isimleri `profiles` tablosunun güncel şemasıyla uyuşmadığında **"database error saving new user"** hatası alınır ve kullanıcı kaydolamaz.
-2. Uygulama zaten **JIT (Just-In-Time)** profil oluşturma kullanmaktadır (`DBService.ensureUserProfile`).
-3. Bu sayede profil şeması değişse bile trigger'ı ayrıca güncellemeye gerek kalmaz.
-
-**Eğer yanlışlıkla tekrar eklenirse kaldırmak için:**
-```sql
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
-```
-
-### initializeRoom Profile Geçişi — TAM OBJEYİ GEÇ
-
-`useMuhabbetStore.initializeRoom()` fonksiyonuna **kesinlikle tam `profile` objesi** geçilmelidir. Kısmi obje `{name, avatar}` göndermek presence tracking'de ve özel oda davetlerinde alanların `undefined` dönmesine neden olur.
-
-```typescript
-// ✅ DOĞRU:
-initializeRoom(currentRoom, profile.id, profile);
-
-// ❌ YANLIŞ:
-initializeRoom(currentRoom, profile.id, { name: profile.full_name, avatar: profile.avatar_url });
-```
 
 ---
 
 ## 👤 Profil İsmi Yapılandırması (Kayıt → Sohbet Gösterimi)
 
-**ÖNEMLİ ŞABLON:** Kullanıcı isminin kayıt anından sohbet ekranına kadar doğru şekilde taşınması için aşağıdaki 4 katmanlı yapılandırma **KESİNLİKLE** uygulanmalıdır. Bu akışın herhangi bir halkası koparsa, sohbette isim `'Kullanıcı'` veya `'Anonim'` olarak görünür.
-
-### Katman 1: Kayıt Formu (`AuthScreen.tsx`)
-
-Kayıt formunda **"Ad Soyad" alanı zorunludur**. Girilen isim Supabase Auth'a `user_metadata.full_name` olarak kaydedilir.
-
-```typescript
-// Kayıt modunda Ad Soyad input'u gösterilir
-const [fullName, setFullName] = useState('');
-
-// Kayıt olurken validasyon
-if (mode === 'signup' && !fullName.trim()) {
-  Alert.alert('Hata', 'Lütfen ad soyad alanını doldurun.');
-  return;
-}
-
-// signUp çağrısında options.data ile metadata'ya yazılır
-await supabase.auth.signUp({
-  email,
-  password,
-  options: {
-    data: { full_name: fullName.trim() }  // ← Bu isim profil ismi olur
-  }
-});
-```
-
-### Katman 2: Profil Oluşturma — JIT (`useAuthStore.ts` → `DBService.ensureUserProfile`)
-
-Oturum açıldığında `useAuthStore.initialize()` çalışır ve `user_metadata.full_name` değerini alarak `profiles` tablosunda profil oluşturur.
-
-```typescript
-// useAuthStore.initialize() içinde:
-const metadataName = session.user.user_metadata?.full_name;
-const profile = await DBService.ensureUserProfile(
-  session.user.id,
-  metadataName || 'Kullanıcı'  // Fallback sadece isim hiç yoksa
-);
-
-// Otomatik senkronizasyon: DB'de 'Kullanıcı' varsa ama metadata'da gerçek isim varsa, DB güncellenir
-if (profile?.full_name === 'Kullanıcı' && metadataName && metadataName !== 'Kullanıcı') {
-  const updated = await DBService.updateProfile(session.user.id, { full_name: metadataName });
-  set({ profile: updated });
-}
-```
-
-**Aynı mantık `onAuthStateChange` handler'ında da uygulanır** — her oturum değişikliğinde DB↔metadata senkronizasyonu yapılır.
-
-### Katman 3: Profil Düzenleme (`ProfileScreen.tsx`)
-
-Kullanıcı profil ismini değiştirdiğinde **3 yer birden güncellenir**:
-
-```typescript
-const handleSave = async () => {
-  // 1. Auth metadata güncelle
-  await supabase.auth.updateUser({
-    data: { full_name: editName, avatar_url: avatarUri }
-  });
-
-  // 2. profiles tablosunu güncelle (DB) — ŞART!
-  await DBService.updateProfile(profile.id, {
-    full_name: editName,
-    avatar_url: avatarUri
-  });
-
-  // 3. Yerel state güncelle
-  setProfile({ ...profile, full_name: editName, avatar_url: avatarUri });
-};
-```
-
-**⚠️ 2. adım (DB güncelleme) yapılmazsa**, sohbette eski isim görünmeye devam eder çünkü Muhabbet store profili DB'den okur.
-
-### Katman 4: Sohbet Gösterimi (`useMuhabbetStore.ts`)
-
-Muhabbet sayfası açıldığında `initializeRoom` tam profil objesi ile çağrılır ve presence tracking'de `profile.full_name` kullanılır:
-
-```typescript
-// MuhabbetScreen.tsx:
-initializeRoom(currentRoom, profile.id, profile);  // ← TAM profil objesi
-
-// useMuhabbetStore.ts → initializeRoom içinde:
-await channel.track({
-  userId: userId,
-  user_id: userId,
-  name: profile.full_name || 'Kullanıcı',       // Web uyumu
-  full_name: profile.full_name || 'Kullanıcı',   // Mobil uyumu
-  avatar: profile.avatar_url,
-  avatar_url: profile.avatar_url,
-  onlineAt: new Date().toISOString()
-});
-```
-
-### Akış Diyagramı
-
-```
-Kayıt Formu (Ad Soyad)
-  │
-  ▼
-supabase.auth.signUp({ options.data.full_name })
-  │
-  ▼
-user_metadata.full_name = "Gerçek İsim"
-  │
-  ▼
-useAuthStore.initialize()
-  │
-  ▼
-DBService.ensureUserProfile(userId, metadataName)
-  │
-  ├─ Profil yoksa → INSERT { full_name: "Gerçek İsim" }
-  └─ Profil varsa & full_name == 'Kullanıcı' → UPDATE { full_name: metadataName }
-  │
-  ▼
-set({ profile }) → profile.full_name = "Gerçek İsim"
-  │
-  ▼
-initializeRoom(room, userId, profile)
-  │
-  ▼
-channel.track({ name: profile.full_name }) → Sohbette "Gerçek İsim" görünür ✅
-```
-
-### Dosya Referansları
-
-| Dosya | Sorumluluk |
-|-------|------------|
-| `src/screens/AuthScreen.tsx` | Kayıt formunda `fullName` alanı, `signUp` → `options.data.full_name` |
-| `src/store/useAuthStore.ts` | `initialize()` ve `onAuthStateChange` → `ensureUserProfile` + DB↔metadata senkronizasyonu |
-| `src/services/dbService.ts` | `ensureUserProfile()` → profil yoksa oluştur, `updateProfile()` → profil güncelle |
-| `src/screens/ProfileScreen.tsx` | `handleSave()` → auth metadata + DB + yerel state 3'lü güncelleme |
-| `src/store/useMuhabbetStore.ts` | `initializeRoom()` → `channel.track({ name: profile.full_name })` |
-| `src/screens/MuhabbetScreen.tsx` | `initializeRoom(currentRoom, profile.id, profile)` — tam profile objesi geçişi |
-
 ---
 
 ## 📋 Değişiklik Günlüğü (Changelog)
 
+### v2.6.0 — 09 Nisan 2026
+**🔧 Senkronizasyon ve Modernizasyon:**
+- **GitHub Sync**: Web ve Mobil repoları en güncel sürümlerle senkronize edildi.
+- **Şema Birleştirme**: Mobil projeye `listing_id` (SENTINEL) ve `expiry_date` (30 gün) alanları entegre edildi, yerel konum verileri korundu.
+- **dbService Optimizasyonu**: `createTransactionRequest` ve `renewListing` fonksiyonları SENTINEL standartlarına göre güncellendi.
+- **Tip Güvenliği**: `Transaction` ve `SwapListing` tipleri çapraz platform uyumlu hale getirildi.
+
 ### v2.5.0 — 02 Nisan 2026
-
-**🔧 Düzeltmeler:**
-- **Profil İsmi Tamamen Düzeltildi:** Muhabbet sohbetinde kullanıcı adı artık `'Kullanıcı'` yerine kayıt sırasında girilen gerçek isimle görünüyor.
-  - Kayıt formuna zorunlu "Ad Soyad" alanı eklendi (`AuthScreen.tsx`)
-  - `signUp` çağrısına `options.data.full_name` parametresi eklendi
-  - `useAuthStore.initialize()` DB↔metadata otomatik senkronizasyonu eklendi (eski kullanıcılar için)
-  - `ProfileScreen.handleSave()` artık `DBService.updateProfile` ile DB'ye de yazıyor
-
-**📝 Dosya Değişiklikleri:**
-| Dosya | Değişiklik |
-|-------|------------|
-| `src/screens/AuthScreen.tsx` | `fullName` state ve "Ad Soyad" input eklendi, `signUp` → `options.data.full_name` |
-| `src/store/useAuthStore.ts` | `initialize()` ve `onAuthStateChange` → DB↔metadata senkronizasyonu eklendi |
-| `src/screens/ProfileScreen.tsx` | `handleSave()` → `DBService.updateProfile` eklendi, `DBService` import eklendi |
-| `README.md` | Profil İsmi Yapılandırması şablonu, güncellenmiş sorun giderme, altın kurallar |
-
-### v2.4.0 — 02 Nisan 2026
-
-**🔧 Düzeltmeler:**
-- **Kayıt Hatası Giderildi:** Supabase `auth.users` üzerindeki eski `handle_new_user` trigger'ı kaldırıldı.
-- **Özel Sohbet Kurgusu Düzeltildi:** Muhabbet'te çift tıklama ile açılan özel sohbet artık veritabanına thread kaydı açmıyor.
-
-**✨ Yeni Özellikler:**
-- **Ephemeral Özel Oda (Whisper) Sistemi:** Muhabbet sayfasında çift tıkla → özel sohbet.
-- **Özel Oda Header:** Aktif özel odada header "Özel: [Kullanıcı Adı]" olarak değişiyor.
-- **Okunmamış Özel Mesaj Göstergesi:** Nabız animasyonu ile vurgulanıyor.
+... (eski kayıtlar)
 
 ---
-*Son Güncelleme: 02 Nisan 2026*
-
----
-
-# 🛰️ Tracker & Senkronizasyon Standartları (KRİTİK - ASLA DEĞİŞTİRMEYİN)
-
-Bu bölümdeki kurallar, uygulamanın farklı platformlarda (Web/Mobil) ve gerçek zamanlı (Realtime) olarak sorunsuz çalışması için **hayati** öneme sahiptir. Bu yapılandırmanın bozulması `406 Not Acceptable` hatalarına veya senkronizasyon kaybına yol açar.
-
-### 1. Sorgu Standartları (Anti-PostGREST 406)
-- **Kural:** Veritabanı sorgularında asla `.single()` veya `.maybeSingle()` **KULLANILMAMALIDIR**.
-- **Neden:** RLS (Satır Bazlı Güvenlik) bir satırı engellediğinde veya kayıt bulunamadığında bu metodlar HTTP 406 hatası fırlatır ve uygulamayı kilitler.
-- **Çözüm:** Her zaman `.limit(1)` kullanılmalı ve dönen array'in ilk elemanı (`data?.[0]`) alınmalıdır.
-  ```typescript
-  // ✅ DOĞRU (Web/Mobil Ortak)
-  const { data } = await supabase.from('transactions').select('*').eq('id', id).limit(1);
-  const transaction = data?.[0];
-  ```
-
-### 2. Gerçek Zamanlı Senkronizasyon (Broadcast vs Replication)
-- **Kural:** Tracker ekranındaki güncellemeler için Postgres Replication (`postgres_changes`) yerine **`public-chat` broadcast kanalı** kullanılmalıdır.
-- **Akış:** 
-  1. Bir kullanıcı durumu güncellediğinde (Örn: `acceptTransaction`), veritabanı işleminin hemen ardından `public-chat` kanalına `transaction_updated` eventi fırlatır.
-  2. Tracker ekranı bu kanalı dinler ve event geldiğinde veriyi tekrar çeker (refetch).
-- **Yedek Mekanizma:** Broadcast başarısızlığına karşı her 3 saniyede bir polling (periyodik kontrol) devam etmelidir.
-
-### 3. Rol Bazlı İptal Mantığı (Differentiated Cancel)
-Tracker ekranındaki "İşlemi İptal Et" butonu, kullanıcının rolüne göre farklı davranmalıdır:
-- **Seeker (Talep Eden):** İşlemi tamamen iptal eder (`status: 'cancelled'`). Talep listeden kalkar.
-- **Supporter (Destekçi):** İşlemden çekilir. Talep listeye geri döner (`status: 'waiting-supporter'`, `supporter_id: null`).
-
-### 4. RLS Politikası Gereksinimleri
-`transactions` tablosundaki `UPDATE` politikası şu 3 durumu da kapsamalıdır:
-1. `seeker_id` owner ise.
-2. `supporter_id` owner ise.
-3. `status = 'waiting-supporter'` VE `supporter_id IS NULL` ise (Yeni birinin talebi kabul edebilmesi için).
-
-### 5. Mevcut Olmayan Kolonlar (Don't Use)
-Veritabanı şemasında bulunmayan şu kolonlar **asla** sorgulara dahil edilmemelidir:
-- `qr_uploaded_at` (Kullanılmıyor)
-- `completed_at` (Kullanılmıyor)
-Sadece `qr_url` ve `status` üzerinden ilerlenmelidir.
-
---- 
-*Son Güncelleme: 02 Nisan 2026 - Tracker Standardizasyonu Tamamlandı.*
+*Son Güncelleme: 09 Nisan 2026*

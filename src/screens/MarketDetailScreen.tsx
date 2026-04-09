@@ -175,7 +175,10 @@ export function MarketDetailScreen() {
         <View style={styles.detailsBox}>
            {/* Title & Price */}
            <View style={styles.titleRow}>
-             <Text style={styles.title}>{listing.title}</Text>
+             <View style={{flex: 1}}>
+               <Text style={styles.title}>{listing.title}</Text>
+               <Text style={styles.listingIdText}>{listing.listing_id || 'WRK-ID'}</Text>
+             </View>
              <Text style={styles.price}>₺{Number(listing.required_balance).toLocaleString('tr-TR')}</Text>
            </View>
 
@@ -262,6 +265,7 @@ const styles = StyleSheet.create({
   detailsBox: { padding: 24 },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   title: { color: '#fff', fontSize: 24, fontWeight: '900', flex: 1, marginRight: 16 },
+  listingIdText: { color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 'bold' },
   price: { color: '#39ff14', fontSize: 24, fontWeight: '900' },
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 24 },
   locationText: { color: '#00e5ff', fontSize: 14, fontWeight: 'bold' },
