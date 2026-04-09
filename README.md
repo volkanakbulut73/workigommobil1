@@ -239,6 +239,19 @@ Farklı geliştirme evrelerinden ötürü Web ve Mobil platformlar farklı JSON 
 
 ## 📋 Değişiklik Günlüğü (Changelog)
 
+### v2.7.0 — 09 Nisan 2026, 22:50 (UTC+3)
+**🛠️ Web Platformu — ESLint & Kod Kalitesi Düzeltme Raporu:**
+
+Web (`anti`) projesinde tespit edilen **22 adet ESLint hatası/uyarısı** tamamen giderildi:
+
+- **State Yönetimi:** `Home.tsx` ve `Tracker.tsx` dosyalarındaki `useEffect` içinde `setState` çağrıları düzeltildi (türetilmiş değişken ve `useRef` kullanımı).
+- **Tip Güvenliği:** `services.ts`, `Profile.tsx`, `AdminDirectLogin.tsx` dosyalarındaki `any` tip atamaları `unknown`, `Record<>` ve spesifik tipler ile değiştirildi.
+- **Admin Paneli:** `AdminMarket.tsx` (×7) ve `AdminRequests.tsx` dosyalarındaki gereksiz `as any` tip atamaları interface'den direkt erişim ile temizlendi.
+- **Güvenlik:** `supabase.ts` dosyasındaki `@ts-ignore` → `@ts-expect-error` güncellendi.
+- **Kod Temizliği:** `TaleplerCreate.tsx` kullanılmayan değişken, `SwapCreate.tsx` non-null assertion düzeltildi.
+
+**Sonuç:** ESLint ✅ 0 hata · TypeScript (tsc --noEmit) ✅ 0 hata
+
 ### v2.6.0 — 09 Nisan 2026
 **🔧 Senkronizasyon ve Modernizasyon:**
 - **GitHub Sync**: Web ve Mobil repoları en güncel sürümlerle senkronize edildi.
@@ -250,4 +263,4 @@ Farklı geliştirme evrelerinden ötürü Web ve Mobil platformlar farklı JSON 
 ... (eski kayıtlar)
 
 ---
-*Son Güncelleme: 09 Nisan 2026*
+*Son Güncelleme: 09 Nisan 2026, 22:50 (UTC+3)*
