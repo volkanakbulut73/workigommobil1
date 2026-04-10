@@ -363,8 +363,30 @@ Tamamlanan, iptal edilen veya reddedilen talepler otomatik olarak bu tabloya kop
 
 ## 📋 Değişiklik Günlüğü (Changelog)
 
+### v2.10.0 — 11 Nisan 2026, 01:40 (UTC+3)
+**Admin Panel Genisletmesi ve Capraz Platform Esitligi:**
+
+**Kullanici Detay Ekrani (`UserDetailScreen.tsx`) [YENI]:**
+- Navigasyon: `navigation.navigate('UserDetail', { userId })` ile erisim.
+- Supabase Joins: `Promise.all` ile `profiles` + `transactions` + `swap_listings` es zamanli sorgusu.
+- GUVEN_SKORU: `(tamamlanan / toplam) x 100` — Neon progress bar.
+  - `>=80` = GUVENILIR | `>=50` = ORTA_RISK | `<50` = YUKSEK_RISK
+- 4 Operasyon Sekmesi:
+  1. GENEL — Profil verileri + Finansal ozet
+  2. ISLEMLER — Tum transactions (SEEKER/SUPPORTER rolu, Tracker'a hizli gecis)
+  3. ILANLAR — swap_listings (MarketDetail'a hizli gecis)
+  4. AKTIVITE — Kronolojik timeline (islemler + ilanlar birlesik)
+- `MainStack.tsx`: `UserDetail` route eklendi.
+- `linking.ts`: `user/:userId` deep link eklendi.
+
+**Web Admin Degisiklikleri (anti repo v3.5.0 ile senkron):**
+- `AdminFinance.tsx`: SENTINEL Financial Operations arayuzu (gercek veri).
+- `AdminUserDetail.tsx` [YENI]: Kullanici detay sayfasi (4 sekme + GUVEN_SKORU).
+- `AdminUsers.tsx`: Gercek Supabase verisi, arama, navigasyon.
+- `AdminMessages.tsx` [YENI]: Tek/toplu kullanici bildirim gonderme sistemi.
+
 ### v2.9.0 — 10 Nisan 2026, 08:00 (UTC+3)
-**📦 Arşiv Sistemi:**
+**Arsiv Sistemi:**
 
 - **`transactions_archive` Tablosu**: Tamamlanan/iptal edilen/reddedilen talepler otomatik olarak arşiv tablosuna kopyalanır (DB trigger ile).
 - **Admin Operasyon Geçmişi**: Web admin paneli artık `transactions_archive` tablosundan veri çeker.
@@ -403,4 +425,4 @@ Web (`anti`) projesinde tespit edilen **22 adet ESLint hatası/uyarısı** tamam
 ... (eski kayıtlar)
 
 ---
-*Son Güncelleme: 10 Nisan 2026, 08:00 (UTC+3)*
+*Son Guncelleme: 11 Nisan 2026, 01:40 (UTC+3)*
