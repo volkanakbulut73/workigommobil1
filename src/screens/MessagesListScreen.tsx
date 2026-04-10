@@ -11,7 +11,7 @@ import { useNotificationStore } from '../store/useNotificationStore';
 import { supabase } from '../lib/supabase';
 import {
   ChevronLeft, Search, MessageCircle,
-  Filter, Bell, ShieldCheck, AlertTriangle
+  Filter, Bell, ShieldCheck, AlertTriangle, Trash2
 } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -102,6 +102,30 @@ export function MessagesListScreen() {
     );
   };
 
+  // Delete a system notification
+  const deleteSystemNotif = (id: string, title: string) => {
+    Alert.alert(
+      "Bildirimi Sil",
+      `"${title}" bildirimini silmek istediğinize emin misiniz?`,
+      [
+        { text: "İptal", style: "cancel" },
+        {
+          text: "Sil",
+          style: "destructive",
+          onPress: async () => {
+            setSystemNotifs(prev => prev.filter(n => n.id !== id));
+            try {
+              await supabase.from('notifications').delete().eq('id', id);
+            } catch (err) {
+              console.error('Delete notif error:', err);
+              fetchSystemNotifications();
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const getNotifIcon = (type: string) => {
     if (type === 'transaction') return <AlertTriangle size={18} color="#facc15" />;
     return <ShieldCheck size={18} color="#39ff14" />;
@@ -138,18 +162,31 @@ export function MessagesListScreen() {
     if (item._kind === 'system') {
       const n = item.data;
       return (
-        <View style={[styles.systemCard, !n.read && styles.systemCardUnread]}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onLongPress={() => deleteSystemNotif(n.id, n.title)}
+          style={[styles.systemCard, !n.read && styles.systemCardUnread]}
+        >
           <View style={styles.systemIconBox}>
             {getNotifIcon(n.type)}
           </View>
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={styles.systemTitle} numberOfLines={1}>{n.title}</Text>
-              <Text style={styles.systemTime}>
-                {new Date(n.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}
-                {' '}
-                {new Date(n.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={styles.systemTime}>
+                  {new Date(n.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}
+                  {' '}
+                  {new Date(n.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => deleteSystemNotif(n.id, n.title)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  style={{ padding: 4, backgroundColor: 'rgba(239,68,68,0.1)', borderRadius: 6 }}
+                >
+                  <Trash2 size={12} color="#ef4444" />
+                </TouchableOpacity>
+              </View>
             </View>
             <Text style={styles.systemContent} numberOfLines={2}>{n.content}</Text>
             <View style={styles.systemTypeBadge}>
@@ -158,7 +195,7 @@ export function MessagesListScreen() {
               </Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       );
     }
 
