@@ -316,6 +316,20 @@ Her iki platform da Tracker ekranında aynı üç mekanizmayı **eş zamanlı** 
 *   `qr_uploaded_at` ve `completed_at` sütunları DB'de **mevcut değildir**. Bu alanlara yazma girişimi `PGRST204` hatasına neden olur.
 *   Status güncellemelerinde sadece `status` + desteklenen alanlar (ör. `qr_url`) kullanılır.
 
+### `transactions_archive` — Tamamlanmış İşlemler Arşivi
+**Açıklama:**
+Tamamlanan, iptal edilen veya reddedilen talepler otomatik olarak bu tabloya kopyalanır.
+
+> ⛔ **BU TABLO VE TRİGGER KESİNLEŞTİRİLMİŞTİR. DEĞİŞTİRİLMEMELİDİR.**
+
+**Otomatik Arşivleme Mekanizması:**
+*   `transactions` tablosunda bir kayıt `completed`, `cancelled` veya `dismissed` statüsüne geçtiğinde, `trg_archive_transaction` trigger'ı otomatik olarak `transactions_archive` tablosuna kopyalar.
+*   Aynı ID tekrar arşivlenirse `ON CONFLICT` ile güncellenir.
+
+**Kolonlar:** `transactions` tablosuyla aynı yapıda + ek `archived_at` (timestamptz) sütunu.
+
+**SQL Referans Dosyası:** `anti/database/create_transactions_archive.sql`
+
 ## ⚡ Supabase Realtime Yapılandırması
 
 ---
@@ -348,6 +362,13 @@ Her iki platform da Tracker ekranında aynı üç mekanizmayı **eş zamanlı** 
 ---
 
 ## 📋 Değişiklik Günlüğü (Changelog)
+
+### v2.9.0 — 10 Nisan 2026, 08:00 (UTC+3)
+**📦 Arşiv Sistemi:**
+
+- **`transactions_archive` Tablosu**: Tamamlanan/iptal edilen/reddedilen talepler otomatik olarak arşiv tablosuna kopyalanır (DB trigger ile).
+- **Admin Operasyon Geçmişi**: Web admin paneli artık `transactions_archive` tablosundan veri çeker.
+- **SQL Referans Dosyası**: `anti/database/create_transactions_archive.sql` oluşturuldu.
 
 ### v2.8.0 — 10 Nisan 2026, 05:00 (UTC+3)
 **🔒 Çapraz Platform Veritabanı Uyum & RLS Kesinleştirmesi:**
@@ -382,4 +403,4 @@ Web (`anti`) projesinde tespit edilen **22 adet ESLint hatası/uyarısı** tamam
 ... (eski kayıtlar)
 
 ---
-*Son Güncelleme: 10 Nisan 2026, 05:00 (UTC+3)*
+*Son Güncelleme: 10 Nisan 2026, 08:00 (UTC+3)*
