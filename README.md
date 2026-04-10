@@ -294,6 +294,27 @@ Kullanıcı talep oluşturur (Web veya Mobile)
 | **Seeker** (talep sahibi) | `status → 'cancelled'` | Talep kalıcı olarak iptal olur |
 | **Supporter** (destekçi) | `status → 'waiting-supporter'`, `supporter_id → null` | Talep havuza geri döner, başka supporter aranır |
 
+### 📡 Tracker Mimarisi (Web & Mobile Ortak)
+
+> ⛔ **BU MİMARİ KESİNLEŞTİRİLMİŞTİR. DEĞİŞTİRİLMEMELİDİR.**
+
+**Realtime Güncelleme Stratejisi (Çift Katmanlı + Polling):**
+
+Her iki platform da Tracker ekranında aynı üç mekanizmayı **eş zamanlı** kullanır:
+
+| # | Mekanizma | Açıklama |
+|---|-----------|----------|
+| 1 | **postgres_changes** | Supabase Realtime Replication açıksa `UPDATE` eventleri anında dinler |
+| 2 | **broadcast** | `transaction_updated` event'ini dinler (karşı tarafın tetiklediği sinyaller) |
+| 3 | **3s polling** | `setInterval(fetchTransaction, 3000)` — garanti güncelleme (Realtime kapalı olsa bile çalışır) |
+
+**Veri Çekme (`getTransactionById`):**
+*   `.maybeSingle()` kullanılır (`.single()` DEĞİL). Çünkü `.single()` sonuç yoksa `406 Not Acceptable` hatası fırlatır.
+*   Nested profil verileri join ile çekilir: `seeker:profiles!seeker_id(full_name), supporter:profiles!supporter_id(full_name)`
+
+**Var Olmayan Sütunlara Yazma Yasağı:**
+*   `qr_uploaded_at` ve `completed_at` sütunları DB'de **mevcut değildir**. Bu alanlara yazma girişimi `PGRST204` hatasına neden olur.
+*   Status güncellemelerinde sadece `status` + desteklenen alanlar (ör. `qr_url`) kullanılır.
 
 ## ⚡ Supabase Realtime Yapılandırması
 
