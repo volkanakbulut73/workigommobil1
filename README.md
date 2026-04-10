@@ -202,9 +202,98 @@ Farklı geliştirme evrelerinden ötürü Web ve Mobil platformlar farklı JSON 
 
 ---
 
-## 🔒 Supabase RLS (Row Level Security) Politikaları
+## 🔒 Supabase RLS (Row Level Security) Politikaları — KESİNLEŞTİRİLMİŞ (10 Nisan 2026)
 
----
+> ⛔ **KRİTİK UYARI: BU POLİTİKALAR KESİNLEŞTİRİLMİŞTİR. HİÇBİR KOŞULDA DEĞİŞTİRİLMEMELİ, SİLİNMEMELİ VEYA YENİDEN YAZILMAMALIDIR. Bu yapılandırma Web ve Mobile platformlarının ortak veritabanı üzerinde sorunsuz çalışmasını sağlayan tek doğru konfigürasyondur. Müdahale edilmesi durumunda her iki platformda da talep görünürlüğü, admin onay akışı ve iptal mekanizması BOZULUR.**
+
+### `transactions` Tablosu RLS Politikaları
+
+**SELECT — `"Islemleri Goruntuleme"`:**
+```sql
+CREATE POLICY "Islemleri Goruntuleme" ON public.transactions
+  FOR SELECT USING (
+    auth.uid() = seeker_id
+    OR auth.uid() = supporter_id
+    OR status = 'waiting-supporter'
+    OR EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+```
+**Açıklama:** Kullanıcılar kendi taleplerini (`seeker_id`) ve destekledikleri talepleri (`supporter_id`) görebilir. `waiting-supporter` statüsündeki talepler herkes tarafından görülür (eşleşme havuzu). Admin rolündeki kullanıcılar **tüm** talepleri (pending dahil) görebilir.
+
+**INSERT — `"Talep Olusturma"`:**
+```sql
+CREATE POLICY "Talep Olusturma" ON public.transactions
+  FOR INSERT WITH CHECK (auth.uid() = seeker_id);
+```
+
+**UPDATE — `"Talep Guncelleme"`:**
+```sql
+CREATE POLICY "Talep Guncelleme" ON public.transactions
+  FOR UPDATE USING (
+    auth.uid() = seeker_id
+    OR auth.uid() = supporter_id
+    OR (supporter_id IS NULL AND status = 'waiting-supporter')
+    OR EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  ) WITH CHECK (
+    auth.uid() = seeker_id
+    OR auth.uid() = supporter_id
+    OR EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+```
+**Açıklama:** Taraflar kendi işlemlerini güncelleyebilir. Destekçisi olmayan `waiting-supporter` talepleri herkes tarafından kabul edilebilir. Admin rolündeki kullanıcılar tüm talepleri güncelleyebilir (onay/red).
+
+### 🔄 Talep Yaşam Döngüsü (Transaction Lifecycle)
+
+> ⛔ **BU AKIŞ KESİNLEŞTİRİLMİŞTİR. DEĞİŞTİRİLMEMELİDİR.**
+
+```
+Kullanıcı talep oluşturur (Web veya Mobile)
+        │
+        ▼
+   status = 'pending'  ←── Kullanıcı sadece kendi talebini görür
+        │
+        ▼
+   Admin Paneli (SENTINEL) → "Onay Vitrini"nde görünür
+        │
+   ┌────┴────┐
+   │ ONAYLA  │  REDDİ
+   ▼         ▼
+ 'waiting-supporter'   'dismissed'
+   │
+   ▼
+  Tüm kullanıcılar Talepler sayfasında görür (eşleşme havuzu)
+   │
+   ▼
+  Supporter kabul eder → 'waiting-cash-payment'
+   │
+   ▼
+  Seeker ödeme yapar → 'cash-paid'
+   │
+   ▼
+  Supporter QR yükler → 'qr-uploaded'
+   │
+   ▼
+  Seeker onaylar → 'completed' ✅
+```
+
+### 🚫 İptal Davranışı (Cancel Differentiation)
+
+> ⛔ **BU MANTIK KESİNLEŞTİRİLMİŞTİR. DEĞİŞTİRİLMEMELİDİR.**
+
+| Kim İptal Etti | Sonuç | Açıklama |
+|----------------|-------|----------|
+| **Seeker** (talep sahibi) | `status → 'cancelled'` | Talep kalıcı olarak iptal olur |
+| **Supporter** (destekçi) | `status → 'waiting-supporter'`, `supporter_id → null` | Talep havuza geri döner, başka supporter aranır |
+
 
 ## ⚡ Supabase Realtime Yapılandırması
 
@@ -239,6 +328,15 @@ Farklı geliştirme evrelerinden ötürü Web ve Mobil platformlar farklı JSON 
 
 ## 📋 Değişiklik Günlüğü (Changelog)
 
+### v2.8.0 — 10 Nisan 2026, 05:00 (UTC+3)
+**🔒 Çapraz Platform Veritabanı Uyum & RLS Kesinleştirmesi:**
+
+- **RLS Politika Düzeltmesi**: `transactions` tablosunun SELECT ve UPDATE politikaları admin rolü desteği ile yeniden yapılandırıldı. Admin artık `pending` talepleri görebilir ve onay/red yapabilir.
+- **Admin Onay Akışı**: `createTransactionRequest` başlangıç statüsü `'waiting-supporter'` → `'pending'` olarak düzeltildi. Tüm talepler admin onayı gerektiriyor.
+- **İptal Farklılaştırması**: Mobile'daki `cancelTransactionBySeeker` ve `cancelTransactionBySupporter` mantığı Web'e de taşındı, çapraz platform eşitliği sağlandı.
+- **Tip Senkronizasyonu**: `Profile` tipine `role: string | null` eklendi. `SwapListing` tipinden deprecated `user_id` kaldırıldı.
+- **RLS Referans SQL**: `anti/database/fix_rls_admin_policies.sql` oluşturuldu.
+
 ### v2.7.0 — 09 Nisan 2026, 22:50 (UTC+3)
 **🛠️ Web Platformu — ESLint & Kod Kalitesi Düzeltme Raporu:**
 
@@ -263,4 +361,4 @@ Web (`anti`) projesinde tespit edilen **22 adet ESLint hatası/uyarısı** tamam
 ... (eski kayıtlar)
 
 ---
-*Son Güncelleme: 09 Nisan 2026, 22:50 (UTC+3)*
+*Son Güncelleme: 10 Nisan 2026, 05:00 (UTC+3)*

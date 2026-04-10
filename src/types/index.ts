@@ -9,6 +9,7 @@ export type Profile = {
     total_earnings: number;
     iban: string | null;
     referral_code: string | null;
+    role: string | null;
     created_at: string;
 };
 
@@ -36,8 +37,6 @@ export type Transaction = {
     district: string | null;
     created_at: string;
     expiry_date: string | null;
-    qr_uploaded_at: string | null;
-    completed_at: string | null;
     profiles?: Partial<Profile>;
 };
 
@@ -46,7 +45,6 @@ export type SwapListingStatus = 'active' | 'pending' | 'completed' | 'rejected' 
 export type SwapListing = {
     id: string;
     listing_id: string | null;
-    user_id?: string;
     owner_id: string;
     title: string;
     description: string | null;
