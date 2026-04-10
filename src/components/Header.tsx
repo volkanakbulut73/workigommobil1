@@ -11,10 +11,17 @@ interface HeaderProps {
 
 export function Header({ showActions = true, logoMode = 'full' }: HeaderProps) {
   const navigation = useNavigation<any>();
-  const { unreadCount, unreadMessageCount } = useNotificationStore();
+  const { unreadCount, unreadMessageCount, setUnreadCount, setUnreadMessageCount } = useNotificationStore();
 
   // Admin system notifications + DM messages combined on message icon
   const totalInboxCount = unreadMessageCount + unreadCount;
+
+  const handleMessagesPress = () => {
+    // Immediately clear badge before navigating
+    setUnreadCount(0);
+    setUnreadMessageCount(0);
+    navigation.navigate('MessagesList');
+  };
 
   return (
     <View style={styles.safeArea}>
@@ -30,7 +37,7 @@ export function Header({ showActions = true, logoMode = 'full' }: HeaderProps) {
           <View style={styles.actions}>
             <TouchableOpacity 
               style={styles.iconButton}
-              onPress={() => navigation.navigate('MessagesList')}
+              onPress={handleMessagesPress}
             >
               <MessageCircle color="#8eff71" size={24} />
               {totalInboxCount > 0 && (
