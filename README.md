@@ -363,6 +363,35 @@ Tamamlanan, iptal edilen veya reddedilen talepler otomatik olarak bu tabloya kop
 
 ## 📋 Değişiklik Günlüğü (Changelog)
 
+### v2.11.0 — 11 Nisan 2026, 02:10 (UTC+3)
+**Bildirim Sistemi Yeniden Yapilandirmasi — Web ve Mobil Esitlik:**
+
+**Bildirim Akisi (Web + Mobile ayni mantik):**
+- Admin panelinden gonderilen `system` ve `transaction` tipi bildirimler artik kullanicinin **Mesajlar (Gelen Kutusu)** ekraninda gorunur.
+- Bildirimler, sohbet listesinin **ustunde** "SISTEM MESAJLARI" bolumu olarak gruplanir.
+- Kullanici mesaj kutusunu actiginda okunmamis bildirimler otomatik `read: true` olarak isaretlenir.
+- Badge (rozet) sayaci sifirlanir.
+
+**Degisen Dosyalar:**
+- `MessagesListScreen.tsx`: `notifications` tablosundan admin mesajlari cekilip gelen kutusunun ustunde gosteriliyor. Her bildirim tip etiketli (SISTEM/ISLEM).
+- `Header.tsx`: Mesaj ikonu badge = `unreadMessageCount + unreadCount`. Bell ikonu badge kaldirildi.
+- Ekran acildiginda okunmamis bildirimler otomatik `read: true` yapiliyor, `fetchCounts` ile badge guncelleniyor.
+
+**Badge Hesaplama (Web ile ayni):**
+```
+totalInboxCount = unreadMessageCount (messages) + unreadCount (notifications)
+```
+
+**Veri Akisi:**
+```
+Admin -> notifications INSERT (type: system/transaction)
+  -> Realtime subscription tetiklenir
+  -> Badge artar (mesaj ikonu)
+  -> Kullanici mesaj kutusunu acar
+  -> Sistem Mesajlari bolumunde gorur
+  -> Otomatik read: true -> Badge sifirlanir
+```
+
 ### v2.10.0 — 11 Nisan 2026, 01:40 (UTC+3)
 **Admin Panel Genisletmesi ve Capraz Platform Esitligi:**
 
@@ -425,4 +454,4 @@ Web (`anti`) projesinde tespit edilen **22 adet ESLint hatası/uyarısı** tamam
 ... (eski kayıtlar)
 
 ---
-*Son Guncelleme: 11 Nisan 2026, 01:40 (UTC+3)*
+*Son Guncelleme: 11 Nisan 2026, 02:10 (UTC+3)*
