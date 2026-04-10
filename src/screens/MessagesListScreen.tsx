@@ -113,9 +113,23 @@ export function MessagesListScreen() {
           text: "Sil",
           style: "destructive",
           onPress: async () => {
+            // Optimistic UI
             setSystemNotifs(prev => prev.filter(n => n.id !== id));
             try {
-              await supabase.from('notifications').delete().eq('id', id);
+              const { error } = await supabase
+                .from('notifications')
+                .delete()
+                .eq('id', id)
+                .eq('user_id', profile?.id);
+
+              if (error) {
+                console.error('Delete notif RLS error:', error);
+                // Rollback - re-fetch
+                fetchSystemNotifications();
+              } else {
+                // Update badge count after successful delete
+                if (profile?.id) fetchCounts(profile.id);
+              }
             } catch (err) {
               console.error('Delete notif error:', err);
               fetchSystemNotifications();
