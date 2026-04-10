@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, Image,
   ActivityIndicator, RefreshControl, Alert, StatusBar as RNStatusBar, Dimensions
@@ -8,12 +8,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/useAuthStore';
 import { useMessageStore } from '../store/useMessageStore';
 import { useNotificationStore } from '../store/useNotificationStore';
+import { supabase } from '../lib/supabase';
 import {
-  ChevronLeft, MessageSquare, Search, MessageCircle,
-  MoreVertical, X, Filter
+  ChevronLeft, Search, MessageCircle,
+  Filter, Bell, ShieldCheck, AlertTriangle
 } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+interface SystemNotification {
+  id: string;
+  title: string;
+  content: string;
+  type: string;
+  read: boolean;
+  created_at: string;
+}
 
 export function MessagesListScreen() {
   const navigation = useNavigation<any>();
@@ -25,12 +35,47 @@ export function MessagesListScreen() {
   const fetchThreads = useMessageStore((state: any) => state.fetchThreads);
   const deleteThread = useMessageStore((state: any) => state.deleteThread);
   const unreadThreadIds = useNotificationStore((state: any) => state.unreadThreadIds);
+  const fetchCounts = useNotificationStore((state: any) => state.fetchCounts);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Admin system notifications
+  const [systemNotifs, setSystemNotifs] = useState<SystemNotification[]>([]);
+
+  const fetchSystemNotifications = useCallback(async () => {
+    if (!profile?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('id, title, content, type, read, created_at')
+        .eq('user_id', profile.id)
+        .in('type', ['system', 'transaction'])
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (!error && data) {
+        setSystemNotifs(data);
+
+        // Mark unread ones as read
+        const unreadIds = data.filter(n => !n.read).map(n => n.id);
+        if (unreadIds.length > 0) {
+          await supabase
+            .from('notifications')
+            .update({ read: true })
+            .in('id', unreadIds);
+          // Refresh badge count
+          fetchCounts(profile.id);
+        }
+      }
+    } catch (err) {
+      console.error('System notifs fetch error:', err);
+    }
+  }, [profile?.id]);
 
   useFocusEffect(
     useCallback(() => {
       if (profile?.id) {
         fetchThreads(profile.id);
+        fetchSystemNotifications();
       }
     }, [profile?.id])
   );
@@ -38,7 +83,10 @@ export function MessagesListScreen() {
   const onRefresh = async () => {
     if (profile?.id) {
       setRefreshing(true);
-      await fetchThreads(profile.id);
+      await Promise.all([
+        fetchThreads(profile.id),
+        fetchSystemNotifications(),
+      ]);
       setRefreshing(false);
     }
   };
@@ -54,24 +102,93 @@ export function MessagesListScreen() {
     );
   };
 
-  const renderItem = ({ item }: { item: any }) => {
-    const isBuyer = profile?.id === item.buyer_id;
-    const otherUser = isBuyer ? item.seller : item.buyer;
+  const getNotifIcon = (type: string) => {
+    if (type === 'transaction') return <AlertTriangle size={18} color="#facc15" />;
+    return <ShieldCheck size={18} color="#39ff14" />;
+  };
+
+  /* ═══ Combined list data ═══ */
+  type ListItem = { _kind: 'system_header' } | { _kind: 'system'; data: SystemNotification } | { _kind: 'threads_header' } | { _kind: 'thread'; data: any };
+
+  const listData: ListItem[] = [];
+
+  // System notifications section
+  if (systemNotifs.length > 0) {
+    listData.push({ _kind: 'system_header' });
+    systemNotifs.forEach(n => listData.push({ _kind: 'system', data: n }));
+  }
+
+  // Threads section
+  listData.push({ _kind: 'threads_header' });
+  threads.forEach((t: any) => listData.push({ _kind: 'thread', data: t }));
+
+  const renderCombinedItem = ({ item }: { item: ListItem }) => {
+    if (item._kind === 'system_header') {
+      return (
+        <View style={styles.sectionHeader}>
+          <Bell size={12} color="#39ff14" />
+          <Text style={styles.sectionHeaderText}>SİSTEM MESAJLARI</Text>
+          <View style={styles.sectionBadge}>
+            <Text style={styles.sectionBadgeText}>{systemNotifs.filter(n => !n.read).length > 0 ? 'YENİ' : `${systemNotifs.length}`}</Text>
+          </View>
+        </View>
+      );
+    }
+
+    if (item._kind === 'system') {
+      const n = item.data;
+      return (
+        <View style={[styles.systemCard, !n.read && styles.systemCardUnread]}>
+          <View style={styles.systemIconBox}>
+            {getNotifIcon(n.type)}
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={styles.systemTitle} numberOfLines={1}>{n.title}</Text>
+              <Text style={styles.systemTime}>
+                {new Date(n.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}
+                {' '}
+                {new Date(n.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            </View>
+            <Text style={styles.systemContent} numberOfLines={2}>{n.content}</Text>
+            <View style={styles.systemTypeBadge}>
+              <Text style={[styles.systemTypeText, { color: n.type === 'transaction' ? '#facc15' : '#39ff14' }]}>
+                {n.type === 'transaction' ? 'İŞLEM' : 'SİSTEM'}
+              </Text>
+            </View>
+          </View>
+        </View>
+      );
+    }
+
+    if (item._kind === 'threads_header') {
+      return (
+        <View style={[styles.sectionHeader, { marginTop: systemNotifs.length > 0 ? 16 : 0 }]}>
+          <MessageCircle size={12} color="#FF007F" />
+          <Text style={[styles.sectionHeaderText, { color: '#FF007F' }]}>SOHBETLER</Text>
+        </View>
+      );
+    }
+
+    // Thread item
+    const t = item.data;
+    const isBuyer = profile?.id === t.buyer_id;
+    const otherUser = isBuyer ? t.seller : t.buyer;
     const otherName = otherUser?.full_name || 'İsimsiz Kullanıcı';
     const otherAvatar = otherUser?.avatar_url || `https://ui-avatars.com/api/?name=${otherName.replace(' ', '+')}&background=1d1f2a&color=FF007F&rounded=true&bold=true`;
-
-    const listingTitle = item.listing?.title;
-    const unread = unreadThreadIds.includes(item.id);
+    const listingTitle = t.listing?.title;
+    const unread = unreadThreadIds.includes(t.id);
 
     return (
       <TouchableOpacity
         style={styles.threadItem}
         onPress={() => navigation.navigate('Chat', {
-          threadId: item.id,
+          threadId: t.id,
           title: listingTitle || otherName,
           receiverId: otherUser?.id
         })}
-        onLongPress={() => handleDeleteThread(item.id, otherName)}
+        onLongPress={() => handleDeleteThread(t.id, otherName)}
         activeOpacity={0.7}
       >
         <View style={styles.avatarContainer}>
@@ -83,7 +200,7 @@ export function MessagesListScreen() {
           <View style={styles.threadHeader}>
             <Text style={[styles.otherName, unread && styles.otherNameUnread]} numberOfLines={1}>{otherName}</Text>
             <Text style={styles.timeText}>
-              {new Date(item.updated_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+              {new Date(t.updated_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </View>
 
@@ -96,7 +213,7 @@ export function MessagesListScreen() {
 
           <View style={styles.messageRow}>
             <Text style={[styles.lastMessage, unread && styles.lastMessageUnread]} numberOfLines={1}>
-              {item.last_message ? item.last_message : (item.messages && item.messages[0]?.content?.includes('[img]') ? '📷 Fotoğraf' : '🎵 Sesli Mesaj')}
+              {t.last_message ? t.last_message : (t.messages && t.messages[0]?.content?.includes('[img]') ? '📷 Fotoğraf' : '🎵 Sesli Mesaj')}
             </Text>
             {unread && (
               <View style={styles.unreadIndicator}>
@@ -107,6 +224,14 @@ export function MessagesListScreen() {
         </View>
       </TouchableOpacity>
     );
+  };
+
+  const getItemKey = (item: ListItem, index: number) => {
+    if (item._kind === 'system_header') return 'sys-header';
+    if (item._kind === 'threads_header') return 'threads-header';
+    if (item._kind === 'system') return `sys-${item.data.id}`;
+    if (item._kind === 'thread') return `thread-${item.data.id}`;
+    return `item-${index}`;
   };
 
   return (
@@ -127,7 +252,7 @@ export function MessagesListScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Search Bar - Glassmorphism */}
+      {/* Search Bar */}
       <View style={styles.searchSection}>
         <View style={styles.searchContainer}>
           <Search color="#FF007F" size={18} style={styles.searchIcon} />
@@ -142,9 +267,9 @@ export function MessagesListScreen() {
         </View>
       ) : (
         <FlatList
-          data={threads}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
+          data={listData}
+          keyExtractor={getItemKey}
+          renderItem={renderCombinedItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -256,6 +381,99 @@ const styles = StyleSheet.create({
     color: '#555',
     fontSize: 14,
     fontWeight: '600'
+  },
+
+  // Section headers
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.03)',
+  },
+  sectionHeaderText: {
+    color: '#39ff14',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    flex: 1,
+  },
+  sectionBadge: {
+    backgroundColor: 'rgba(57,255,20,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(57,255,20,0.3)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  sectionBadgeText: {
+    color: '#39ff14',
+    fontSize: 8,
+    fontWeight: '900',
+  },
+
+  // System notification cards
+  systemCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.02)',
+  },
+  systemCardUnread: {
+    backgroundColor: 'rgba(57,255,20,0.03)',
+    borderRadius: 8,
+    marginVertical: 2,
+    paddingHorizontal: 10,
+  },
+  systemIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(57,255,20,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(57,255,20,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  systemTitle: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '800',
+    flex: 1,
+    marginRight: 8,
+  },
+  systemContent: {
+    color: '#888',
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  systemTime: {
+    color: '#555',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  systemTypeBadge: {
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    backgroundColor: 'rgba(57,255,20,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(57,255,20,0.15)',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 3,
+  },
+  systemTypeText: {
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1,
   },
 
   // List

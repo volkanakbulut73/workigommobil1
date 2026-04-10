@@ -13,6 +13,9 @@ export function Header({ showActions = true, logoMode = 'full' }: HeaderProps) {
   const navigation = useNavigation<any>();
   const { unreadCount, unreadMessageCount } = useNotificationStore();
 
+  // Admin system notifications + DM messages combined on message icon
+  const totalInboxCount = unreadMessageCount + unreadCount;
+
   return (
     <View style={styles.safeArea}>
       <View style={styles.container}>
@@ -30,9 +33,9 @@ export function Header({ showActions = true, logoMode = 'full' }: HeaderProps) {
               onPress={() => navigation.navigate('MessagesList')}
             >
               <MessageCircle color="#8eff71" size={24} />
-              {unreadMessageCount > 0 && (
+              {totalInboxCount > 0 && (
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{unreadMessageCount}</Text>
+                  <Text style={styles.badgeText}>{totalInboxCount}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -42,11 +45,6 @@ export function Header({ showActions = true, logoMode = 'full' }: HeaderProps) {
               onPress={() => navigation.navigate('Notifications')}
             >
               <Bell color="#8eff71" size={24} />
-              {unreadCount > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{unreadCount}</Text>
-                </View>
-              )}
             </TouchableOpacity>
           </View>
         )}
