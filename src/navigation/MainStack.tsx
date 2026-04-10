@@ -10,6 +10,7 @@ import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { TalepDetailScreen } from '../screens/TalepDetailScreen';
 import { TrackerScreen } from '../screens/TrackerScreen';
 import SupportScreen from '../screens/SupportScreen';
+import { UserDetailScreen } from '../screens/UserDetailScreen';
 
 const Stack = createStackNavigator();
 
@@ -72,6 +73,12 @@ export function MainStack() {
         component={SupportScreen} 
         options={{ headerShown: false }} 
       />
+      <Stack.Screen 
+        name="UserDetail" 
+        component={UserDetailScreen} 
+        options={{ headerShown: false }} 
+      />
     </Stack.Navigator>
   );
 }
+

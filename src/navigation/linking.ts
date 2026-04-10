@@ -67,6 +67,7 @@ export const linking: LinkingOptions<any> = {
       Details: 'details/:id',
       Tracker: 'tracker/:id',
       MarketDetail: 'market/:id',
+      UserDetail: 'user/:userId',
 
     },
   },
