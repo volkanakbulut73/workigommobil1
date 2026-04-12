@@ -28,8 +28,18 @@ export const useMarketStore = create<MarketStore>((set) => ({
       
       const allListings = (data || []) as unknown as SwapListing[];
       
-      const myListings = userId ? allListings.filter(item => (item as any).owner_id === userId) : [];
-      const marketListings = allListings;
+      // Pazar sekmesi: Sadece 'active' statüsündeki ve süresi dolmamış ilanlar (Web ile aynı mantık)
+      const now = new Date();
+      const marketListings = allListings.filter(item => {
+        if (item.status !== 'active') return false;
+        if (item.expiry_date && new Date(item.expiry_date) < now) return false;
+        return true;
+      });
+      
+      // İlanlarım sekmesi: Kullanıcının kendi ilanları (completed hariç, pending dahil)
+      const myListings = userId 
+        ? allListings.filter(item => (item as any).owner_id === userId && item.status !== 'completed') 
+        : [];
 
       set({ listings: marketListings, myListings, loading: false });
     } catch (err: any) {

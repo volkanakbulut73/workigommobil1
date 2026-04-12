@@ -433,6 +433,17 @@ Tamamlanan, iptal edilen veya reddedilen talepler otomatik olarak bu tabloya kop
 
 ## 📋 Değişiklik Günlüğü (Changelog)
 
+### v2.13.0 — 13 Nisan 2026, 02:07 (UTC+3)
+**🛍️ Market İlan Filtreleme Düzeltmesi — Web ile Eşitlik:**
+
+- **Sorun:** Mobil Market sayfasında oluşturulan ilanlar `pending` statüsünde olmasına rağmen Pazar sekmesinde herkese görünüyordu. Admin onayı beklenmeden yayınlanıyordu.
+- **Çözüm:** `useMarketStore.ts` içindeki `fetchListings` fonksiyonu Web versiyonuyla aynı filtreleme mantığına kavuşturuldu:
+  - **Pazar sekmesi:** Sadece `status === 'active'` VE süresi dolmamış ilanlar gösteriliyor.
+  - **İlanlarım sekmesi:** Kullanıcının kendi ilanları (`pending` dahil, `completed` hariç) gösteriliyor.
+
+**Değişen Dosyalar:**
+- `useMarketStore.ts`: `marketListings` filtresi eklendi (`status === 'active'` + `expiry_date` kontrolü).
+
 ### v2.12.0 — 13 Nisan 2026, 01:14 (UTC+3)
 **🤖 Workigom AI Bot — Mobil Muhabbet Entegrasyonu:**
 
@@ -538,4 +549,4 @@ Web (`anti`) projesinde tespit edilen **22 adet ESLint hatası/uyarısı** tamam
 ... (eski kayıtlar)
 
 ---
-*Son Guncelleme: 13 Nisan 2026, 01:14 (UTC+3)*
+*Son Guncelleme: 13 Nisan 2026, 02:07 (UTC+3)*
