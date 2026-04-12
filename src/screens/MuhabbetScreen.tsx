@@ -592,6 +592,7 @@ export default function MuhabbetScreen() {
   const [showRoomDropdown, setShowRoomDropdown] = useState(false);
   const [currentRoom, setCurrentRoom] = useState('genel');
   const [isBotTyping, setIsBotTyping] = useState(false);
+  const [previousInteractionId, setPreviousInteractionId] = useState<string | null>(null);
   const { blockedUsers, fetchBlocks, blockUser, unblockUser, isBlocked } = useBlockStore();
 
   useEffect(() => {
@@ -656,20 +657,101 @@ export default function MuhabbetScreen() {
   const handleSend = async () => {
     if (!inputText.trim()) return;
 
+    const msgText = inputText.trim();
+
     try {
       if (activePrivateTab) {
-        await sendPrivateMessage(activePrivateTab.id, inputText.trim(), activePrivateTab.name);
+        await sendPrivateMessage(activePrivateTab.id, msgText, activePrivateTab.name);
       } else {
         await sendMessage('genel', {
           sender_id: profile?.id,
           sender_name: profile?.full_name || 'Anonim',
           avatar_url: profile?.avatar_url || '',
-          content: inputText.trim()
+          content: msgText
         });
       }
       setInputText('');
       setShowEmojiPicker(false);
       setShowColorPicker(false);
+
+      // --- AI Bot Trigger (Only in Global Chat, matching Web behavior) ---
+      if (!activePrivateTab) {
+        const isBotTriggered = msgText.toLowerCase().includes('@workigom') || msgText.toLowerCase().includes('/workigom');
+
+        if (isBotTriggered) {
+          setIsBotTyping(true);
+          try {
+            const response = await fetch('https://toqroogfufzgxsxemfeh.supabase.co/functions/v1/gemini-bot', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                message: msgText,
+                user_name: profile?.full_name,
+                previous_interaction_id: previousInteractionId
+              }),
+            });
+
+            const data = await response.json();
+            const botReply = data?.response || 'Sanırım sistemlerimde bir arıza var...';
+
+            if (data?.interaction_id) {
+              setPreviousInteractionId(data.interaction_id);
+            }
+
+            if (!response.ok || data?.error) {
+              console.error('Edge Function error:', data?.error || response.statusText);
+            }
+
+            const botMessage: { id: string; sender_id: string; sender_name: string; avatar_url: string; content: string; created_at: string } = {
+              id: Date.now().toString() + '-bot',
+              sender_id: 'bot-1',
+              sender_name: 'Workigom AI',
+              avatar_url: '',
+              content: botReply,
+              created_at: new Date().toISOString(),
+            };
+
+            // Add to local messages
+            useMuhabbetStore.getState().addMessage(botMessage);
+
+            // Broadcast to others using merged Web+Mobile schema
+            const { currentBroadcastChannel } = useMuhabbetStore.getState();
+            if (currentBroadcastChannel) {
+              await currentBroadcastChannel.send({
+                type: 'broadcast',
+                event: 'message',
+                payload: {
+                  // Mobile schema
+                  ...botMessage,
+                  // Web schema
+                  text: botReply,
+                  senderId: 'bot-1',
+                  senderName: 'Workigom AI',
+                  senderAvatar: null,
+                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  isBot: true,
+                  roomId: 'public-chat',
+                }
+              });
+            }
+          } catch (err) {
+            console.error('Bot error:', err);
+            const errorMessage = {
+              id: Date.now().toString() + '-err',
+              sender_id: 'bot-1',
+              sender_name: 'Workigom AI',
+              avatar_url: '',
+              content: 'Sistem meşgul, lütfen daha sonra tekrar deneyin.',
+              created_at: new Date().toISOString(),
+            };
+            useMuhabbetStore.getState().addMessage(errorMessage);
+          } finally {
+            setIsBotTyping(false);
+          }
+        }
+      }
     } catch (error) {
       console.error('Mesaj gönderme hatası:', error);
     }
@@ -1192,7 +1274,7 @@ export default function MuhabbetScreen() {
               <View style={styles.inputContainerNew}>
                 <TextInput
                   style={styles.inputNew}
-                  placeholder="Mesajınızı yazın..."
+                  placeholder={activePrivateTab ? "Mesajınızı yazın..." : "AI için @workigom yazın..."}
                   placeholderTextColor="#666"
                   value={inputText}
                   onChangeText={setInputText}

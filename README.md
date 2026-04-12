@@ -187,6 +187,76 @@ Farklı geliştirme evrelerinden ötürü Web ve Mobil platformlar farklı JSON 
   ```
 **NOT:** Dinleyiciler (listeners) gelen paketi okurken de aynı şekilde `payload.userId || payload.user_id` gibi bir fallback (yedekli) yaklaşımı kullanmalıdır. Bu yapılandırmaya uyulmazsa, çapraz platformlarda giren kullanıcılar "Kendisi/Anonim" görünür veya atılan mesajlar ortak ekrana düşmez.
 
+**3. Workigom AI Bot Yapılandırması (Web & Mobil Ortak)**
+
+> ⛔ **KRİTİK: Bu yapılandırma kesinleştirilmiştir. Her iki platformda da aynı mantık kullanılmalıdır.**
+
+Workigom AI botu, Muhabbet (Global Sohbet) içinde kullanıcıların `@workigom` veya `/workigom` yazarak tetiklediği bir yapay zeka asistanıdır. Bot, Supabase Edge Function üzerinden Gemini API'yi çağırır.
+
+**Tetikleme Koşulu:**
+- Mesaj `@workigom` veya `/workigom` içeriyorsa bot tetiklenir.
+- **Sadece Global Chat** (public-chat) odasında çalışır. Özel odalarda (private) tetiklenmez.
+
+**Edge Function Çağrısı:**
+```typescript
+const response = await fetch('https://toqroogfufzgxsxemfeh.supabase.co/functions/v1/gemini-bot', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    message: msgText,           // Kullanıcının mesajı
+    user_name: profile.full_name, // Kullanıcı adı
+    previous_interaction_id: previousInteractionId // Konuşma bağlamı (opsiyonel)
+  }),
+});
+```
+
+**Yanıt Yapısı:**
+```json
+{
+  "response": "Bot'un ürettiği yanıt metni",
+  "interaction_id": "konuşma bağlamı için ID"
+}
+```
+
+**Bot Mesaj Broadcast Şablonu (Merged Schema):**
+```typescript
+const botPayload = {
+  // Mobil Schema
+  id: Date.now().toString() + '-bot',
+  sender_id: 'bot-1',
+  sender_name: 'Workigom AI',
+  avatar_url: '',
+  content: botReply,
+  created_at: new Date().toISOString(),
+  // Web Schema
+  text: botReply,
+  senderId: 'bot-1',
+  senderName: 'Workigom AI',
+  senderAvatar: null,
+  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  isBot: true,
+  roomId: 'public-chat',
+};
+```
+
+**Akış (Web & Mobile aynı):**
+```
+Kullanıcı "@workigom merhaba" yazar
+  → Mesaj broadcast ile gönderilir
+  → isBotTyping = true (typing indicator gösterilir)
+  → Edge Function çağrılır (gemini-bot)
+  → Yanıt alınır
+  → Bot mesajı lokal listeye eklenir
+  → Bot mesajı broadcast ile tüm istemcilere yayınlanır
+  → isBotTyping = false
+```
+
+**Hata Durumu:** Edge Function başarısız olursa, kullanıcıya `"Sistem meşgul, lütfen daha sonra tekrar deneyin."` mesajı gösterilir.
+
+**Dosya Referansları:**
+- **Web:** `anti/src/pages/Muhabbet.tsx` → `handleSendMessage()` (satır ~383-450)
+- **Mobil:** `mobile/src/screens/MuhabbetScreen.tsx` → `handleSend()` (bot trigger bloğu)
+
 ---
 
 ## 📝 Standart Supabase Mesajlaşma Şablonu (Mobil & Web)
@@ -363,6 +433,20 @@ Tamamlanan, iptal edilen veya reddedilen talepler otomatik olarak bu tabloya kop
 
 ## 📋 Değişiklik Günlüğü (Changelog)
 
+### v2.12.0 — 13 Nisan 2026, 01:14 (UTC+3)
+**🤖 Workigom AI Bot — Mobil Muhabbet Entegrasyonu:**
+
+- **AI Bot Tetikleme:** Mobil Muhabbet ekranında `@workigom` veya `/workigom` yazıldığında Supabase Edge Function (`gemini-bot`) çağrılarak yapay zeka yanıtı alınıyor.
+- **Typing Indicator:** Bot yanıt üretirken "Workigom AI düşünüyor..." animasyonu gösteriliyor.
+- **Çapraz Platform Yayın:** Bot yanıtı hem Web hem Mobil schema'sı ile broadcast ediliyor (merged payload).
+- **Konuşma Bağlamı:** `previousInteractionId` state'i ile bot önceki etkileşimleri hatırlayabiliyor.
+- **Hata Yönetimi:** Edge Function başarısız olduğunda kullanıcıya hata mesajı gösteriliyor.
+- **Placeholder Güncelleme:** Global chat input'u "AI için @workigom yazın..." placeholder'ı ile rehberlik sağlıyor.
+
+**Değişen Dosyalar:**
+- `MuhabbetScreen.tsx`: `handleSend()` fonksiyonuna AI bot trigger bloğu eklendi.
+- `README.md`: Workigom AI Bot Yapılandırması dokümantasyonu eklendi.
+
 ### v2.11.0 — 11 Nisan 2026, 02:10 (UTC+3)
 **Bildirim Sistemi Yeniden Yapilandirmasi — Web ve Mobil Esitlik:**
 
@@ -454,4 +538,4 @@ Web (`anti`) projesinde tespit edilen **22 adet ESLint hatası/uyarısı** tamam
 ... (eski kayıtlar)
 
 ---
-*Son Guncelleme: 11 Nisan 2026, 02:10 (UTC+3)*
+*Son Guncelleme: 13 Nisan 2026, 01:14 (UTC+3)*
