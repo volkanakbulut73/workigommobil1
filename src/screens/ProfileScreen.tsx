@@ -9,7 +9,8 @@ import {
   Image,
   TextInput,
   Platform,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -71,34 +72,74 @@ export function ProfileScreen() {
     }
   };
 
-  const handleSave = async () => {
-    try {
-      // 1. Update auth metadata
-      const { data, error } = await supabase.auth.updateUser({
-        data: { full_name: editName, avatar_url: avatarUri }
-      });
-      
-      if (error) throw error;
+  const [isSaving, setIsSaving] = useState(false);
 
-      // 2. Persist to profiles database table so chat and other screens read the correct name
+  const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+
+    try {
+      let finalAvatarUrl = avatarUri;
+
+      // If the user picked a new local image, upload it to Supabase Storage first
+      if (avatarUri && (avatarUri.startsWith('file://') || avatarUri.startsWith('content://'))) {
+        try {
+          // Read the local file as blob then convert to base64
+          const response = await fetch(avatarUri);
+          const blob = await response.blob();
+
+          const reader = new FileReader();
+          const base64Promise = new Promise<string>((resolve, reject) => {
+            reader.onload = () => {
+              const result = reader.result as string;
+              // Extract pure base64 from data URI (remove "data:image/jpeg;base64," prefix)
+              const base64 = result.split(',')[1];
+              resolve(base64);
+            };
+            reader.onerror = reject;
+          });
+          reader.readAsDataURL(blob);
+
+          const base64Data = await base64Promise;
+          finalAvatarUrl = await DBService.uploadImage(base64Data, 'images');
+        } catch (uploadErr: any) {
+          console.error('Avatar upload error:', uploadErr);
+          Alert.alert('Hata', 'Profil fotoğrafı yüklenemedi. Lütfen tekrar deneyin.');
+          setIsSaving(false);
+          return;
+        }
+      }
+
+      // 1. Persist to profiles database table
       if (profile?.id) {
         await DBService.updateProfile(profile.id, {
           full_name: editName,
-          avatar_url: avatarUri
+          avatar_url: finalAvatarUrl
         });
       }
+
+      // 2. Update auth metadata (don't await to prevent onAuthStateChange race)
+      supabase.auth.updateUser({
+        data: { full_name: editName, avatar_url: finalAvatarUrl }
+      }).catch((err) => console.warn('Auth metadata update warning:', err));
       
       // 3. Update local profile state
       setProfile({
         ...profile,
         full_name: editName,
-        avatar_url: avatarUri
+        avatar_url: finalAvatarUrl
       });
+
+      // 4. Update avatar display
+      setAvatarUri(finalAvatarUrl);
       
       setIsEditing(false);
       Alert.alert('Başarılı', 'Profiliniz güncellendi.');
     } catch (err: any) {
-      Alert.alert('Hata', err.message);
+      console.error('Profile save error:', err);
+      Alert.alert('Hata', err.message || 'Profil güncellenemedi.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -122,10 +163,13 @@ export function ProfileScreen() {
             </TouchableOpacity>
             <Text style={styles.topBarTitle}>PROFILE</Text>
             <TouchableOpacity 
-              style={styles.iconButton} 
+              style={[styles.iconButton, isSaving && { opacity: 0.5 }]} 
               onPress={() => isEditing ? handleSave() : setIsEditing(true)}
+              disabled={isSaving}
             >
-              {isEditing ? (
+              {isSaving ? (
+                <ActivityIndicator color="#8eff71" size="small" />
+              ) : isEditing ? (
                 <Check color="#8eff71" size={24} />
               ) : (
                 <Settings color="#ededf9" size={24} />
