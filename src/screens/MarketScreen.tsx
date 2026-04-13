@@ -1,38 +1,32 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, TextInput, Modal, Animated, Dimensions } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Layout } from '../components/Layout';
-import { Plus, Search, MapPin, SlidersHorizontal, Star, RefreshCw } from 'lucide-react-native';
+import { Plus, Search, MapPin, SlidersHorizontal, Star, ChevronLeft, X, Info, ChevronDown } from 'lucide-react-native';
 import { useAuthStore } from '../store/useAuthStore';
 import { useMarketStore } from '../store/useMarketStore';
-import { DBService } from '../services/dbService';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const blurhash = '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
 
-const ListingCard = React.memo(({ item, onPress, onRenew, isOwn }: { item: any, onPress: (id: string) => void, onRenew?: (id: string) => void, isOwn?: boolean }) => {
+const CATEGORIES = ['Tümü', 'Elektronik', 'Gıda', 'Eşya'];
+const LOCATIONS = ['Tüm Konumlar', 'İstanbul', 'İstanbul Anadolu', 'İstanbul Avrupa', 'Ankara', 'İzmir'];
+
+const ListingCard = React.memo(({ item, onPress }: { item: any, onPress: (id: string) => void }) => {
   const photoUrls = item.photo_url ? item.photo_url.split(',') : [];
   const mainPhoto = photoUrls.length > 0 ? photoUrls[0] : null;
   const sellerInfo = item.profiles || {};
   const sellerName = sellerInfo.full_name || 'Anonim';
-  const sellerAvatar = sellerInfo.avatar_url || `https://ui-avatars.com/api/?name=${sellerName.replace(' ', '+')}&background=random&color=fff&rounded=true`;
+  const sellerAvatar = sellerInfo.avatar_url || `https://ui-avatars.com/api/?name=${sellerName.replace(' ', '+')}&background=222&color=39ff14&rounded=true`;
 
   return (
-    <TouchableOpacity 
-      style={styles.card} 
-      onPress={() => onPress(item.id)}
-    >
-      {/* Top Image Section */}
+    <TouchableOpacity style={styles.card} onPress={() => onPress(item.id)} activeOpacity={0.7}>
+      {/* Image */}
       <View style={styles.imageContainer}>
         {mainPhoto ? (
-          <ExpoImage 
-            source={{ uri: mainPhoto }} 
-            style={styles.image as any} 
-            placeholder={blurhash}
-            contentFit="cover"
-            transition={200}
-            cachePolicy="memory-disk"
-          />
+          <ExpoImage source={{ uri: mainPhoto }} style={styles.image as any} placeholder={blurhash} contentFit="cover" transition={200} cachePolicy="memory-disk" />
         ) : (
           <View style={styles.imagePlaceholder}>
             <Text style={styles.placeholderText}>{item.title[0] || '?'}</Text>
@@ -41,49 +35,27 @@ const ListingCard = React.memo(({ item, onPress, onRenew, isOwn }: { item: any, 
 
         {/* Rating */}
         <View style={styles.ratingBadge}>
-          <Star color="#FFD700" size={10} fill="#FFD700" />
+          <Star color="#39ff14" size={9} fill="#39ff14" />
           <Text style={styles.ratingText}>{sellerInfo.rating || '5.0'}</Text>
         </View>
-        
-        <View style={styles.listingBadge}>
-          <Text style={styles.listingBadgeText}>{item.listing_id || 'İLAN'}</Text>
-        </View>
-      </View>
 
-      {/* Details Section */}
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
-        
-        {isOwn ? (
-          <TouchableOpacity 
-            style={styles.renewBtn}
-            onPress={() => onRenew?.(item.id)}
-          >
-            <Text style={styles.renewBtnText}>YİNELE</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.cardFooter}>
-            <View style={styles.sellerRow}>
-              <ExpoImage 
-                source={{ uri: sellerAvatar }} 
-                style={styles.sellerAvatar as any} 
-                placeholder={blurhash}
-                contentFit="cover"
-                transition={200}
-                cachePolicy="memory-disk"
-              />
-              <View>
-                <Text style={styles.sellerLabel}>Satıcı</Text>
-                <Text style={styles.sellerName} numberOfLines={1}>{sellerName}</Text>
-              </View>
-            </View>
-            <View style={styles.priceContainer}>
-              <Text style={styles.priceLabel}>Fiyat</Text>
-              <Text style={styles.priceText}>₺{Number(item.required_balance).toLocaleString('tr-TR')}</Text>
-            </View>
+        {/* Listing ID */}
+        {item.listing_id && (
+          <View style={styles.listingBadge}>
+            <Text style={styles.listingBadgeText}>{item.listing_id}</Text>
           </View>
         )}
+      </View>
+
+      {/* Content */}
+      <View style={styles.cardContent}>
+        <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+        <Text style={styles.priceText}>₺{Number(item.required_balance).toLocaleString('tr-TR')}</Text>
+
+        <View style={styles.cardFooter}>
+          <ExpoImage source={{ uri: sellerAvatar }} style={styles.sellerAvatar as any} placeholder={blurhash} contentFit="cover" transition={200} cachePolicy="memory-disk" />
+          <Text style={styles.sellerName} numberOfLines={1}>{sellerName}</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -92,153 +64,240 @@ const ListingCard = React.memo(({ item, onPress, onRenew, isOwn }: { item: any, 
 export function MarketScreen() {
   const navigation = useNavigation<any>();
   const profile = useAuthStore(state => state.profile);
-  
+
   const listings = useMarketStore(state => state.listings);
-  const myListings = useMarketStore(state => state.myListings);
   const loading = useMarketStore(state => state.loading);
   const fetchListings = useMarketStore(state => state.fetchListings);
 
-  const [activeTab, setActiveTab] = useState<'Pazar' | 'İlanlarım'>('Pazar');
-  const [activeFilter, setActiveFilter] = useState('Tüm İlanlar');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('Tümü');
+  const [selectedLocation, setSelectedLocation] = useState('Tüm Konumlar');
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [locationVisible, setLocationVisible] = useState(false);
+  const slideAnim = useRef(new Animated.Value(SCREEN_WIDTH)).current;
 
   useFocusEffect(
     useCallback(() => {
-      if (profile?.id) {
-        fetchListings(profile.id);
-      }
+      if (profile?.id) fetchListings(profile.id);
     }, [profile?.id, fetchListings])
   );
 
   const onRefresh = useCallback(() => {
-    if (profile?.id) {
-      fetchListings(profile.id);
-    }
+    if (profile?.id) fetchListings(profile.id);
   }, [profile?.id, fetchListings]);
 
-  const currentData = activeTab === 'Pazar' ? listings : myListings;
-  const filteredData = activeFilter === 'Tüm İlanlar' ? currentData : currentData;
+  // Open/close filter drawer with animation
+  const openFilter = () => {
+    setFilterVisible(true);
+    Animated.timing(slideAnim, { toValue: 0, duration: 250, useNativeDriver: true }).start();
+  };
+  const closeFilter = () => {
+    Animated.timing(slideAnim, { toValue: SCREEN_WIDTH, duration: 200, useNativeDriver: true }).start(() => setFilterVisible(false));
+  };
 
-  const filters = ['Tüm İlanlar', 'Yemek Kartları', 'Hediye Kartları', 'Kuponlar'];
+  // Search filtering
+  const filteredListings = listings.filter(item => {
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      if (!item.title?.toLowerCase().includes(q) &&
+          !item.description?.toLowerCase().includes(q) &&
+          !(item as any).listing_id?.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
 
   const handlePress = useCallback((id: string) => {
     navigation.navigate('MarketDetail', { id });
   }, [navigation]);
 
-  const handleRenew = useCallback(async (id: string) => {
-    try {
-      await DBService.renewListing(id);
-      if (profile?.id) fetchListings(profile.id);
-    } catch (err) {
-      console.error('Renew error', err);
-    }
-  }, [profile?.id, fetchListings]);
-
   const renderItem = useCallback(({ item }: { item: any }) => (
-    <ListingCard 
-      item={item} 
-      onPress={handlePress} 
-      isOwn={activeTab === 'İlanlarım'} 
-      onRenew={handleRenew}
-    />
-  ), [handlePress, activeTab, handleRenew]);
-
-  const keyExtractor = useCallback((item: any) => item.id, []);
-
-  // Use a string key to force the FlatList to unmount and mount when tab changes
-  // to avoid key conflicts and layout issues for `numColumns={2}`
-  const listKey = activeTab + activeFilter;
+    <ListingCard item={item} onPress={handlePress} />
+  ), [handlePress]);
 
   return (
     <Layout>
       <View style={styles.container}>
-        {/* Search */}
-        <View style={styles.searchContainer}>
-          <Search color="#666" size={20} style={styles.searchIcon} />
-          <Text style={styles.searchInput}>Ürün, marka veya kategori ara...</Text>
+        {/* ═══ SYSTEM NOTE ═══ */}
+        <View style={styles.systemNote}>
+          <Info color="#60a5fa" size={14} />
+          <Text style={styles.systemNoteText}>
+            Sistem Notu: Bu bölümde sadece yemek kartı bakiyesi ile alışveriş yapılabilir.
+          </Text>
         </View>
 
-        {/* Tabs & Filters */}
-        <View style={styles.controlsBox}>
-          <View style={styles.tabsContainer}>
-             <TouchableOpacity 
-              style={[styles.tab, activeTab === 'Pazar' && styles.activeTab]}
-              onPress={() => setActiveTab('Pazar')}
-            >
-              <Text style={[styles.tabText, activeTab === 'Pazar' && styles.activeTabText]}>Pazar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.tab, activeTab === 'İlanlarım' && styles.activeTab]}
-              onPress={() => setActiveTab('İlanlarım')}
-            >
-              <Text style={[styles.tabText, activeTab === 'İlanlarım' && styles.activeTabText]}>İlanlarım</Text>
-            </TouchableOpacity>
-          </View>
+        {/* ═══ COMPACT HEADER ═══ */}
+        <View style={styles.headerRow}>
+          {/* Back */}
+          <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()}>
+            <ChevronLeft color="rgba(186,204,176,0.5)" size={16} />
+          </TouchableOpacity>
 
-          <View style={styles.filterRow}>
-            <TouchableOpacity style={styles.filterBtn}>
-              <SlidersHorizontal color="#39ff14" size={16} />
-              <Text style={styles.filterBtnText}>Filtrele</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.locationBtn}>
-              <MapPin color="#00e5ff" size={16} />
-              <Text style={styles.locationText}>Konum</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Pill Filters */}
-        <View style={{ marginBottom: 12 }}>
-          <FlatList 
-            data={filters}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.pillsContainer}
-            keyExtractor={(i) => i}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[styles.pill, activeFilter === item && styles.pillActive]}
-                onPress={() => setActiveFilter(item)}
-              >
-                <Text style={[styles.pillText, activeFilter === item && styles.pillTextActive]}>
-                  {item}
-                </Text>
+          {/* Search */}
+          <View style={styles.searchBox}>
+            <Search color="rgba(57,255,20,0.4)" size={14} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="İlan ara..."
+              placeholderTextColor="rgba(186,204,176,0.25)"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              returnKeyType="search"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <X color="rgba(186,204,176,0.3)" size={12} />
               </TouchableOpacity>
             )}
-          />
+          </View>
+
+          {/* Filter */}
+          <TouchableOpacity
+            style={[styles.headerBtn, activeFilter !== 'Tümü' && styles.headerBtnActive]}
+            onPress={openFilter}
+          >
+            <SlidersHorizontal color={activeFilter !== 'Tümü' ? '#39ff14' : 'rgba(186,204,176,0.5)'} size={14} />
+            {activeFilter !== 'Tümü' && <View style={styles.filterDot} />}
+          </TouchableOpacity>
+
+          {/* Location */}
+          <TouchableOpacity
+            style={[styles.headerBtn, styles.locationBtn, selectedLocation !== 'Tüm Konumlar' && styles.headerBtnActive]}
+            onPress={() => setLocationVisible(true)}
+          >
+            <MapPin color={selectedLocation !== 'Tüm Konumlar' ? '#39ff14' : 'rgba(186,204,176,0.5)'} size={12} />
+            <ChevronDown color="rgba(186,204,176,0.3)" size={10} />
+          </TouchableOpacity>
         </View>
 
-        {/* Listings */}
-        {loading && filteredData.length === 0 ? (
+        {/* ═══ ACTIVE FILTER INDICATORS ═══ */}
+        {(activeFilter !== 'Tümü' || selectedLocation !== 'Tüm Konumlar') && (
+          <View style={styles.activeFiltersRow}>
+            <View style={styles.filterIndicatorBar} />
+            {activeFilter !== 'Tümü' && (
+              <View style={styles.filterChip}>
+                <Text style={styles.filterChipLabel}>Kategori:</Text>
+                <Text style={styles.filterChipValue}>{activeFilter}</Text>
+                <TouchableOpacity onPress={() => setActiveFilter('Tümü')}>
+                  <X color="rgba(186,204,176,0.3)" size={10} />
+                </TouchableOpacity>
+              </View>
+            )}
+            {selectedLocation !== 'Tüm Konumlar' && (
+              <View style={styles.filterChip}>
+                <Text style={styles.filterChipLabel}>Konum:</Text>
+                <Text style={styles.filterChipValue}>{selectedLocation}</Text>
+                <TouchableOpacity onPress={() => setSelectedLocation('Tüm Konumlar')}>
+                  <X color="rgba(186,204,176,0.3)" size={10} />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* ═══ LISTING COUNT + CREATE ═══ */}
+        <View style={styles.countRow}>
+          <View style={styles.countLeft}>
+            <View style={styles.countBar} />
+            <Text style={styles.countLabel}>Aktif İlanlar</Text>
+            <Text style={styles.countNumber}>{filteredListings.length}</Text>
+          </View>
+          <TouchableOpacity style={styles.createBtn} onPress={() => navigation.navigate('MarketCreate')}>
+            <Plus color="#39ff14" size={12} />
+            <Text style={styles.createBtnText}>İlan Oluştur</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ═══ LISTINGS GRID ═══ */}
+        {loading && filteredListings.length === 0 ? (
           <View style={styles.centerContainer}>
             <ActivityIndicator color="#39ff14" size="large" />
+            <Text style={styles.loadingText}>Taranıyor...</Text>
           </View>
         ) : (
           <FlatList
-            data={filteredData}
+            data={filteredListings}
             keyExtractor={item => item.id}
             renderItem={renderItem}
             numColumns={2}
             contentContainerStyle={styles.listContent}
             columnWrapperStyle={styles.columnWrapper}
             showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor="#39ff14" />
-            }
+            refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor="#39ff14" />}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Burada henüz hiç ilan yok.</Text>
+                <Search color="rgba(60,75,53,0.3)" size={24} />
+                <Text style={styles.emptyText}>
+                  {searchQuery ? 'Arama sonucu bulunamadı' : 'İlan bulunmuyor'}
+                </Text>
               </View>
             }
           />
         )}
 
-        {/* FAB */}
-        <TouchableOpacity 
-          style={styles.fab}
-          onPress={() => navigation.navigate('MarketCreate')}
-        >
-          <Plus color="#0a0b1e" size={28} />
-        </TouchableOpacity>
+        {/* ═══ FILTER DRAWER (Modal) ═══ */}
+        <Modal visible={filterVisible} transparent animationType="none" onRequestClose={closeFilter}>
+          <TouchableOpacity style={styles.drawerBackdrop} activeOpacity={1} onPress={closeFilter} />
+          <Animated.View style={[styles.drawerPanel, { transform: [{ translateX: slideAnim }] }]}>
+            {/* Drawer Header */}
+            <View style={styles.drawerHeader}>
+              <View style={styles.drawerHeaderLeft}>
+                <SlidersHorizontal color="#39ff14" size={12} />
+                <Text style={styles.drawerTitle}>FİLTRELER</Text>
+              </View>
+              <TouchableOpacity onPress={closeFilter}>
+                <X color="rgba(186,204,176,0.4)" size={16} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Categories */}
+            <View style={styles.drawerBody}>
+              <Text style={styles.drawerSectionTitle}>KATEGORİ</Text>
+              {CATEGORIES.map(cat => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[styles.drawerItem, activeFilter === cat && styles.drawerItemActive]}
+                  onPress={() => { setActiveFilter(cat); closeFilter(); }}
+                >
+                  <View style={[styles.drawerDot, activeFilter === cat && styles.drawerDotActive]} />
+                  <Text style={[styles.drawerItemText, activeFilter === cat && styles.drawerItemTextActive]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Clear */}
+            <View style={styles.drawerFooter}>
+              <TouchableOpacity
+                style={styles.clearBtn}
+                onPress={() => { setActiveFilter('Tümü'); setSelectedLocation('Tüm Konumlar'); closeFilter(); }}
+              >
+                <Text style={styles.clearBtnText}>FİLTRELERİ TEMİZLE</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </Modal>
+
+        {/* ═══ LOCATION PICKER (Modal) ═══ */}
+        <Modal visible={locationVisible} transparent animationType="fade" onRequestClose={() => setLocationVisible(false)}>
+          <TouchableOpacity style={styles.locationBackdrop} activeOpacity={1} onPress={() => setLocationVisible(false)}>
+            <View style={styles.locationPanel}>
+              <Text style={styles.locationPanelTitle}>KONUM SEÇ</Text>
+              {LOCATIONS.map(loc => (
+                <TouchableOpacity
+                  key={loc}
+                  style={[styles.locationItem, selectedLocation === loc && styles.locationItemActive]}
+                  onPress={() => { setSelectedLocation(loc); setLocationVisible(false); }}
+                >
+                  <View style={[styles.drawerDot, selectedLocation === loc && styles.drawerDotActive]} />
+                  <Text style={[styles.locationItemText, selectedLocation === loc && styles.locationItemTextActive]}>
+                    {loc}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     </Layout>
   );
@@ -246,119 +305,162 @@ export function MarketScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  searchContainer: {
-    margin: 16,
-    marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#16172d',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+
+  // System Note
+  systemNote: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    marginHorizontal: 16, marginTop: 12, marginBottom: 8,
+    paddingHorizontal: 14, paddingVertical: 10,
+    backgroundColor: 'rgba(96,165,250,0.08)',
+    borderWidth: 1, borderColor: 'rgba(96,165,250,0.2)',
   },
-  searchIcon: { marginRight: 8 },
-  searchInput: { color: '#666', fontSize: 14 },
-  controlsBox: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-    backgroundColor: '#16172d',
-    borderRadius: 20,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+  systemNoteText: { color: '#93bbfc', fontSize: 11, fontWeight: '500', flex: 1, letterSpacing: 0.3 },
+
+  // Header Row
+  headerRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    marginHorizontal: 16, marginBottom: 10,
   },
-  tabsContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#0a0b1e',
-    borderRadius: 12,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-    marginBottom: 12,
+  headerBtn: {
+    padding: 9, backgroundColor: 'rgba(29,32,35,0.8)',
+    borderWidth: 1, borderColor: 'rgba(60,75,53,0.3)',
   },
-  tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
-  activeTab: { backgroundColor: '#fff' },
-  tabText: { color: '#888', fontWeight: 'bold', fontSize: 13 },
-  activeTabText: { color: '#0a0b1e' },
-  filterRow: { flexDirection: 'row', gap: 8 },
-  filterBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    backgroundColor: 'rgba(57, 255, 20, 0.05)', borderWidth: 1, borderColor: 'rgba(57, 255, 20, 0.3)',
-    borderRadius: 12, paddingVertical: 10,
+  headerBtnActive: {
+    backgroundColor: 'rgba(57,255,20,0.08)', borderColor: 'rgba(57,255,20,0.3)',
   },
-  filterBtnText: { color: '#39ff14', fontWeight: 'bold', fontSize: 13 },
-  locationBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    backgroundColor: '#0a0b1e', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12, paddingVertical: 10,
+  locationBtn: { flexDirection: 'row', gap: 3, paddingHorizontal: 10 },
+  filterDot: {
+    position: 'absolute', top: -2, right: -2,
+    width: 5, height: 5, borderRadius: 3,
+    backgroundColor: '#39ff14',
   },
-  locationText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
-  pillsContainer: { paddingHorizontal: 16, gap: 8 },
-  pill: {
-    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(0, 229, 255, 0.3)',
+  searchBox: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: 'rgba(29,32,35,0.8)',
+    borderWidth: 1, borderColor: 'rgba(60,75,53,0.3)',
+    paddingHorizontal: 10, paddingVertical: 2,
   },
-  pillActive: { backgroundColor: '#00e5ff', borderColor: '#00e5ff' },
-  pillText: { color: '#00e5ff', fontSize: 12, fontWeight: 'bold' },
-  pillTextActive: { color: '#0a0b1e' },
-  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyContainer: { paddingVertical: 40, alignItems: 'center' },
-  emptyText: { color: '#666', fontWeight: 'bold' },
+  searchInput: { flex: 1, color: '#e1e2e7', fontSize: 12, paddingVertical: 6 },
+
+  // Active Filters
+  activeFiltersRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    marginHorizontal: 16, marginBottom: 8,
+  },
+  filterIndicatorBar: { width: 3, height: 12, backgroundColor: '#39ff14' },
+  filterChip: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  filterChipLabel: { color: 'rgba(186,204,176,0.4)', fontSize: 9, textTransform: 'uppercase', letterSpacing: 1 },
+  filterChipValue: { color: '#39ff14', fontSize: 9, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
+
+  // Count Row
+  countRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginHorizontal: 16, marginBottom: 10,
+  },
+  countLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  countBar: { width: 3, height: 10, backgroundColor: '#39ff14' },
+  countLabel: { color: 'rgba(186,204,176,0.4)', fontSize: 9, textTransform: 'uppercase', letterSpacing: 1.5 },
+  countNumber: { color: '#39ff14', fontSize: 9, fontWeight: 'bold' },
+  createBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 12, paddingVertical: 7,
+    backgroundColor: 'rgba(57,255,20,0.08)',
+    borderWidth: 1, borderColor: 'rgba(57,255,20,0.25)',
+  },
+  createBtnText: { color: '#39ff14', fontSize: 9, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
+
+  // Listings
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 10 },
+  loadingText: { color: 'rgba(186,204,176,0.4)', fontSize: 10, textTransform: 'uppercase', letterSpacing: 2 },
+  emptyContainer: { paddingVertical: 50, alignItems: 'center', gap: 10 },
+  emptyText: { color: 'rgba(186,204,176,0.3)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5 },
   listContent: { paddingHorizontal: 16, paddingBottom: 110 },
-  columnWrapper: { justifyContent: 'space-between', marginBottom: 16 },
+  columnWrapper: { justifyContent: 'space-between', marginBottom: 12 },
+
+  // Card
   card: {
-    width: '48%', backgroundColor: '#16172d', borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', overflow: 'hidden',
+    width: '48%', backgroundColor: 'rgba(29,32,35,0.6)',
+    borderWidth: 1, borderColor: 'rgba(60,75,53,0.15)', overflow: 'hidden',
   },
-  imageContainer: {
-    height: 120, width: '100%', backgroundColor: '#1C2541', position: 'relative',
-  },
+  imageContainer: { height: 120, width: '100%', backgroundColor: '#1d2023', position: 'relative' },
   image: { width: '100%', height: '100%' },
   imagePlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  placeholderText: { fontSize: 32, fontWeight: '900', color: 'rgba(255,255,255,0.1)' },
+  placeholderText: { fontSize: 28, fontWeight: '900', color: 'rgba(60,75,53,0.3)' },
   ratingBadge: {
-    position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.5)',
-    flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6, paddingVertical: 3,
-    borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(0,0,0,0.5)',
+    flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 5, paddingVertical: 2,
   },
-  ratingText: { color: '#fff', fontSize: 11, fontWeight: '900' },
+  ratingText: { color: 'rgba(186,204,176,0.6)', fontSize: 9, fontWeight: '900' },
   listingBadge: {
-    position: 'absolute', bottom: 8, left: 8, backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4,
+    position: 'absolute', bottom: 6, left: 6,
+    backgroundColor: 'rgba(57,255,20,0.12)', borderWidth: 1, borderColor: 'rgba(57,255,20,0.25)',
+    paddingHorizontal: 5, paddingVertical: 1,
   },
-  listingBadgeText: { color: '#00e5ff', fontSize: 10, fontWeight: '900', letterSpacing: 1.5 },
-  cardContent: { padding: 12, flex: 1 },
-  cardTitle: { color: '#fff', fontWeight: 'bold', fontSize: 14, marginBottom: 4 },
-  cardDesc: { color: '#888', fontSize: 10, marginBottom: 12 },
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto' },
-  sellerRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  sellerAvatar: { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  sellerLabel: { color: '#666', fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase' },
-  sellerName: { color: '#fff', fontSize: 10, fontWeight: 'bold', maxWidth: 60 },
-  priceContainer: { alignItems: 'flex-end' },
-  priceLabel: { color: '#666', fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase' },
-  priceText: { color: '#00e5ff', fontSize: 14, fontWeight: '900' },
-  fab: {
-    position: 'absolute', bottom: 30, right: 30, width: 64, height: 64,
-    borderRadius: 32, backgroundColor: '#39ff14', justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#39ff14', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
-    borderWidth: 1, borderColor: 'rgba(57, 255, 20, 0.5)', zIndex: 10,
+  listingBadgeText: { color: '#39ff14', fontSize: 8, fontWeight: '900', letterSpacing: 1.5 },
+  cardContent: { padding: 10, flex: 1, gap: 3 },
+  cardTitle: { color: '#e1e2e7', fontWeight: 'bold', fontSize: 13 },
+  priceText: { color: '#fff', fontSize: 16, fontWeight: '900' },
+  cardFooter: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    marginTop: 'auto', paddingTop: 6, borderTopWidth: 1, borderTopColor: 'rgba(60,75,53,0.1)',
   },
-  renewBtn: {
-    backgroundColor: 'rgba(57, 255, 20, 0.1)',
-    borderWidth: 1,
-    borderColor: '#39ff14',
-    borderRadius: 8,
-    paddingVertical: 6,
-    alignItems: 'center',
-    marginTop: 8,
+  sellerAvatar: { width: 18, height: 18, borderRadius: 9, borderWidth: 1, borderColor: 'rgba(60,75,53,0.2)' },
+  sellerName: { color: 'rgba(186,204,176,0.4)', fontSize: 10, fontWeight: '500', flex: 1 },
+
+  // Filter Drawer
+  drawerBackdrop: {
+    ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  renewBtnText: {
-    color: '#39ff14',
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 2,
+  drawerPanel: {
+    position: 'absolute', top: 0, right: 0, bottom: 0, width: 260,
+    backgroundColor: '#111417', borderLeftWidth: 1, borderLeftColor: 'rgba(60,75,53,0.3)',
   },
+  drawerHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(60,75,53,0.2)',
+  },
+  drawerHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  drawerTitle: { color: '#e1e2e7', fontSize: 10, fontWeight: 'bold', letterSpacing: 2 },
+  drawerBody: { flex: 1, paddingHorizontal: 16, paddingTop: 20 },
+  drawerSectionTitle: { color: 'rgba(186,204,176,0.35)', fontSize: 8, letterSpacing: 3, marginBottom: 10, paddingLeft: 8 },
+  drawerItem: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 12, paddingHorizontal: 10,
+    borderLeftWidth: 2, borderLeftColor: 'transparent',
+  },
+  drawerItemActive: { backgroundColor: 'rgba(57,255,20,0.08)', borderLeftColor: '#39ff14' },
+  drawerDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: 'rgba(60,75,53,0.3)' },
+  drawerDotActive: { backgroundColor: '#39ff14' },
+  drawerItemText: { color: 'rgba(186,204,176,0.5)', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1.5 },
+  drawerItemTextActive: { color: '#39ff14' },
+  drawerFooter: { paddingHorizontal: 20, paddingBottom: 40, borderTopWidth: 1, borderTopColor: 'rgba(60,75,53,0.2)', paddingTop: 16 },
+  clearBtn: {
+    paddingVertical: 10, alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(60,75,53,0.2)',
+  },
+  clearBtnText: { color: 'rgba(186,204,176,0.35)', fontSize: 9, fontWeight: 'bold', letterSpacing: 2 },
+
+  // Location Picker
+  locationBackdrop: {
+    flex: 1, justifyContent: 'center', alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  locationPanel: {
+    width: '75%', backgroundColor: '#111417',
+    borderWidth: 1, borderColor: 'rgba(60,75,53,0.3)',
+    paddingVertical: 8,
+  },
+  locationPanelTitle: {
+    color: 'rgba(186,204,176,0.35)', fontSize: 8, letterSpacing: 3,
+    paddingHorizontal: 16, paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(60,75,53,0.15)',
+  },
+  locationItem: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 12, paddingHorizontal: 16,
+  },
+  locationItemActive: { backgroundColor: 'rgba(57,255,20,0.08)' },
+  locationItemText: { color: 'rgba(186,204,176,0.5)', fontSize: 12, fontWeight: '500' },
+  locationItemTextActive: { color: '#39ff14', fontWeight: 'bold' },
 });

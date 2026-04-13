@@ -14,6 +14,7 @@ export function MarketCreateScreen() {
   const { profile } = useAuthStore();
   
   const [title, setTitle] = useState('');
+  const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   
@@ -165,6 +166,30 @@ export function MarketCreateScreen() {
               value={title}
               onChangeText={setTitle}
             />
+          </View>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>KATEGORİ</Text>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {['Elektronik', 'Gıda', 'Eşya'].map(cat => (
+              <TouchableOpacity
+                key={cat}
+                style={[
+                  styles.inputWrapper,
+                  { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 12 },
+                  category === cat && { backgroundColor: '#39ff14', borderColor: '#39ff14' }
+                ]}
+                onPress={() => setCategory(cat)}
+              >
+                <Text style={[
+                  { color: '#888', fontSize: 12, fontWeight: 'bold' },
+                  category === cat && { color: '#0a0b1e' }
+                ]}>
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 

@@ -433,6 +433,23 @@ Tamamlanan, iptal edilen veya reddedilen talepler otomatik olarak bu tabloya kop
 
 ## 📋 Değişiklik Günlüğü (Changelog)
 
+### v2.14.0 — 13 Nisan 2026, 04:50 (UTC+3)
+**🎨 Market Sayfası Tam Revize — Web ile Eşitlik:**
+
+- **Sistem Notu:** Mavi, belirgin şerit eklendi — "Bu bölümde sadece yemek kartı bakiyesi ile alışveriş yapılabilir."
+- **Pazar/İlanlarım segmenti:** Kaldırıldı — sadece aktif ilanlar gösteriliyor
+- **Compact Header:** Geri butonu + Arama + Filtre ikonu + Konum ikonu (tek satır)
+- **Filtre Drawer:** Sağdan kayan animasyonlu panel, 3 kategori: `Elektronik`, `Gıda`, `Eşya`
+- **Konum Seçici:** Modal popup — İstanbul, İstanbul Anadolu, İstanbul Avrupa, Ankara, İzmir
+- **Aktif filtre göstergeleri:** Header altında yeşil chip'ler ile aktif filtreler gösteriliyor
+- **İlan Oluştur butonu:** Grid üstünde inline olarak eklendi
+- **MarketCreateScreen:** Kategori seçici eklendi (Elektronik, Gıda, Eşya)
+- **SENTINEL teması:** Tüm renkler, border'lar web ile uyumlu hale getirildi
+
+**Değişen Dosyalar:**
+- `MarketScreen.tsx`: Tamamen yeniden yazıldı
+- `MarketCreateScreen.tsx`: Kategori seçici eklendi
+
 ### v2.13.0 — 13 Nisan 2026, 02:07 (UTC+3)
 **🛍️ Market İlan Filtreleme Düzeltmesi — Web ile Eşitlik:**
 
@@ -549,4 +566,4 @@ Web (`anti`) projesinde tespit edilen **22 adet ESLint hatası/uyarısı** tamam
 ... (eski kayıtlar)
 
 ---
-*Son Guncelleme: 13 Nisan 2026, 02:07 (UTC+3)*
+*Son Guncelleme: 13 Nisan 2026, 04:50 (UTC+3)*
