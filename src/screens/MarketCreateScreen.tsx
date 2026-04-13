@@ -8,7 +8,8 @@ import { generateListingId } from '../services/dbService';
 import { ChevronLeft, Camera, Wallet, Image as ImageIcon, X, MapPin } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
-import { MARKET_CITIES, getMarketDistricts, MarketCity } from '../data/marketLocations';
+import { MARKET_CITIES, getMarketDistricts } from '../data/marketLocations';
+import type { MarketCity } from '../data/marketLocations';
 
 export function MarketCreateScreen() {
   const navigation = useNavigation<any>();
@@ -100,6 +101,7 @@ export function MarketCreateScreen() {
             photo_url: mainPhotoUrl,
             status: 'pending',
             listing_id: generateListingId('WRK'),
+            category: category || null,
             expiry_date: expiryDate.toISOString(),
             city: selectedCity || null,
             district: selectedDistrict || null,

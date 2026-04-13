@@ -47,10 +47,11 @@ export type SwapListing = {
     listing_id: string | null;
     owner_id: string;
     title: string;
+    category: string | null;
     description: string | null;
     required_balance: number;
     photo_url: string | null;
-    location?: string | null;
+    location: string | null;
     city: string | null;
     district: string | null;
     status: SwapListingStatus;
