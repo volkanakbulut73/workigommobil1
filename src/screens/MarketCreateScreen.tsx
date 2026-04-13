@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { supabase } from '../lib/supabase';
 import { AnalyticsService } from '../services/analyticsService';
 import { generateListingId } from '../services/dbService';
-import { ChevronLeft, Camera, Wallet, Image as ImageIcon, X } from 'lucide-react-native';
+import { ChevronLeft, Camera, Wallet, Image as ImageIcon, X, MapPin } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
 
@@ -17,6 +17,7 @@ export function MarketCreateScreen() {
   const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
   
   // We'll store basic ImagePicker results here
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
@@ -97,7 +98,8 @@ export function MarketCreateScreen() {
             photo_url: mainPhotoUrl,
             status: 'pending',
             listing_id: generateListingId('WRK'),
-            expiry_date: expiryDate.toISOString()
+            expiry_date: expiryDate.toISOString(),
+            city: selectedCity || null,
           }
         ]);
 
@@ -219,6 +221,31 @@ export function MarketCreateScreen() {
               value={description}
               onChangeText={setDescription}
             />
+          </View>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>KONUM</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {['İstanbul', 'İstanbul Anadolu', 'İstanbul Avrupa', 'Ankara', 'İzmir'].map(city => (
+              <TouchableOpacity
+                key={city}
+                style={[
+                  styles.inputWrapper,
+                  { paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 6 },
+                  selectedCity === city && { backgroundColor: 'rgba(57,255,20,0.1)', borderColor: 'rgba(57,255,20,0.4)' }
+                ]}
+                onPress={() => setSelectedCity(selectedCity === city ? '' : city)}
+              >
+                <MapPin color={selectedCity === city ? '#39ff14' : '#666'} size={12} />
+                <Text style={[
+                  { color: '#888', fontSize: 11, fontWeight: 'bold' },
+                  selectedCity === city && { color: '#39ff14' }
+                ]}>
+                  {city}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
