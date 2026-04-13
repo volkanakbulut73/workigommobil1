@@ -526,6 +526,16 @@ Admin -> notifications INSERT (type: system/transaction)
 - `AdminUsers.tsx`: Gercek Supabase verisi, arama, navigasyon.
 - `AdminMessages.tsx` [YENI]: Tek/toplu kullanici bildirim gonderme sistemi.
 
+### v2.10.0 — 13 Nisan 2026, 06:15 (UTC+3)
+**🔍 Market Filtreleme Senkronizasyonu — Dual-Filter (Şehir/İlçe):**
+
+- **Market Konum Yapısı**: Web versiyonu (v3.5.0) ile tam eşitlik sağlandı.
+- **Dual-Filter Sistemi**: `MarketScreen.tsx` üzerinde Şehir ve İlçe seçimine dayalı ikili filtreleme mimarisi kuruldu.
+- **Konum Seçici (Picker)**: İki sütunlu (Şehir | İlçe) yeni modal tasarımı ile daha hızlı konum seçimi sağlandı.
+- **Siber-Etiket (Badge)**: Header ve filtre alanlarında seçilen konum 'Şehir / İlçe' formatında standartlaştırıldı.
+- **Lokal Filtreleme**: Mobile uygulama içerisinde yüksek hız ve düşük veri tüketimi için lokal filtreleme algoritmaları güncellendi.
+- **MarketLocations Integration**: Shared data mimarisine tam geçiş yapıldı.
+
 ### v2.9.0 — 10 Nisan 2026, 08:00 (UTC+3)
 **Arsiv Sistemi:**
 
@@ -566,4 +576,4 @@ Web (`anti`) projesinde tespit edilen **22 adet ESLint hatası/uyarısı** tamam
 ... (eski kayıtlar)
 
 ---
-*Son Guncelleme: 13 Nisan 2026, 04:50 (UTC+3)*
+*Son Guncelleme: 13 Nisan 2026, 06:15 (UTC+3)*

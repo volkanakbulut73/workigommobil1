@@ -6,13 +6,14 @@ import { Layout } from '../components/Layout';
 import { Plus, Search, MapPin, SlidersHorizontal, Star, ChevronLeft, X, Info, ChevronDown } from 'lucide-react-native';
 import { useAuthStore } from '../store/useAuthStore';
 import { useMarketStore } from '../store/useMarketStore';
+import { MARKET_CITIES, getMarketDistricts, MarketCity } from '../data/marketLocations';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const blurhash = '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
 
 const CATEGORIES = ['Tümü', 'Elektronik', 'Gıda', 'Eşya'];
-const LOCATIONS = ['Tüm Konumlar', 'İstanbul', 'İstanbul Anadolu', 'İstanbul Avrupa', 'Ankara', 'İzmir'];
+const LOCATIONS = ['Tüm Konumlar', ...MARKET_CITIES];
 
 const ListingCard = React.memo(({ item, onPress }: { item: any, onPress: (id: string) => void }) => {
   const photoUrls = item.photo_url ? item.photo_url.split(',') : [];
@@ -72,6 +73,7 @@ export function MarketScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('Tümü');
   const [selectedLocation, setSelectedLocation] = useState('Tüm Konumlar');
+  const [selectedDistrict, setSelectedDistrict] = useState('Tüm İlçeler');
   const [filterVisible, setFilterVisible] = useState(false);
   const [locationVisible, setLocationVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(SCREEN_WIDTH)).current;
@@ -95,14 +97,25 @@ export function MarketScreen() {
     Animated.timing(slideAnim, { toValue: SCREEN_WIDTH, duration: 200, useNativeDriver: true }).start(() => setFilterVisible(false));
   };
 
-  // Search filtering
+  // Filtering logic
   const filteredListings = listings.filter(item => {
+    // Search filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       if (!item.title?.toLowerCase().includes(q) &&
           !item.description?.toLowerCase().includes(q) &&
           !(item as any).listing_id?.toLowerCase().includes(q)) return false;
     }
+
+    // Category filter
+    if (activeFilter !== 'Tümü' && item.category !== activeFilter) return false;
+
+    // Location filter
+    if (selectedLocation !== 'Tüm Konumlar' && item.city !== selectedLocation) return false;
+
+    // District filter
+    if (selectedDistrict !== 'Tüm İlçeler' && item.district !== selectedDistrict) return false;
+
     return true;
   });
 
@@ -165,6 +178,9 @@ export function MarketScreen() {
             onPress={() => setLocationVisible(true)}
           >
             <MapPin color={selectedLocation !== 'Tüm Konumlar' ? '#39ff14' : 'rgba(186,204,176,0.5)'} size={12} />
+            <Text style={[styles.locationText, { maxWidth: 100, fontSize: 10, color: selectedLocation !== 'Tüm Konumlar' ? '#39ff14' : 'rgba(186,204,176,0.5)' }]} numberOfLines={1}>
+              {selectedLocation === 'Tüm Konumlar' ? 'Konum' : selectedDistrict === 'Tüm İlçeler' ? selectedLocation : `${selectedLocation} / ${selectedDistrict}`}
+            </Text>
             <ChevronDown color="rgba(186,204,176,0.3)" size={10} />
           </TouchableOpacity>
         </View>
@@ -185,8 +201,11 @@ export function MarketScreen() {
             {selectedLocation !== 'Tüm Konumlar' && (
               <View style={styles.filterChip}>
                 <Text style={styles.filterChipLabel}>Konum:</Text>
-                <Text style={styles.filterChipValue}>{selectedLocation}</Text>
-                <TouchableOpacity onPress={() => setSelectedLocation('Tüm Konumlar')}>
+                <Text style={styles.filterChipValue}>
+                  {selectedLocation}
+                  {selectedDistrict !== 'Tüm İlçeler' && ` / ${selectedDistrict}`}
+                </Text>
+                <TouchableOpacity onPress={() => { setSelectedLocation('Tüm Konumlar'); setSelectedDistrict('Tüm İlçeler'); }}>
                   <X color="rgba(186,204,176,0.3)" size={10} />
                 </TouchableOpacity>
               </View>
@@ -281,20 +300,60 @@ export function MarketScreen() {
         {/* ═══ LOCATION PICKER (Modal) ═══ */}
         <Modal visible={locationVisible} transparent animationType="fade" onRequestClose={() => setLocationVisible(false)}>
           <TouchableOpacity style={styles.locationBackdrop} activeOpacity={1} onPress={() => setLocationVisible(false)}>
-            <View style={styles.locationPanel}>
-              <Text style={styles.locationPanelTitle}>KONUM SEÇ</Text>
-              {LOCATIONS.map(loc => (
-                <TouchableOpacity
-                  key={loc}
-                  style={[styles.locationItem, selectedLocation === loc && styles.locationItemActive]}
-                  onPress={() => { setSelectedLocation(loc); setLocationVisible(false); }}
-                >
-                  <View style={[styles.drawerDot, selectedLocation === loc && styles.drawerDotActive]} />
-                  <Text style={[styles.locationItemText, selectedLocation === loc && styles.locationItemTextActive]}>
-                    {loc}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <View style={[styles.locationPanel, { flexDirection: 'row', width: '90%', maxHeight: '60%', padding: 0, overflow: 'hidden' }]}>
+              {/* Cities Column */}
+              <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.05)' }}>
+                <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' }}>
+                  <Text style={[styles.locationPanelTitle, { marginBottom: 0 }]}>ŞEHİR</Text>
+                </View>
+                <ScrollView>
+                  {LOCATIONS.map(loc => (
+                    <TouchableOpacity
+                      key={loc}
+                      style={[styles.locationItem, selectedLocation === loc && styles.locationItemActive]}
+                      onPress={() => { 
+                        setSelectedLocation(loc); 
+                        setSelectedDistrict('Tüm İlçeler');
+                        if (loc === 'Tüm Konumlar') setLocationVisible(false);
+                      }}
+                    >
+                      <Text style={[styles.locationItemText, selectedLocation === loc && styles.locationItemTextActive, { fontSize: 10 }]}>
+                        {loc}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* Districts Column */}
+              {selectedLocation !== 'Tüm Konumlar' && (
+                <View style={{ flex: 1.2, backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                  <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' }}>
+                    <Text style={[styles.locationPanelTitle, { marginBottom: 0 }]}>İLÇE</Text>
+                  </View>
+                  <ScrollView>
+                    <TouchableOpacity
+                      style={[styles.locationItem, selectedDistrict === 'Tüm İlçeler' && styles.locationItemActive]}
+                      onPress={() => { setSelectedDistrict('Tüm İlçeler'); setLocationVisible(false); }}
+                    >
+                      <Text style={[styles.locationItemText, selectedDistrict === 'Tüm İlçeler' && styles.locationItemTextActive, { fontSize: 10 }]}>
+                        Tüm İlçeler
+                      </Text>
+                    </TouchableOpacity>
+                    {getMarketDistricts(selectedLocation as MarketCity).map(dist => (
+                      <TouchableOpacity
+                        key={dist}
+                        style={[styles.locationItem, selectedDistrict === dist && styles.locationItemActive]}
+                        onPress={() => { setSelectedDistrict(dist); setLocationVisible(false); }}
+                      >
+                        <Text style={[styles.locationItemText, selectedDistrict === dist && styles.locationItemTextActive, { fontSize: 10 }]}>
+                          {dist}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
             </View>
           </TouchableOpacity>
         </Modal>

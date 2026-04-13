@@ -8,6 +8,7 @@ import { generateListingId } from '../services/dbService';
 import { ChevronLeft, Camera, Wallet, Image as ImageIcon, X, MapPin } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
+import { MARKET_CITIES, getMarketDistricts, MarketCity } from '../data/marketLocations';
 
 export function MarketCreateScreen() {
   const navigation = useNavigation<any>();
@@ -17,7 +18,8 @@ export function MarketCreateScreen() {
   const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedCity, setSelectedCity] = useState<MarketCity | ''>('');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
   
   // We'll store basic ImagePicker results here
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
@@ -47,8 +49,8 @@ export function MarketCreateScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!title.trim() || !amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      Alert.alert('Hata', 'Lütfen başlık ve geçerli bir tutar girin.');
+    if (!title.trim() || !amount || isNaN(Number(amount)) || Number(amount) <= 0 || !selectedCity || !selectedDistrict) {
+      Alert.alert('Hata', 'Lütfen başlık, geçerli bir tutar, şehir ve ilçe seçin.');
       return;
     }
 
@@ -100,6 +102,7 @@ export function MarketCreateScreen() {
             listing_id: generateListingId('WRK'),
             expiry_date: expiryDate.toISOString(),
             city: selectedCity || null,
+            district: selectedDistrict || null,
           }
         ]);
 
@@ -227,7 +230,7 @@ export function MarketCreateScreen() {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>KONUM</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {['İstanbul', 'İstanbul Anadolu', 'İstanbul Avrupa', 'Ankara', 'İzmir'].map(city => (
+            {MARKET_CITIES.map(city => (
               <TouchableOpacity
                 key={city}
                 style={[
@@ -235,7 +238,10 @@ export function MarketCreateScreen() {
                   { paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 6 },
                   selectedCity === city && { backgroundColor: 'rgba(57,255,20,0.1)', borderColor: 'rgba(57,255,20,0.4)' }
                 ]}
-                onPress={() => setSelectedCity(selectedCity === city ? '' : city)}
+                onPress={() => {
+                  setSelectedCity(selectedCity === city ? '' : city);
+                  setSelectedDistrict('');
+                }}
               >
                 <MapPin color={selectedCity === city ? '#39ff14' : '#666'} size={12} />
                 <Text style={[
@@ -248,6 +254,32 @@ export function MarketCreateScreen() {
             ))}
           </View>
         </View>
+
+        {selectedCity !== '' && (
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>İLÇE</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {getMarketDistricts(selectedCity as MarketCity).map(district => (
+                <TouchableOpacity
+                  key={district}
+                  style={[
+                    styles.inputWrapper,
+                    { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12 },
+                    selectedDistrict === district && { backgroundColor: 'rgba(57,255,20,0.1)', borderColor: 'rgba(57,255,20,0.4)' }
+                  ]}
+                  onPress={() => setSelectedDistrict(selectedDistrict === district ? '' : district)}
+                >
+                  <Text style={[
+                    { color: '#888', fontSize: 10, fontWeight: 'bold' },
+                    selectedDistrict === district && { color: '#39ff14' }
+                  ]}>
+                    {district}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
 
         <TouchableOpacity 
           style={[styles.btnSubmit, loading && { opacity: 0.7 }]} 
