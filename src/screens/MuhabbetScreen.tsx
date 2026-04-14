@@ -9,6 +9,7 @@ import { Layout } from '../components/Layout';
 import { supabase } from '../lib/supabase';
 import * as ImagePicker from 'expo-image-picker';
 import { Audio } from 'expo-av';
+import * as FileSystem from 'expo-file-system';
 import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type, MessageSquareWarning, Image as ImageIcon, Mic, Square, Ban, Play } from 'lucide-react-native';
 import { MessageService } from '../services/messageService';
 import { useNotificationStore } from '../store/useNotificationStore';
@@ -902,49 +903,41 @@ export default function MuhabbetScreen() {
       const uri = recording.getURI();
 
       if (uri) {
-        // Read file using fetch since expo-file-system requires native install rebuild
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        
-        const reader = new FileReader();
-        reader.onload = async () => {
-          let base64Audio = reader.result as string;
-          // Tarayıcıların (Web) sesi oynatabilmesi için MIME tipini düzelteceğiz
-          if (base64Audio.includes('application/octet-stream')) {
-            base64Audio = base64Audio.replace('application/octet-stream', 'audio/m4a');
-          } else if (!base64Audio.includes('audio/')) {
-            base64Audio = base64Audio.replace(/^data:[^;]+;/, 'data:audio/m4a;');
-          }
+        // Doğrudan expo-file-system ile Base64 olarak okuyoruz (fetch blob hatasından ve eksik MIME formatından kaçınmak için)
+        const base64Data = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
 
-          if (activePrivateTab) {
-            await sendPrivateMessage(activePrivateTab.id, 'Ses paylaşıldı.', activePrivateTab.name, undefined, base64Audio);
-          } else {
-            const { currentBroadcastChannel } = useMuhabbetStore.getState();
-            if (currentBroadcastChannel) {
-               const payload = {
-                  id: Math.random().toString(),
-                  text: 'Ses paylaşıldı.',
-                  senderId: profile?.id,
-                  senderName: profile?.full_name || 'Anonim',
-                  senderAvatar: profile?.avatar_url || '',
-                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                  audioUrl: base64Audio,
-                  roomId: 'public-chat'
-               };
-               await currentBroadcastChannel.send({ type: 'broadcast', event: 'audio-share', payload });
-               useMuhabbetStore.getState().addMessage({
-                  id: payload.id,
-                  sender_id: payload.senderId,
-                  sender_name: payload.senderName,
-                  avatar_url: payload.senderAvatar,
-                  content: payload.text,
-                  created_at: new Date().toISOString(),
-                  audioUrl: base64Audio
-               });
-            }
+        // Tarayıcıların (Web) sesi sorunsuz okumasını garanti etmek için evrensel MP4 ses başlığı ekliyoruz
+        const base64Audio = `data:audio/mp4;base64,${base64Data}`;
+
+        if (activePrivateTab) {
+          await sendPrivateMessage(activePrivateTab.id, 'Ses paylaşıldı.', activePrivateTab.name, undefined, base64Audio);
+        } else {
+          const { currentBroadcastChannel } = useMuhabbetStore.getState();
+          if (currentBroadcastChannel) {
+             const payload = {
+                id: Math.random().toString(),
+                text: 'Ses paylaşıldı.',
+                senderId: profile?.id,
+                senderName: profile?.full_name || 'Anonim',
+                senderAvatar: profile?.avatar_url || '',
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                audioUrl: base64Audio,
+                roomId: 'public-chat'
+             };
+             await currentBroadcastChannel.send({ type: 'broadcast', event: 'audio-share', payload });
+             useMuhabbetStore.getState().addMessage({
+                id: payload.id,
+                sender_id: payload.senderId,
+                sender_name: payload.senderName,
+                avatar_url: payload.senderAvatar,
+                content: payload.text,
+                created_at: new Date().toISOString(),
+                audioUrl: base64Audio
+             });
           }
-        };
-        reader.readAsDataURL(blob);
+        }
       }
     } catch (err) {
       console.error('Kayıt durdurulamadı:', err);
