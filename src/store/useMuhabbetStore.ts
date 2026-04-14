@@ -145,9 +145,6 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
         if (!rooms.find(r => r.id === data.inviter.id)) {
             set({ joinedRooms: [...rooms, data.inviter] });
         }
-
-        // AUTO-SWITCH: Kullanıcı bir davet aldığında (veya ilk mesajı) ekran otomatik o odaya geçsin
-        set({ activePrivateTab: data.inviter });
         
         // Add to unread to pulse it
         const unread = get().unreadPrivate;
