@@ -1077,43 +1077,20 @@ export default function MuhabbetScreen() {
           styles.headerNew,
           { paddingTop: Math.max(insets.top, Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) : 0) + 12 }
         ]}>
-          <View style={[styles.headerLeftNew, { flex: 1 }]}>
-             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, alignItems: 'center' }}>
-                <TouchableOpacity 
-                  onPress={switchToGlobal}
-                  style={[
-                    styles.roundIconBtn, 
-                    { width: 44, height: 44, borderRadius: 22, backgroundColor: '#0a0b1e', borderColor: !activePrivateTab ? '#FF007F' : 'rgba(255, 255, 255, 0.1)', borderWidth: 2 }
-                  ]}
-                >
-                  <Globe color={!activePrivateTab ? "#FF007F" : "#aaaab6"} size={24} />
-                </TouchableOpacity>
-
-                {joinedRooms.map(room => {
-                   const isActive = activePrivateTab?.id === room.id;
-                   const hasUnread = unreadPrivate.includes(room.id);
-                   return (
-                     <TouchableOpacity 
-                       key={room.id}
-                       onPress={() => openPrivateRoom(room)}
-                       onLongPress={() => closePrivateChat(room.id)}
-                       style={[
-                         styles.roundIconBtn, 
-                         { width: 44, height: 44, borderRadius: 22, backgroundColor: '#111226', overflow: 'hidden' },
-                         isActive && { borderColor: '#FF007F', borderWidth: 2 },
-                         !isActive && hasUnread && { borderColor: '#FF0000', borderWidth: 2, shadowColor: '#FF0000', shadowOffset: {width: 0, height: 0}, shadowOpacity: 1, shadowRadius: 10 }
-                       ]}
-                     >
-                        <Text style={{ color: isActive ? '#fff' : (hasUnread ? '#FF0000' : '#aaaab6'), fontWeight: 'bold' }}>
-                          {room.name.substring(0,2).toUpperCase()}
-                        </Text>
-                        {hasUnread && !isActive && (
-                           <View style={{ position: 'absolute', top: -2, right: -2, width: 12, height: 12, borderRadius: 6, backgroundColor: '#FF0000' }} />
-                        )}
-                     </TouchableOpacity>
-                   );
-                })}
-             </ScrollView>
+          <View style={styles.headerLeftNew}>
+            <View style={styles.pinkSquare} />
+            <TouchableOpacity 
+              style={[
+                 styles.chatSelector,
+                 activePrivateTab === null && unreadPrivate.length > 0 && { borderColor: '#FF0000', borderWidth: 2, shadowColor: '#FF0000', shadowOffset: {width: 0, height: 0}, shadowOpacity: 1, shadowRadius: 10 }
+              ]} 
+              onPress={() => setShowRoomDropdown(true)}
+            >
+              <Text style={styles.chatSelectorText}>
+                {activePrivateTab ? `Özel: ${activePrivateTab.name}` : 'Genel Sohbet'}
+              </Text>
+              <ChevronDown color={activePrivateTab === null && unreadPrivate.length > 0 ? '#FF0000' : '#fff'} size={16} />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.headerRightNew}>
@@ -1409,6 +1386,52 @@ export default function MuhabbetScreen() {
         </Animated.View>
 
         {/* Room Dropdown Modal */}
+        <Modal 
+          visible={showRoomDropdown} 
+          transparent 
+          animationType="fade" 
+          onRequestClose={() => setShowRoomDropdown(false)}
+        >
+          <TouchableOpacity 
+            style={styles.dropdownModalOverlay} 
+            activeOpacity={1} 
+            onPress={() => setShowRoomDropdown(false)}
+          >
+            <View style={[styles.dropdownContainer, { top: insets.top + 60 }]}>
+               <TouchableOpacity
+                  style={[styles.dropdownItem, !activePrivateTab && styles.dropdownItemActive]}
+                  onPress={() => {
+                    switchToGlobal();
+                    setShowRoomDropdown(false);
+                  }}
+               >
+                 <Text style={[styles.dropdownText, !activePrivateTab && styles.dropdownTextActive]}>Genel Sohbet</Text>
+               </TouchableOpacity>
+               
+               {joinedRooms.map((room) => {
+                  const hasUnread = unreadPrivate.includes(room.id);
+                  return (
+                    <TouchableOpacity
+                      key={room.id}
+                      style={[styles.dropdownItem, activePrivateTab?.id === room.id && styles.dropdownItemActive]}
+                      onPress={() => {
+                        openPrivateRoom(room);
+                        setShowRoomDropdown(false);
+                      }}
+                    >
+                      <Text style={[
+                          styles.dropdownText, 
+                          activePrivateTab?.id === room.id && styles.dropdownTextActive,
+                          hasUnread && { color: '#FF0000' }
+                      ]}>
+                        Özel: {room.name} {hasUnread ? '(YENİ)' : ''}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+               })}
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     </Layout>
   );
