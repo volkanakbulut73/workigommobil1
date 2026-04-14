@@ -81,4 +81,4 @@ const styles = StyleSheet.create({
   offlineText: { color: '#fff', fontWeight: 'bold' }
 });
 
-export default Sentry.wrap(App);
+export default sentryDsn ? Sentry.wrap(App) : App;

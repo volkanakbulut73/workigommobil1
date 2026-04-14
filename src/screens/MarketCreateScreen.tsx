@@ -231,57 +231,72 @@ export function MarketCreateScreen() {
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>KONUM</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {MARKET_CITIES.map(city => (
-              <TouchableOpacity
-                key={city}
-                style={[
-                  styles.inputWrapper,
-                  { paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 6 },
-                  selectedCity === city && { backgroundColor: 'rgba(57,255,20,0.1)', borderColor: 'rgba(57,255,20,0.4)' }
-                ]}
-                onPress={() => {
-                  setSelectedCity(selectedCity === city ? '' : city);
-                  setSelectedDistrict('');
-                }}
-              >
-                <MapPin color={selectedCity === city ? '#39ff14' : '#666'} size={12} />
-                <Text style={[
-                  { color: '#888', fontSize: 11, fontWeight: 'bold' },
-                  selectedCity === city && { color: '#39ff14' }
-                ]}>
-                  {city}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {selectedCity !== '' && (
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>İLÇE</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {getMarketDistricts(selectedCity as MarketCity).map(district => (
-                <TouchableOpacity
-                  key={district}
-                  style={[
-                    styles.inputWrapper,
-                    { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12 },
-                    selectedDistrict === district && { backgroundColor: 'rgba(57,255,20,0.1)', borderColor: 'rgba(57,255,20,0.4)' }
-                  ]}
-                  onPress={() => setSelectedDistrict(selectedDistrict === district ? '' : district)}
-                >
-                  <Text style={[
-                    { color: '#888', fontSize: 10, fontWeight: 'bold' },
-                    selectedDistrict === district && { color: '#39ff14' }
-                  ]}>
-                    {district}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.label, { fontSize: 8, marginBottom: 4, marginLeft: 4 }]}>ŞEHİR</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                {MARKET_CITIES.map(city => (
+                  <TouchableOpacity
+                    key={city}
+                    style={[
+                      styles.inputWrapper,
+                      { paddingVertical: 8, paddingHorizontal: 10, flex: 1, minWidth: '45%' },
+                      selectedCity === city && { backgroundColor: 'rgba(57,255,20,0.1)', borderColor: 'rgba(57,255,20,0.4)' }
+                    ]}
+                    onPress={() => {
+                      setSelectedCity(selectedCity === city ? '' : city);
+                      setSelectedDistrict('');
+                    }}
+                  >
+                    <Text style={[
+                      { color: '#888', fontSize: 10, fontWeight: 'bold', textAlign: 'center' },
+                      selectedCity === city && { color: '#39ff14' }
+                    ]}>
+                      {city === 'İstanbul Avrupa' ? 'İst. Avrupa' : city === 'İstanbul Anadolu' ? 'İst. Anadolu' : city}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
-        )}
+
+          {selectedCity !== '' && (
+            <View style={{ marginTop: 12 }}>
+              <Text style={[styles.label, { fontSize: 8, marginBottom: 4, marginLeft: 4 }]}>İLÇE SEÇİN</Text>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 6 }}
+              >
+                {getMarketDistricts(selectedCity as MarketCity).map(district => (
+                  <TouchableOpacity
+                    key={district}
+                    style={[
+                      styles.inputWrapper,
+                      { paddingVertical: 6, paddingHorizontal: 12 },
+                      selectedDistrict === district && { backgroundColor: 'rgba(57,255,20,0.1)', borderColor: 'rgba(57,255,20,0.4)' }
+                    ]}
+                    onPress={() => setSelectedDistrict(selectedDistrict === district ? '' : district)}
+                  >
+                    <Text style={[
+                      { color: '#888', fontSize: 10, fontWeight: 'bold' },
+                      selectedDistrict === district && { color: '#39ff14' }
+                    ]}>
+                      {district}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {selectedCity && selectedDistrict && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, backgroundColor: 'rgba(57,255,20,0.05)', padding: 8, borderRadius: 10, borderLeftWidth: 3, borderLeftColor: '#39ff14' }}>
+              <MapPin color="#39ff14" size={12} />
+              <Text style={{ color: '#39ff14', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' }}>{selectedCity} / {selectedDistrict}</Text>
+            </View>
+          )}
+        </View>
 
         <TouchableOpacity 
           style={[styles.btnSubmit, loading && { opacity: 0.7 }]} 

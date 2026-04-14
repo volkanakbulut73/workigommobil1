@@ -9,7 +9,7 @@ import { Layout } from '../components/Layout';
 import { supabase } from '../lib/supabase';
 import * as ImagePicker from 'expo-image-picker';
 import { Audio } from 'expo-av';
-import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type, MessageSquareWarning, Image as ImageIcon, Mic, Square } from 'lucide-react-native';
+import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type, MessageSquareWarning, Image as ImageIcon, Mic, Square, Ban } from 'lucide-react-native';
 import { MessageService } from '../services/messageService';
 import { useNotificationStore } from '../store/useNotificationStore';
 import { useNavigation } from '@react-navigation/native';
@@ -1411,22 +1411,32 @@ export default function MuhabbetScreen() {
                {joinedRooms.map((room) => {
                   const hasUnread = unreadPrivate.includes(room.id);
                   return (
-                    <TouchableOpacity
-                      key={room.id}
-                      style={[styles.dropdownItem, activePrivateTab?.id === room.id && styles.dropdownItemActive]}
-                      onPress={() => {
-                        openPrivateRoom(room);
-                        setShowRoomDropdown(false);
-                      }}
-                    >
-                      <Text style={[
-                          styles.dropdownText, 
-                          activePrivateTab?.id === room.id && styles.dropdownTextActive,
-                          hasUnread && { color: '#FF0000' }
-                      ]}>
-                        Özel: {room.name} {hasUnread ? '(YENİ)' : ''}
-                      </Text>
-                    </TouchableOpacity>
+                    <View key={room.id} style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+                      <TouchableOpacity
+                        style={[styles.dropdownItem, activePrivateTab?.id === room.id && styles.dropdownItemActive, { flex: 1 }]}
+                        onPress={() => {
+                          openPrivateRoom(room);
+                          setShowRoomDropdown(false);
+                        }}
+                      >
+                        <Text style={[
+                            styles.dropdownText, 
+                            activePrivateTab?.id === room.id && styles.dropdownTextActive,
+                            hasUnread && { color: '#FF0000' }
+                        ]}>
+                          Özel: {room.name} {hasUnread ? '(YENİ)' : ''}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={{ padding: 12 }} onPress={() => closePrivateChat(room.id)}>
+                        <X color="#aaaab6" size={18} />
+                      </TouchableOpacity>
+                      <TouchableOpacity style={{ padding: 12 }} onPress={async () => {
+                         await useBlockStore.getState().blockUser(room.id);
+                         closePrivateChat(room.id);
+                      }}>
+                        <Ban color="#ff4d4d" size={18} />
+                      </TouchableOpacity>
+                    </View>
                   );
                })}
             </View>

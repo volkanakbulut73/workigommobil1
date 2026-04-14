@@ -433,6 +433,14 @@ Tamamlanan, iptal edilen veya reddedilen talepler otomatik olarak bu tabloya kop
 
 ## 📋 Değişiklik Günlüğü (Changelog)
 
+### v2.15.0 — 13 Nisan 2026, 06:45 (UTC+3)
+**🔍 Çift Kademeli Konum Seçici (Dual-Dropdown) — Web & Mobil Parite:**
+
+- **Market Header**: Eskiden tek bir buton olan konum filtresi, yan yana duran iki ayrı tetikleyiciye (Şehir ve İlçe) bölündü.
+- **İlan Oluşturma**: Konum seçim alanı, Şehir ve İlçe'nin yan yana seçilebildiği daha profesyonel ve düzenli bir yapıya kavuşturuldu.
+- **Dinamik İlçe Listesi**: Şehir seçimine bağlı olarak ilçe listesinin anlık güncellenmesi ve kullanıcıyı yönlendiren "İLÇE SEÇİN" alanı eklendi.
+- **Mobil Görünüm Optimizasyonu**: Sınırlı alanda maksimum verimlilik için buton genişlikleri ve ikon boyutları optimize edildi.
+
 ### v2.14.0 — 13 Nisan 2026, 04:50 (UTC+3)
 **🎨 Market Sayfası Tam Revize — Web ile Eşitlik:**
 
@@ -576,4 +584,4 @@ Web (`anti`) projesinde tespit edilen **22 adet ESLint hatası/uyarısı** tamam
 ... (eski kayıtlar)
 
 ---
-*Son Guncelleme: 13 Nisan 2026, 06:15 (UTC+3)*
+*Son Guncelleme: 13 Nisan 2026, 06:45 (UTC+3)*

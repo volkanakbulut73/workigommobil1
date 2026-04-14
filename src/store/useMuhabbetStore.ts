@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { useBlockStore } from './useBlockStore';
 
 interface MuhabbetMessage {
   id: string;
@@ -136,7 +137,6 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
       const data = payload.payload;
       const myId = get().myProfile?.id;
       
-      const { useBlockStore } = require('./useBlockStore');
       if (data.inviter?.id && useBlockStore.getState().isBlocked(data.inviter.id)) return;
 
       if (myId && data.targetId === myId) {
@@ -159,7 +159,6 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
       const data = payload.payload;
       const myId = get().myProfile?.id;
       
-      const { useBlockStore } = require('./useBlockStore');
       if (data.message?.sender_id && useBlockStore.getState().isBlocked(data.message.sender_id)) return;
       if (data.message?.senderId && useBlockStore.getState().isBlocked(data.message.senderId)) return;
 
@@ -262,7 +261,6 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
   },
 
   addMessage: (msg) => {
-    const { useBlockStore } = require('./useBlockStore');
     if (useBlockStore.getState().isBlocked(msg.sender_id)) {
       return; // Do not add message from blocked user
     }
