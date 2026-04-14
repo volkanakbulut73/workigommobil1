@@ -28,9 +28,11 @@ interface MuhabbetState {
   // Private Room (Ephemeral)
   myProfile: any;
   activePrivateTab: MuhabbetPrivateChat | null;
+  joinedRooms: MuhabbetPrivateChat[];
   privateMessages: Record<string, MuhabbetMessage[]>;
   unreadPrivate: string[];
   incomingInvite: { id: string, name: string } | null;
+  privateChannels: Record<string, RealtimeChannel>;
 
   initializeRoom: (roomName: string, userId: string, profile: any) => void;
   sendMessage: (roomName: string, message: Omit<MuhabbetMessage, 'id' | 'created_at'>) => Promise<void>;
@@ -39,7 +41,8 @@ interface MuhabbetState {
   
   // Private Room Actions
   openPrivateChat: (targetUser: MuhabbetPrivateChat) => void;
-  closePrivateChat: () => void;
+  closePrivateChat: (targetId: string) => void;
+  switchToGlobal: () => void;
   sendPrivateMessage: (targetId: string, content: string, targetName: string, imageUrl?: string, audioUrl?: string) => Promise<void>;
   acceptInvite: () => void;
   declineInvite: () => void;
@@ -54,9 +57,11 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
 
   myProfile: null,
   activePrivateTab: null,
+  joinedRooms: [],
   privateMessages: {},
   unreadPrivate: [],
   incomingInvite: null,
+  privateChannels: {},
 
   initializeRoom: (roomName, userId, profile) => {
     // 1. Leave if already in a room
@@ -65,7 +70,12 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
     set({ myProfile: profile });
 
     const channelId = roomName === 'genel' ? 'public-chat' : roomName;
-    const channel = supabase.channel(channelId);
+    const channel = supabase.channel(channelId, {
+      config: {
+        presence: { key: userId },
+        broadcast: { ack: false }
+      }
+    });
 
     // 2. Setup Broadcast Channel for incoming messages
     channel.on('broadcast', { event: 'message' }, (payload) => {
@@ -81,7 +91,10 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
         imageUrl: data.imageUrl,
         audioUrl: data.audioUrl
       };
-      get().addMessage(msg);
+      // Only process global messages
+      if (!data.roomId || data.roomId === 'public-chat' || data.roomId === channelId) {
+        get().addMessage(msg);
+      }
     });
 
     // Handle image-share from Web
@@ -96,7 +109,9 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
         created_at: data.timestamp ? new Date().toISOString() : data.created_at || new Date().toISOString(),
         imageUrl: data.imageUrl
       };
-      get().addMessage(msg);
+      if (!data.roomId || data.roomId === 'public-chat' || data.roomId === channelId) {
+        get().addMessage(msg);
+      }
     });
 
     // Handle audio-share from Web
@@ -111,7 +126,9 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
         created_at: data.timestamp ? new Date().toISOString() : data.created_at || new Date().toISOString(),
         audioUrl: data.audioUrl
       };
-      get().addMessage(msg);
+      if (!data.roomId || data.roomId === 'public-chat' || data.roomId === channelId) {
+        get().addMessage(msg);
+      }
     });
 
     // Handle Private Invites
@@ -123,7 +140,17 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
       if (data.inviter?.id && useBlockStore.getState().isBlocked(data.inviter.id)) return;
 
       if (myId && data.targetId === myId) {
-        set({ incomingInvite: data.inviter });
+        // Automatically add to joined rooms if not there
+        const rooms = get().joinedRooms;
+        if (!rooms.find(r => r.id === data.inviter.id)) {
+            set({ joinedRooms: [...rooms, data.inviter] });
+        }
+        
+        // Add to unread to pulse it
+        const unread = get().unreadPrivate;
+        if (!unread.includes(data.inviter.id)) {
+            set({ unreadPrivate: [...unread, data.inviter.id] });
+        }
       }
     });
 
@@ -134,19 +161,40 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
       
       const { useBlockStore } = require('./useBlockStore');
       if (data.message?.sender_id && useBlockStore.getState().isBlocked(data.message.sender_id)) return;
+      if (data.message?.senderId && useBlockStore.getState().isBlocked(data.message.senderId)) return;
 
       const isMeTarget = data.targetId === myId;
-      const isMeSender = data.message.sender_id === myId;
+      const isMeSender = data.message?.sender_id === myId || data.message?.senderId === myId;
       
       if (isMeTarget || isMeSender) {
-        const otherId = isMeTarget ? data.message.sender_id : data.targetId;
+        const otherId = isMeTarget ? (data.message.senderId || data.message.sender_id) : data.targetId;
         
+        // Normalize schema
+        const rawMsg = data.message;
+        const msg: MuhabbetMessage = {
+            id: rawMsg.id,
+            sender_id: rawMsg.senderId || rawMsg.sender_id,
+            sender_name: rawMsg.senderName || rawMsg.sender_name,
+            avatar_url: rawMsg.senderAvatar || rawMsg.avatar_url,
+            content: rawMsg.text || rawMsg.content,
+            created_at: rawMsg.timestamp ? new Date().toISOString() : rawMsg.created_at || new Date().toISOString(),
+            imageUrl: rawMsg.imageUrl,
+            audioUrl: rawMsg.audioUrl
+        };
+
         set((state) => {
           const currentMsgs = state.privateMessages[otherId] || [];
-          const newMsgs = [data.message, ...currentMsgs];
+          if (currentMsgs.some(m => m.id === msg.id)) return state;
+          const newMsgs = [msg, ...currentMsgs];
           
           let updatedUnread = state.unreadPrivate;
-          // If I am the target, and I am not currently looking at this tab, mark unread
+          let updatedJoinedRooms = state.joinedRooms;
+
+          // Add to joined rooms if not present
+          if (!updatedJoinedRooms.find(r => r.id === otherId)) {
+               updatedJoinedRooms = [...updatedJoinedRooms, { id: otherId, name: msg.sender_name }];
+          }
+
           if (isMeTarget && state.activePrivateTab?.id !== otherId && !state.unreadPrivate.includes(otherId)) {
             updatedUnread = [...state.unreadPrivate, otherId];
           }
@@ -156,7 +204,8 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
               ...state.privateMessages,
               [otherId]: newMsgs
             },
-            unreadPrivate: updatedUnread
+            unreadPrivate: updatedUnread,
+            joinedRooms: updatedJoinedRooms
           };
         });
       }
@@ -172,7 +221,7 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
         if (presences.length > 0) {
           const presence = presences[0];
           // Handle both Web (userId) and Mobile (user_id) schemas
-          const uid = presence.userId || presence.user_id;
+          const uid = presence.userId || presence.user_id || id;
           if (uid) {
             usersMap.set(uid, {
               id: uid,
@@ -281,38 +330,68 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
       presenceList: [],
       messages: [],
       activePrivateTab: null,
+      joinedRooms: [],
       incomingInvite: null,
-      myProfile: null
+      myProfile: null,
+      unreadPrivate: []
     });
   },
 
   openPrivateChat: (targetUser) => {
-    set((state) => ({ 
-      activePrivateTab: targetUser,
-      unreadPrivate: state.unreadPrivate.filter(id => id !== targetUser.id)
-    }));
+    set((state) => {
+       const isJoined = state.joinedRooms.find(r => r.id === targetUser.id);
+       let newJoined = state.joinedRooms;
+       if (!isJoined) {
+           newJoined = [...state.joinedRooms, targetUser];
+       }
+       return { 
+         joinedRooms: newJoined,
+         activePrivateTab: targetUser,
+         unreadPrivate: state.unreadPrivate.filter(id => id !== targetUser.id)
+       };
+    });
     
+    // Broadcast invite blindly to update their UI
     const { currentBroadcastChannel, myProfile } = get();
     if (currentBroadcastChannel && myProfile) {
-      currentBroadcastChannel.send({
-        type: 'broadcast',
-        event: 'private_invite',
-        payload: {
-          targetId: targetUser.id,
-          inviter: { id: myProfile.id, name: myProfile.full_name }
-        }
-      });
+        currentBroadcastChannel.send({
+            type: 'broadcast',
+            event: 'private_invite',
+            payload: {
+                targetId: targetUser.id,
+                inviter: { id: myProfile.id, name: myProfile.full_name }
+            }
+        });
     }
   },
 
-  closePrivateChat: () => set({ activePrivateTab: null }),
+  closePrivateChat: (targetId) => {
+    set((state) => {
+      const newJoined = state.joinedRooms.filter(r => r.id !== targetId);
+      return {
+          joinedRooms: newJoined,
+          activePrivateTab: state.activePrivateTab?.id === targetId ? null : state.activePrivateTab
+      };
+    });
+  },
+
+  switchToGlobal: () => set({ activePrivateTab: null }),
 
   acceptInvite: () => {
     const invite = get().incomingInvite;
     if (invite) {
-      set({ 
-        activePrivateTab: invite, 
-        incomingInvite: null 
+      set((state) => {
+         const isJoined = state.joinedRooms.find(r => r.id === invite.id);
+         let newJoined = state.joinedRooms;
+         if (!isJoined) {
+             newJoined = [...state.joinedRooms, invite];
+         }
+         return {
+            joinedRooms: newJoined,
+            activePrivateTab: invite, 
+            incomingInvite: null,
+            unreadPrivate: state.unreadPrivate.filter(id => id !== invite.id)
+         }
       });
     }
   },
@@ -320,7 +399,8 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
   declineInvite: () => set({ incomingInvite: null }),
 
   sendPrivateMessage: async (targetId, content, targetName, imageUrl, audioUrl) => {
-    const { currentBroadcastChannel, myProfile } = get();
+    const { myProfile, currentBroadcastChannel } = get();
+
     if (!currentBroadcastChannel || !myProfile) return;
 
     const fullMsg: MuhabbetMessage = {
@@ -341,26 +421,23 @@ export const useMuhabbetStore = create<MuhabbetState>()((set, get) => ({
         senderName: fullMsg.sender_name,
         senderAvatar: fullMsg.avatar_url || null,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        roomId: targetId,
         imageUrl,
         audioUrl
     };
 
-    // Broadcast only works because both users are on the same channel
+    // Send using unified broadcast payload format over the public channel
     await currentBroadcastChannel.send({
       type: 'broadcast',
       event: 'private_message',
       payload: {
-        targetId,
-        targetName,
-        message: { ...fullMsg, ...webPrivMsg } // Keep both schemas
+          targetId: targetId,
+          message: { ...fullMsg, ...webPrivMsg }
       }
     });
     
-    // Optimistic addition is handled by our own broadcast listener (since isMeSender applies),
-    // but sometimes the client doesn't receive its own broadcast. We should add it manually just in case.
     set((state) => {
         const currentMsgs = state.privateMessages[targetId] || [];
-        // Prevent duplicate if broadcast listener already caught it
         if (currentMsgs.some(m => m.id === fullMsg.id)) return state;
         return {
           privateMessages: {

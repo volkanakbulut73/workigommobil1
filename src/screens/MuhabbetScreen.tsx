@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, Dimensions, StatusBar as RNStatusBar, Image, Modal } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, Dimensions, StatusBar as RNStatusBar, Image, Modal, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMuhabbetStore } from '../store/useMuhabbetStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -578,9 +578,11 @@ export default function MuhabbetScreen() {
     activePrivateTab,
     privateMessages,
     unreadPrivate,
+    joinedRooms,
     incomingInvite,
     openPrivateChat: openPrivateRoom,
     closePrivateChat,
+    switchToGlobal,
     sendPrivateMessage,
     acceptInvite,
     declineInvite
@@ -1075,21 +1077,43 @@ export default function MuhabbetScreen() {
           styles.headerNew,
           { paddingTop: Math.max(insets.top, Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) : 0) + 12 }
         ]}>
-          <View style={styles.headerLeftNew}>
-            <View style={styles.pinkSquare} />
-            {activePrivateTab ? (
-              <View style={styles.chatSelector}>
-                <Text style={styles.chatSelectorText}>Özel: {activePrivateTab.name}</Text>
-                <TouchableOpacity onPress={closePrivateChat} style={{ marginLeft: 8 }}>
-                  <X color="#FF007F" size={16} />
+          <View style={[styles.headerLeftNew, { flex: 1 }]}>
+             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, alignItems: 'center' }}>
+                <TouchableOpacity 
+                  onPress={switchToGlobal}
+                  style={[
+                    styles.roundIconBtn, 
+                    { width: 44, height: 44, borderRadius: 22, backgroundColor: '#0a0b1e', borderColor: !activePrivateTab ? '#FF007F' : 'rgba(255, 255, 255, 0.1)', borderWidth: 2 }
+                  ]}
+                >
+                  <Globe color={!activePrivateTab ? "#FF007F" : "#aaaab6"} size={24} />
                 </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity style={styles.chatSelector} onPress={() => setShowRoomDropdown(true)}>
-                <Text style={styles.chatSelectorText}>{getRoomDisplayName(currentRoom)}</Text>
-                <ChevronDown color="#fff" size={16} />
-              </TouchableOpacity>
-            )}
+
+                {joinedRooms.map(room => {
+                   const isActive = activePrivateTab?.id === room.id;
+                   const hasUnread = unreadPrivate.includes(room.id);
+                   return (
+                     <TouchableOpacity 
+                       key={room.id}
+                       onPress={() => openPrivateRoom(room)}
+                       onLongPress={() => closePrivateChat(room.id)}
+                       style={[
+                         styles.roundIconBtn, 
+                         { width: 44, height: 44, borderRadius: 22, backgroundColor: '#111226', overflow: 'hidden' },
+                         isActive && { borderColor: '#FF007F', borderWidth: 2 },
+                         !isActive && hasUnread && { borderColor: '#FF0000', borderWidth: 2, shadowColor: '#FF0000', shadowOffset: {width: 0, height: 0}, shadowOpacity: 1, shadowRadius: 10 }
+                       ]}
+                     >
+                        <Text style={{ color: isActive ? '#fff' : (hasUnread ? '#FF0000' : '#aaaab6'), fontWeight: 'bold' }}>
+                          {room.name.substring(0,2).toUpperCase()}
+                        </Text>
+                        {hasUnread && !isActive && (
+                           <View style={{ position: 'absolute', top: -2, right: -2, width: 12, height: 12, borderRadius: 6, backgroundColor: '#FF0000' }} />
+                        )}
+                     </TouchableOpacity>
+                   );
+                })}
+             </ScrollView>
           </View>
 
           <View style={styles.headerRightNew}>
@@ -1358,7 +1382,7 @@ export default function MuhabbetScreen() {
                         await unblockUser(item.id);
                       } else {
                         await blockUser(item.id);
-                        if (activePrivateTab?.id === item.id) closePrivateChat();
+                        if (activePrivateTab?.id === item.id) closePrivateChat(item.id);
                       }
                     }}
                   >
@@ -1385,35 +1409,6 @@ export default function MuhabbetScreen() {
         </Animated.View>
 
         {/* Room Dropdown Modal */}
-        <Modal 
-          visible={showRoomDropdown} 
-          transparent 
-          animationType="fade" 
-          onRequestClose={() => setShowRoomDropdown(false)}
-        >
-          <TouchableOpacity 
-            style={styles.dropdownModalOverlay} 
-            activeOpacity={1} 
-            onPress={() => setShowRoomDropdown(false)}
-          >
-            <View style={[styles.dropdownContainer, { top: insets.top + 60 }]}>
-              {['genel', 'pazar', 'destek', 'goygoy'].map((room) => (
-                <TouchableOpacity
-                  key={room}
-                  style={[styles.dropdownItem, currentRoom === room && styles.dropdownItemActive]}
-                  onPress={() => {
-                    setCurrentRoom(room);
-                    setShowRoomDropdown(false);
-                  }}
-                >
-                  <Text style={[styles.dropdownText, currentRoom === room && styles.dropdownTextActive]}>
-                    {getRoomDisplayName(room)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </TouchableOpacity>
-        </Modal>
       </View>
     </Layout>
   );

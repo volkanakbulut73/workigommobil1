@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, TextInput, Modal, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, TextInput, Modal, Animated, Dimensions, ScrollView } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Layout } from '../components/Layout';
@@ -172,16 +172,28 @@ export function MarketScreen() {
             {activeFilter !== 'Tümü' && <View style={styles.filterDot} />}
           </TouchableOpacity>
 
-          {/* Location */}
+          {/* City Selection */}
           <TouchableOpacity
-            style={[styles.headerBtn, styles.locationBtn, selectedLocation !== 'Tüm Konumlar' && styles.headerBtnActive]}
+            style={[styles.headerBtn, { minWidth: 60, flex: 0.8 }, selectedLocation !== 'Tüm Konumlar' && styles.headerBtnActive]}
             onPress={() => setLocationVisible(true)}
           >
-            <MapPin color={selectedLocation !== 'Tüm Konumlar' ? '#39ff14' : 'rgba(186,204,176,0.5)'} size={12} />
-            <Text style={[styles.locationText, { maxWidth: 100, fontSize: 10, color: selectedLocation !== 'Tüm Konumlar' ? '#39ff14' : 'rgba(186,204,176,0.5)' }]} numberOfLines={1}>
-              {selectedLocation === 'Tüm Konumlar' ? 'Konum' : selectedDistrict === 'Tüm İlçeler' ? selectedLocation : `${selectedLocation} / ${selectedDistrict}`}
+            <MapPin color={selectedLocation !== 'Tüm Konumlar' ? '#39ff14' : 'rgba(186,204,176,0.5)'} size={10} />
+            <Text style={[styles.locationText, { fontSize: 9, color: selectedLocation !== 'Tüm Konumlar' ? '#39ff14' : 'rgba(186,204,176,0.5)' }]} numberOfLines={1}>
+              {selectedLocation === 'Tüm Konumlar' ? 'Şehir' : selectedLocation === 'İstanbul Avrupa' ? 'Avrupa' : selectedLocation === 'İstanbul Anadolu' ? 'Anadolu' : selectedLocation}
             </Text>
-            <ChevronDown color="rgba(186,204,176,0.3)" size={10} />
+            <ChevronDown color="rgba(186,204,176,0.3)" size={8} />
+          </TouchableOpacity>
+
+          {/* District Selection */}
+          <TouchableOpacity
+            disabled={selectedLocation === 'Tüm Konumlar'}
+            style={[styles.headerBtn, { minWidth: 60, flex: 0.8 }, selectedDistrict !== 'Tüm İlçeler' && styles.headerBtnActive, selectedLocation === 'Tüm Konumlar' && { opacity: 0.3 }]}
+            onPress={() => setLocationVisible(true)}
+          >
+            <Text style={[styles.locationText, { fontSize: 9, color: selectedDistrict !== 'Tüm İlçeler' ? '#39ff14' : 'rgba(186,204,176,0.5)' }]} numberOfLines={1}>
+              {selectedDistrict === 'Tüm İlçeler' ? 'İlçe' : selectedDistrict}
+            </Text>
+            <ChevronDown color="rgba(186,204,176,0.3)" size={8} />
           </TouchableOpacity>
         </View>
 
