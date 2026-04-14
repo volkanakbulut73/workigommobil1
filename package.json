@@ -16,12 +16,12 @@
     "@react-navigation/stack": "^6.3.20",
     "@sentry/react-native": "~7.2.0",
     "@supabase/supabase-js": "^2.39.7",
-
     "base64-arraybuffer": "^1.0.2",
     "expo": "~54.0.33",
     "expo-av": "~16.0.8",
     "expo-constants": "~18.0.13",
     "expo-device": "~8.0.10",
+    "expo-file-system": "~19.0.21",
     "expo-image": "~3.0.11",
     "expo-image-picker": "~17.0.10",
     "expo-linking": "~8.0.11",

@@ -882,7 +882,7 @@ export default function MuhabbetScreen() {
       });
 
       const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.LOW_QUALITY
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
       setRecording(recording);
       setRecordingTime(0);
