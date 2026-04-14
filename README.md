@@ -257,6 +257,42 @@ Kullanıcı "@workigom merhaba" yazar
 - **Web:** `anti/src/pages/Muhabbet.tsx` → `handleSendMessage()` (satır ~383-450)
 - **Mobil:** `mobile/src/screens/MuhabbetScreen.tsx` → `handleSend()` (bot trigger bloğu)
 
+**4. Sesli Mesajlaşma (Voice Audio) Altyapısı**
+Sorunsuz bir Web ve Mobil ses iletişimi için kayıt, kodlama ve Base64 transformasyon süreçleri aşağıdaki standartta olmalıdır:
+
+*   **Mobil Kayıt Şifrelemesi (Codec Standartı)**:
+    iOS ve Android tarafında `expo-av` kullanılırken **KESİNLİKLE** `Audio.RecordingOptionsPresets.HIGH_QUALITY` kullanılmalıdır. Bu ayar, sesin evrensel `.m4a` (AAC Codec / MPEG-4 Container) formatında olmasını zorunlu kılar. Eğer `LOW_QUALITY` kullanılırsa, Android sistemi sesi `.3gp (AMR)` yapısında kaydeder. Safari, Edge ve Chrome bu yapıyı reddedeceği için Web'deki Audio Player `0:00` kilitli (pasif) kalır.
+
+*   **Lokal Fiziksel Dosyayı Base64'e Çevirme (Mobile -> Web Taşıma)**:
+    React Native üzerinde `fetch(uri).blob()` yöntemi lokal `file://` dosyalarında eksik bayt okuması/bozulma (corruption) yaratır. Ses, **EXPO SDK 54 uyumlu olarak** sadece `expo-file-system/legacy` modülü kullanılarak çevrilmelidir:
+    ```typescript
+    import * as FileSystem from 'expo-file-system/legacy';
+    
+    // fetch kullanılmadan, doğran native olarak pure Base64 elde et:
+    const base64Data = await FileSystem.readAsStringAsync(uri, {
+      encoding: 'base64', // Literal string (EncodingType.Base64 null exception hatasını önler)
+    });
+    ```
+
+*   **MIME-Type Başlığı Entegrasyonu (Ağ Taşıma Modeli)**:
+    Okunan saf Base64 metni yayın kanalına iletilmeden önce string interpolasyonuyla evrensel Web standardı HTML5 başlığıyla sarmalanmalıdır:
+    ```typescript
+    const base64Audio = `data:audio/mp4;base64,${base64Data}`; 
+    // audio/m4a veya application/octet-stream YERİNE %100 Web uyumu için audio/mp4 kullanılmalıdır.
+    ```
+
+**5. Ephemeral (Geçici) Özel Oda ve UX Davranış Kuralları**
+Supabase `public-chat` yayın kanalı üzerinden veritabanına KAYDEDİLMEDEN çalışan (anlık) özel odalardaki yayın standartları:
+
+*   **Davet Şeması (Broadcast Payload)**:
+    Çift tıklandığında yayın kanalına gönderilen JSON şablonu:
+    ```json
+    { "type": "broadcast", "event": "private_invite", "payload": { "targetId": "uuid", "inviter": { "id": "uuid", "name": "user" } } }
+    ```
+*   **Otomatik Sekme Atlama (Auto-Switch) Kesinlikle Yasaktır (UX İlkesi)**:
+    Hedef kullanıcı bir `private_invite` paketi aldığında, State Container (`setJoinedRooms`, `unreadRooms`) üzerinden oda belleğe/arka plana eklenir. Fakat kullanıcının aktif olarak bulunduğu oda/sekme, *izin veya müdahale olmadan zorla yeni odaya geçirilmez (Auto-switch yapılmaz).*
+    Bunun yerine arayüzde (Web'de Select box sınırlarında, Mobile'da Tab kısmında) kırmızı/neon bir `animate-pulse` (yanıp sönme) efektiyle nazik bir bildirim verilir. Kullanıcı bilinçli olarak odaya kendisi tıklar.
+
 ---
 
 ## 📝 Standart Supabase Mesajlaşma Şablonu (Mobil & Web)
