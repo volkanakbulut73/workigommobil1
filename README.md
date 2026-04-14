@@ -433,6 +433,14 @@ Tamamlanan, iptal edilen veya reddedilen talepler otomatik olarak bu tabloya kop
 
 ## 📋 Değişiklik Günlüğü (Changelog)
 
+### v2.16.0 — 14 Nisan 2026, 06:40 (UTC+3)
+**🎙️ Çapraz Platform Sesli Mesajlaşma (Web & Mobile Parite):**
+
+- **Audio Codec Uyumluluğu (Kritik Düzeltme)**: Android cihazlardan `expo-av` kütüphanesi kullanılarak `.3gp` (AMR) formatında yollanan ses dosyalarının Web tarayıcılarında çalışmamasına (pasif kalmasına) neden olan şifreleme uyumsuzluğu çözüldü. Mobil sesin doğrudan evrensel `.m4a` (AAC / MPEG-4) formatında kaydedilip kodlanması sağlandı (`Audio.RecordingOptionsPresets.HIGH_QUALITY`).
+- **Base64 Güvenilirliği (Kayıp Veri Önleme)**: Ses kaydı Base64'e dönüştürülürken React Native'in yerel lokal dosyalarda (`file://`) `fetch()` fonksiyonunda yaşadığı dosya bozma sorunu (Data corruption/clipping) terk edilerek tamamen `expo-file-system/legacy` asenkron Base64 dönüştürücüsüne geçildi (SDK 54 Migration sağlandı).
+- **Evrensel MP4 MIME Type**: Web tarayıcılarına aktarımı sağlayan Base64 string'i `data:audio/mp4;base64,` uyumluluğuyla sarmalandı. Chrome, Safari ve Edge tarafında `%100` oynatma uyumluluğuna ulaşıldı.
+- **Özel Oda (Private Chat) Davet Akışı Düzenlemesi (UX)**: Karşı taraftan özel mesaj isteği geldiğinde, kullanıcının o anki çalışma alanının zorla değiştirilmesi iptal edilerek bildirim çubuğu (pulse effect) formatında daha nazik ve bilgilendirici UX yapısına dönüldü.
+
 ### v2.15.0 — 13 Nisan 2026, 06:45 (UTC+3)
 **🔍 Çift Kademeli Konum Seçici (Dual-Dropdown) — Web & Mobil Parite:**
 
