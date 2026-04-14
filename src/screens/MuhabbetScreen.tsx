@@ -9,7 +9,7 @@ import { Layout } from '../components/Layout';
 import { supabase } from '../lib/supabase';
 import * as ImagePicker from 'expo-image-picker';
 import { Audio } from 'expo-av';
-import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type, MessageSquareWarning, Image as ImageIcon, Mic, Square, Ban } from 'lucide-react-native';
+import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type, MessageSquareWarning, Image as ImageIcon, Mic, Square, Ban, Play } from 'lucide-react-native';
 import { MessageService } from '../services/messageService';
 import { useNotificationStore } from '../store/useNotificationStore';
 import { useNavigation } from '@react-navigation/native';
@@ -552,6 +552,58 @@ const PulsingName = ({ name, isUnread, style }: { name: string, isUnread: boolea
 };
 
 
+const AudioPlayer = ({ uri, isMine }: { uri: string, isMine: boolean }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+
+  const togglePlayback = async () => {
+    try {
+      if (sound) {
+        if (isPlaying) {
+          await sound.pauseAsync();
+          setIsPlaying(false);
+        } else {
+          await sound.playAsync();
+          setIsPlaying(true);
+        }
+      } else {
+        const { sound: newSound } = await Audio.Sound.createAsync(
+          { uri },
+          { shouldPlay: true }
+        );
+        newSound.setOnPlaybackStatusUpdate((status: any) => {
+          if (status.isLoaded && status.didJustFinish) {
+            setIsPlaying(false);
+            newSound.setPositionAsync(0);
+          }
+        });
+        setSound(newSound);
+        setIsPlaying(true);
+      }
+    } catch (e) {
+      console.log('Audio playback error', e);
+    }
+  };
+
+  useEffect(() => {
+    return sound
+      ? () => {
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
+
+  return (
+    <TouchableOpacity
+      style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isMine ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)', padding: 8, borderRadius: 12, gap: 8 }}
+      onPress={togglePlayback}
+    >
+      {isPlaying ? <Square size={16} fill={isMine ? "#fff" : "#cbd5e1"} color={isMine ? "#fff" : "#cbd5e1"} /> : <Play size={16} fill={isMine ? "#fff" : "#cbd5e1"} color={isMine ? "#fff" : "#cbd5e1"} />}
+      <Text style={isMine ? styles.messageTextMine : styles.messageTextTheirs}>{isPlaying ? 'Oynatılıyor...' : 'Sesli Mesaj (Dinle)'}</Text>
+    </TouchableOpacity>
+  );
+};
+
 export default function MuhabbetScreen() {
   const { profile } = useAuthStore();
   const navigation = useNavigation<any>();
@@ -856,7 +908,14 @@ export default function MuhabbetScreen() {
         
         const reader = new FileReader();
         reader.onload = async () => {
-          const base64Audio = reader.result as string;
+          let base64Audio = reader.result as string;
+          // Tarayıcıların (Web) sesi oynatabilmesi için MIME tipini düzelteceğiz
+          if (base64Audio.includes('application/octet-stream')) {
+            base64Audio = base64Audio.replace('application/octet-stream', 'audio/m4a');
+          } else if (!base64Audio.includes('audio/')) {
+            base64Audio = base64Audio.replace(/^data:[^;]+;/, 'data:audio/m4a;');
+          }
+
           if (activePrivateTab) {
             await sendPrivateMessage(activePrivateTab.id, 'Ses paylaşıldı.', activePrivateTab.name, undefined, base64Audio);
           } else {
@@ -1013,10 +1072,7 @@ export default function MuhabbetScreen() {
               <Image source={{ uri: msg.imageUrl }} style={{ width: 200, height: 200, borderRadius: 8, marginBottom: 8 }} resizeMode="cover" />
             )}
             {msg.audioUrl ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isMine ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)', padding: 8, borderRadius: 12, gap: 8 }}>
-                <Mic size={16} color={isMine ? "#fff" : "#cbd5e1"} />
-                <Text style={isMine ? styles.messageTextMine : styles.messageTextTheirs}>Ses Mesajı Oynatılamıyor</Text>
-              </View>
+              <AudioPlayer uri={msg.audioUrl} isMine={isMine} />
             ) : (
               <Text style={[styles.messageText, isMine ? styles.messageTextMine : styles.messageTextTheirs]}>
                 {msg.content}
