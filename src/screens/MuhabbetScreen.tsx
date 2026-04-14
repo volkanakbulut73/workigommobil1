@@ -905,7 +905,7 @@ export default function MuhabbetScreen() {
       if (uri) {
         // Doğrudan expo-file-system ile Base64 olarak okuyoruz (fetch blob hatasından ve eksik MIME formatından kaçınmak için)
         const base64Data = await FileSystem.readAsStringAsync(uri, {
-          encoding: FileSystem.EncodingType.Base64,
+          encoding: 'base64', // Sabit string kullanarak TypeError'ı önlüyoruz
         });
 
         // Tarayıcıların (Web) sesi sorunsuz okumasını garanti etmek için evrensel MP4 ses başlığı ekliyoruz
