@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Animated, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated, FlatList } from 'react-native';
+import { Image as RNImage } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import { useAuthStore } from '../store/useAuthStore';
 import { useNavigation } from '@react-navigation/native';
 import { Zap, Landmark, ArrowRightLeft, Activity, CreditCard, Gift, Send, QrCode, ChevronRight, Trophy, ArrowRight } from 'lucide-react-native';
@@ -42,7 +44,7 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity style={styles.avatarContainer} onPress={() => navigation.navigate('Profile')}>
-            <Image source={{ uri: profile?.avatar_url || 'https://ui-avatars.com/api/?name=User&background=33f20d&color=0a0b1e' }} style={styles.avatar} />
+            <RNImage source={{ uri: profile?.avatar_url || 'https://ui-avatars.com/api/?name=User&background=33f20d&color=0a0b1e' }} style={styles.avatar} />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.greetingText}>Selam, </Text>
@@ -67,7 +69,12 @@ export default function HomeScreen() {
             }}
             renderItem={({ item }) => (
               <View style={[styles.heroBanner, { width: screenWidth }]}>
-                <Image source={item.image} style={styles.heroBackgroundImage} />
+                <ExpoImage 
+                  source={item.image} 
+                  style={styles.heroBackgroundImage} 
+                  contentFit="contain"
+                  transition={300}
+                />
               </View>
             )}
           />
@@ -186,7 +193,7 @@ export default function HomeScreen() {
                 <View style={styles.rank1NumBox}>
                   <Text style={styles.rank1Num}>1</Text>
                 </View>
-                <Image source={{ uri: 'https://ui-avatars.com/api/?name=Ahmet+Y&background=0a0b1e&color=eab308' }} style={styles.rank1Avatar} />
+                <ExpoImage source={{ uri: 'https://ui-avatars.com/api/?name=Ahmet+Y&background=0a0b1e&color=eab308' }} style={styles.rank1Avatar} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.rankName}>Ahmet Yılmaz</Text>
                   <View style={styles.rank1Bar}>
@@ -204,7 +211,7 @@ export default function HomeScreen() {
                 <View style={styles.rankNumBox}>
                   <Text style={styles.rankNum}>2</Text>
                 </View>
-                <Image source={{ uri: 'https://ui-avatars.com/api/?name=Selin+D&background=1e293b&color=fff' }} style={styles.rankAvatar} />
+                <ExpoImage source={{ uri: 'https://ui-avatars.com/api/?name=Selin+D&background=1e293b&color=fff' }} style={styles.rankAvatar} />
                 <View>
                   <Text style={styles.rankName}>Selin Demir</Text>
                   <Text style={styles.rankPoints}>10.1k Puan</Text>
@@ -218,7 +225,7 @@ export default function HomeScreen() {
                 <View style={[styles.rankNumBox, { backgroundColor: 'rgba(249,115,22,0.15)' }]}>
                   <Text style={[styles.rankNum, { color: '#f97316' }]}>3</Text>
                 </View>
-                <Image source={{ uri: 'https://ui-avatars.com/api/?name=Caner+S&background=431407&color=fdba74' }} style={styles.rankAvatar} />
+                <ExpoImage source={{ uri: 'https://ui-avatars.com/api/?name=Caner+S&background=431407&color=fdba74' }} style={styles.rankAvatar} />
                 <View>
                   <Text style={styles.rankName}>Caner Şahin</Text>
                   <Text style={styles.rankPoints}>8.9k Puan</Text>
@@ -265,14 +272,14 @@ const styles = StyleSheet.create({
   heroBanner: {
     position: 'relative', overflow: 'hidden', borderRadius: 18,
     backgroundColor: '#0a0b1e', borderWidth: 1, borderColor: 'rgba(142,255,113,0.12)',
-    minHeight: 160,
-    shadowColor: '#8eff71', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.1, shadowRadius: 15,
+    aspectRatio: 16/9, // Responsive aspect ratio (16:9)
+    shadowColor: '#8eff71', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12,
+    elevation: 5,
   },
   heroBackgroundImage: {
     ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,

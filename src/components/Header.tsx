@@ -13,14 +13,14 @@ export function Header({ showActions = true, logoMode = 'full' }: HeaderProps) {
   const navigation = useNavigation<any>();
   const { unreadCount, unreadMessageCount, setUnreadCount, setUnreadMessageCount } = useNotificationStore();
 
-  // Admin system notifications + DM messages combined on message icon
-  const totalInboxCount = unreadMessageCount + unreadCount;
-
   const handleMessagesPress = () => {
-    // Immediately clear badge before navigating
-    setUnreadCount(0);
     setUnreadMessageCount(0);
     navigation.navigate('MessagesList');
+  };
+
+  const handleNotificationsPress = () => {
+    setUnreadCount(0);
+    navigation.navigate('Notifications');
   };
 
   return (
@@ -40,18 +40,23 @@ export function Header({ showActions = true, logoMode = 'full' }: HeaderProps) {
               onPress={handleMessagesPress}
             >
               <MessageCircle color="#8eff71" size={24} />
-              {totalInboxCount > 0 && (
+              {unreadMessageCount > 0 && (
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{totalInboxCount}</Text>
+                  <Text style={styles.badgeText}>{unreadMessageCount > 9 ? '9+' : unreadMessageCount}</Text>
                 </View>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={styles.iconButton}
-              onPress={() => navigation.navigate('Notifications')}
+              onPress={handleNotificationsPress}
             >
               <Bell color="#8eff71" size={24} />
+              {unreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -111,22 +116,22 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    backgroundColor: '#8eff71',
+    top: 2,
+    right: 2,
+    backgroundColor: '#ef4444',
     borderRadius: 8,
     minWidth: 16,
     height: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#8eff71',
+    shadowColor: '#ef4444',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 10,
     elevation: 5,
   },
   badgeText: {
-    color: '#0c0e16',
+    color: '#ffffff',
     fontSize: 9,
     fontWeight: '900',
   },

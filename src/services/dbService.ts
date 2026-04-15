@@ -151,14 +151,22 @@ export const DBService = {
   },
 
   async getUserTransactions(userId: string) {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select(`*, profiles!seeker_id(full_name, rating, avatar_url)`)
-      .or(`seeker_id.eq.${userId},supporter_id.eq.${userId}`)
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('transactions')
+          .select(`*, profiles!seeker_id(full_name, rating, avatar_url)`)
+          .or(`seeker_id.eq.${userId},supporter_id.eq.${userId}`)
+          .order('created_at', { ascending: false }),
+        15000
+      ) as any;
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      console.warn('User transactions fetch failed:', e);
+      return [];
+    }
   },
 
   async getUserActiveTransaction(userId: string) {

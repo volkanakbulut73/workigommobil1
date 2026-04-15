@@ -72,7 +72,7 @@ export function TabNavigator() {
         name="Talepler" 
         component={TaleplerScreen} 
         options={{ 
-          tabBarLabel: 'İşlemler',
+          tabBarLabel: 'Talepler',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
               <ClipboardList color={color} size={focused ? 24 : 22} />

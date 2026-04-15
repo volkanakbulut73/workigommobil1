@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, RefreshControl, ActivityIndicator, Modal, Alert } from 'react-native';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, RefreshControl, ActivityIndicator, Modal, Alert, Animated, ScrollView } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Layout } from '../components/Layout';
-import { Plus, ClipboardList, CheckCircle2, Shield, QrCode, Zap, X, Trash2, Star, Utensils } from 'lucide-react-native';
+import { Plus, ClipboardList, CheckCircle2, Shield, QrCode, Zap, X, Trash2, Star, Utensils, ShieldCheck, Activity } from 'lucide-react-native';
 import { useAuthStore } from '../store/useAuthStore';
 import { useRequestStore } from '../store/useRequestStore';
 
@@ -137,6 +137,28 @@ export function TaleplerScreen() {
   const [selectedTx, setSelectedTx] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Animation values
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+  const scanAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Pulse animation for STABİL indicator
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.4, duration: 1000, useNativeDriver: true })
+      ])
+    ).start();
+
+    // Scan animation for empty state
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scanAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
+        Animated.timing(scanAnim, { toValue: 0, duration: 1500, useNativeDriver: true })
+      ])
+    ).start();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       const userId = profile?.id || user?.id;
@@ -203,6 +225,17 @@ export function TaleplerScreen() {
     <Layout>
       <View style={styles.container}>
         
+        {/* Cyber Grid Background Pattern */}
+        <View style={styles.gridBackground} pointerEvents="none">
+          <View style={styles.gridLineHorizontal} />
+          <View style={[styles.gridLineHorizontal, { top: '30%' }]} />
+          <View style={[styles.gridLineHorizontal, { top: '60%' }]} />
+          <View style={[styles.gridLineHorizontal, { top: '90%' }]} />
+          <View style={styles.gridLineVertical} />
+          <View style={[styles.gridLineVertical, { left: '33%' }]} />
+          <View style={[styles.gridLineVertical, { left: '66%' }]} />
+        </View>
+
         {/* Main Screen Header */}
         <View style={styles.headerRow}>
           <Text style={styles.screenTitle}>TALEPLER</Text>
@@ -222,26 +255,33 @@ export function TaleplerScreen() {
             style={[styles.tab, activeTab === 'other' && styles.activeTab]}
             onPress={() => setActiveTab('other')}
           >
-            <Text style={[styles.tabText, activeTab === 'other' && styles.activeTabText]}>Paylaşım Bekleyenler</Text>
+            <Text style={[styles.tabText, activeTab === 'other' && styles.activeTabText]}>PAYLAŞIM BEKLEYENLER</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tab, activeTab === 'my' && styles.activeTab]}
             onPress={() => setActiveTab('my')}
           >
-            <Text style={[styles.tabText, activeTab === 'my' && styles.activeTabText]}>Paylaşımlarım</Text>
+            <Text style={[styles.tabText, activeTab === 'my' && styles.activeTabText]}>PAYLAŞIMLARIM</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Stats Section */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statsBox}>
-            <View style={styles.statsIconWrapper}>
-              <ClipboardList color="#8eff71" size={24} />
+        {/* Cyber Dashboard Metrics */}
+        <View style={styles.dashboardContainer}>
+          <View style={[styles.dashboardMetric, styles.dashboardBorderGreen]}>
+            <Text style={styles.dashboardLabel}>AKTİF</Text>
+            <Text style={styles.dashboardValue}>{currentData.length}</Text>
+          </View>
+          <View style={[styles.dashboardMetric, styles.dashboardBorderBlue]}>
+            <ShieldCheck color="#3b82f6" size={12} style={{ marginBottom: 4 }} />
+            <Text style={styles.dashboardLabel}>GÜVENLİK</Text>
+            <Text style={[styles.dashboardValue, { color: '#3b82f6' }]}>%98</Text>
+          </View>
+          <View style={[styles.dashboardMetric, styles.dashboardBorderNeon]}>
+            <View style={styles.statusRow}>
+              <Animated.View style={[styles.pulseDot, { opacity: pulseAnim }]} />
+              <Text style={styles.dashboardLabel}>AĞ DURUMU</Text>
             </View>
-            <View>
-              <Text style={styles.statsLabel}>MEVCUT DURUM</Text>
-              <Text style={styles.statsValue}>AKTİF TALEPLER: {currentData.length}</Text>
-            </View>
+            <Text style={[styles.dashboardValue, { color: '#8eff71', fontSize: 10 }]}>STABİL</Text>
           </View>
         </View>
 
@@ -266,7 +306,15 @@ export function TaleplerScreen() {
             }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Bekleyen talep bulunamadı.</Text>
+                <View style={styles.scanIconWrapper}>
+                  <Activity color="#8eff71" size={40} />
+                </View>
+                <Animated.Text style={[styles.emptyText, { opacity: scanAnim }]}>
+                  TARAMA YAPILIYOR...
+                </Animated.Text>
+                <Text style={styles.emptySubText}>
+                  {activeTab === 'other' ? 'Uygun veri paketi bekleniyor.' : 'Henüz aktif bir paylaşımınız bulunmuyor.'}
+                </Text>
               </View>
             }
           />
@@ -291,75 +339,80 @@ export function TaleplerScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Option 1: 15% */}
-              <TouchableOpacity 
-                style={styles.modalOptionContainer} 
-                onPress={() => confirmAccept(15)}
-                activeOpacity={0.8}
+              <ScrollView 
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 20 }}
               >
-                 <View style={styles.modalOptionHeader}>
-                    <Text style={styles.modalOptionTitle}>% 15 Paylaşım</Text>
-                    <View style={styles.modalBadgeStandart}>
-                      <Text style={styles.modalBadgeTextStandart}>Standart</Text>
-                    </View>
-                 </View>
-                 <View style={styles.modalOptionDetails}>
-                    <View style={styles.modalOptionRow}>
-                       <Text style={styles.modalOptionRowLabel}>Senin katkın (İndirim):</Text>
-                       <Text style={styles.modalOptionRowValue}>{Math.round((selectedTx?.amount || 0) * 0.10)}₺</Text>
-                    </View>
-                    <View style={styles.modalOptionRow}>
-                       <Text style={styles.modalOptionRowLabel}>Platform ücreti (%5):</Text>
-                       <Text style={styles.modalOptionRowValue}>{Math.round((selectedTx?.amount || 0) * 0.05)}₺</Text>
-                    </View>
-                 </View>
-                 <View style={styles.modalOptionTotalRow}>
-                    <Text style={styles.modalOptionTotalLabel}>Toplam Maliyetin:</Text>
-                    <Text style={styles.modalOptionTotalValue}>{Math.round((selectedTx?.amount || 0) * 0.15)}₺</Text>
-                 </View>
-                 <View style={styles.modalOptionEarnBox}>
-                    <Text style={styles.modalOptionEarnLabel}>Hesabına aktarılacak:</Text>
-                    <Text style={styles.modalOptionEarnValue}>{((selectedTx?.amount || 0) * 0.85).toLocaleString('tr-TR')}₺</Text>
-                    <Text style={styles.modalOptionEarnSub}>Yararlanıcı {((selectedTx?.amount || 0) * 0.90).toLocaleString('tr-TR')}₺ ödeyecek</Text>
-                 </View>
-                 <View style={styles.modalSelectBtn}>
-                   <Text style={styles.modalSelectBtnText}>BUNU SEÇ</Text>
-                 </View>
-              </TouchableOpacity>
+                {/* Option 1: 15% */}
+                <TouchableOpacity 
+                  style={styles.modalOptionContainer} 
+                  onPress={() => confirmAccept(15)}
+                  activeOpacity={0.8}
+                >
+                   <View style={styles.modalOptionHeader}>
+                      <Text style={styles.modalOptionTitle}>% 15 Paylaşım</Text>
+                      <View style={styles.modalBadgeStandart}>
+                        <Text style={styles.modalBadgeTextStandart}>Standart</Text>
+                      </View>
+                   </View>
+                   <View style={styles.modalOptionDetails}>
+                      <View style={styles.modalOptionRow}>
+                         <Text style={styles.modalOptionRowLabel}>Senin katkın (İndirim):</Text>
+                         <Text style={styles.modalOptionRowValue}>{Math.round((selectedTx?.amount || 0) * 0.10)}₺</Text>
+                      </View>
+                      <View style={styles.modalOptionRow}>
+                         <Text style={styles.modalOptionRowLabel}>Platform ücreti (%5):</Text>
+                         <Text style={styles.modalOptionRowValue}>{Math.round((selectedTx?.amount || 0) * 0.05)}₺</Text>
+                      </View>
+                   </View>
+                   <View style={styles.modalOptionTotalRow}>
+                      <Text style={styles.modalOptionTotalLabel}>Toplam Maliyetin:</Text>
+                      <Text style={styles.modalOptionTotalValue}>{Math.round((selectedTx?.amount || 0) * 0.15)}₺</Text>
+                   </View>
+                   <View style={styles.modalOptionEarnBox}>
+                      <Text style={styles.modalOptionEarnLabel}>Hesabına aktarılacak:</Text>
+                      <Text style={styles.modalOptionEarnValue}>{((selectedTx?.amount || 0) * 0.85).toLocaleString('tr-TR')}₺</Text>
+                      <Text style={styles.modalOptionEarnSub}>Yararlanıcı {((selectedTx?.amount || 0) * 0.90).toLocaleString('tr-TR')}₺ ödeyecek</Text>
+                   </View>
+                   <View style={styles.modalSelectBtn}>
+                     <Text style={styles.modalSelectBtnText}>BUNU SEÇ</Text>
+                   </View>
+                </TouchableOpacity>
 
-              {/* Option 2: 100% */}
-              <TouchableOpacity 
-                style={[styles.modalOptionContainer, styles.modalOptionContainerGold]} 
-                onPress={() => confirmAccept(100)}
-                activeOpacity={0.8}
-              >
-                  <View style={styles.modalOptionHeader}>
-                    <Text style={styles.modalOptionTitleGold}>%100 Buda Benden 💜</Text>
-                    <View style={styles.modalBadgeGold}>
-                      <Text style={styles.modalBadgeTextGold}>Altın Kalp</Text>
-                    </View>
-                 </View>
-                 <View style={styles.modalOptionDetails}>
-                    <View style={styles.modalOptionRow}>
-                       <Text style={styles.modalOptionRowLabel}>Senin katkın:</Text>
-                       <Text style={styles.modalOptionRowValue}>{(selectedTx?.amount || 0).toLocaleString('tr-TR')}₺</Text>
-                    </View>
-                    <View style={styles.modalOptionRow}>
-                       <Text style={styles.modalOptionRowLabel}>Platform ücreti:</Text>
-                       <Text style={styles.modalOptionRowValue}>%0 (Bizden)</Text>
-                    </View>
-                 </View>
-                 <View style={styles.modalOptionEarnBoxGold}>
-                    <Text style={styles.modalOptionEarnLabelGold}>Yemek ücretinin tamamını ödemeyi kabul ettiniz.</Text>
-                    <View style={styles.modalOptionGoldRow}>
-                      <Text style={styles.modalOptionGoldRowLabel}>Hesabınıza aktarılacak tutar:</Text>
-                      <Text style={styles.modalOptionGoldRowValue}>0₺</Text>
-                    </View>
-                 </View>
-                 <View style={styles.modalSelectBtnGold}>
-                   <Text style={styles.modalSelectBtnTextGold}>BUNU SEÇ</Text>
-                 </View>
-              </TouchableOpacity>
+                {/* Option 2: 100% */}
+                <TouchableOpacity 
+                  style={[styles.modalOptionContainer, styles.modalOptionContainerGold]} 
+                  onPress={() => confirmAccept(100)}
+                  activeOpacity={0.8}
+                >
+                    <View style={styles.modalOptionHeader}>
+                      <Text style={styles.modalOptionTitleGold}>%100 Buda Benden 💜</Text>
+                      <View style={styles.modalBadgeGold}>
+                        <Text style={styles.modalBadgeTextGold}>Altın Kalp</Text>
+                      </View>
+                   </View>
+                   <View style={styles.modalOptionDetails}>
+                      <View style={styles.modalOptionRow}>
+                         <Text style={styles.modalOptionRowLabel}>Senin katkın:</Text>
+                         <Text style={styles.modalOptionRowValue}>{(selectedTx?.amount || 0).toLocaleString('tr-TR')}₺</Text>
+                      </View>
+                      <View style={styles.modalOptionRow}>
+                         <Text style={styles.modalOptionRowLabel}>Platform ücreti:</Text>
+                         <Text style={styles.modalOptionRowValue}>%0 (Bizden)</Text>
+                      </View>
+                   </View>
+                   <View style={styles.modalOptionEarnBoxGold}>
+                      <Text style={styles.modalOptionEarnLabelGold}>Yemek ücretinin tamamını ödemeyi kabul ettiniz.</Text>
+                      <View style={styles.modalOptionGoldRow}>
+                        <Text style={styles.modalOptionGoldRowLabel}>Hesabınıza aktarılacak tutar:</Text>
+                        <Text style={styles.modalOptionGoldRowValue}>0₺</Text>
+                      </View>
+                   </View>
+                   <View style={styles.modalSelectBtnGold}>
+                     <Text style={styles.modalSelectBtnTextGold}>BUNU SEÇ</Text>
+                   </View>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
           </View>
         </Modal>
@@ -396,11 +449,11 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 9999,
+    borderRadius: 8, // Sharper corners
     shadowColor: '#8eff71',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 12,
     elevation: 10,
   },
   addBtnText: {
@@ -423,61 +476,99 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 16,
   },
   activeTab: {
-    backgroundColor: 'rgba(142, 255, 113, 0.15)',
+    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+    borderWidth: 1,
+    borderColor: '#8eff71',
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   tabText: {
     color: '#aaaab6',
-    fontSize: 13,
-    fontWeight: 'bold',
+    fontSize: 11, // Slightly smaller to prevent wrapping
+    fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: 1,
+    textAlign: 'center',
   },
   activeTabText: {
     color: '#8eff71',
   },
-  statsContainer: {
-    paddingHorizontal: 24,
-    marginBottom: 20,
-  },
-  statsBox: {
-    backgroundColor: '#1d1f2a',
-    padding: 16,
-    borderRadius: 24,
+  dashboardContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    shadowColor: '#8eff71',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
+    paddingHorizontal: 24,
+    gap: 12,
+    marginBottom: 24,
   },
-  statsIconWrapper: {
-    width: 44,
-    height: 44,
+  dashboardMetric: {
+    flex: 1,
+    backgroundColor: 'rgba(29, 31, 42, 0.6)',
+    padding: 12,
     borderRadius: 16,
-    backgroundColor: 'rgba(142, 255, 113, 0.1)',
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statsLabel: {
+  dashboardBorderGreen: { borderColor: 'rgba(142, 255, 113, 0.2)' },
+  dashboardBorderBlue: { borderColor: 'rgba(59, 130, 246, 0.2)' },
+  dashboardBorderNeon: { borderColor: 'rgba(142, 255, 113, 0.4)' },
+  dashboardLabel: {
     color: '#aaaab6',
-    fontSize: 10,
+    fontSize: 7,
     fontWeight: '900',
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
-    letterSpacing: 2,
   },
-  statsValue: {
+  dashboardValue: {
     color: '#ededf9',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '900',
+    marginTop: 2,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  pulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#8eff71',
+    shadowColor: '#8eff71',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+  },
+  gridBackground: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.1,
+  },
+  gridLineHorizontal: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: '#8eff71',
+  },
+  gridLineVertical: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 1,
+    backgroundColor: '#8eff71',
   },
   listContent: {
     paddingHorizontal: 24,
     paddingBottom: 40,
     gap: 24,
+    zIndex: 2,
   },
   centerContainer: {
     flex: 1,
@@ -487,13 +578,32 @@ const styles = StyleSheet.create({
   emptyContainer: {
     paddingVertical: 60,
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
+  },
+  scanIconWrapper: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(142, 255, 113, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(142, 255, 113, 0.1)',
+    marginBottom: 8,
   },
   emptyText: {
+    color: '#8eff71',
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 4,
+  },
+  emptySubText: {
     color: '#aaaab6',
-    fontSize: 15,
-    fontWeight: '500',
-    opacity: 0.6,
+    fontSize: 11,
+    fontWeight: '600',
+    opacity: 0.5,
+    textAlign: 'center',
+    maxWidth: '80%',
   },
   /* Card Styles */
   requestCard: {
@@ -635,13 +745,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#8eff71',
     width: '100%',
     paddingVertical: 18,
-    borderRadius: 20,
+    borderRadius: 12, // Sharper corners
     alignItems: 'center',
     shadowColor: '#8eff71',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
     shadowRadius: 15,
     elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   mainCtaBtnText: {
     color: '#0c0e16',
@@ -693,7 +805,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1d1f2a',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
-    padding: 28,
+    padding: 24, // Reduced from 28
     maxHeight: '90%',
     shadowColor: '#8eff71',
     shadowOffset: { width: 0, height: -10 },
@@ -728,9 +840,9 @@ const styles = StyleSheet.create({
   },
   modalOptionContainer: {
     backgroundColor: 'rgba(12, 14, 22, 0.6)',
-    borderRadius: 28,
-    padding: 24,
-    marginBottom: 20,
+    borderRadius: 24, // Reduced from 28
+    padding: 20, // Reduced from 24
+    marginBottom: 16, // Reduced from 20
     borderWidth: 1.5,
     borderColor: '#3b82f6',
   },
@@ -742,16 +854,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16, // Reduced from 20
   },
   modalOptionTitle: {
     color: '#3b82f6',
-    fontSize: 20,
+    fontSize: 18, // Reduced from 20
     fontWeight: '900',
   },
   modalOptionTitleGold: {
     color: '#fbbf24',
-    fontSize: 20,
+    fontSize: 18, // Reduced from 20
     fontWeight: '900',
   },
   modalBadgeStandart: {
@@ -779,8 +891,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   modalOptionDetails: {
-    marginBottom: 20,
-    gap: 14,
+    marginBottom: 16, // Reduced from 20
+    gap: 10, // Reduced from 14
   },
   modalOptionRow: {
     flexDirection: 'row',
@@ -789,12 +901,12 @@ const styles = StyleSheet.create({
   },
   modalOptionRowLabel: {
     color: '#aaaab6',
-    fontSize: 14,
+    fontSize: 13, // Reduced from 14
     fontWeight: '500',
   },
   modalOptionRowValue: {
     color: '#ededf9',
-    fontSize: 16,
+    fontSize: 14, // Reduced from 16
     fontWeight: '900',
   },
   modalOptionTotalRow: {
@@ -803,8 +915,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.05)',
-    paddingTop: 20,
-    marginBottom: 20,
+    paddingTop: 16, // Reduced from 20
+    marginBottom: 16, // Reduced from 20
   },
   modalOptionTotalLabel: {
     color: '#3b82f6',
@@ -816,14 +928,14 @@ const styles = StyleSheet.create({
   modalOptionTotalValue: {
     color: '#3b82f6',
     fontWeight: '900',
-    fontSize: 22,
+    fontSize: 20, // Reduced from 22
   },
   modalOptionEarnBox: {
     backgroundColor: 'rgba(59, 130, 246, 0.05)',
-    borderRadius: 24,
-    padding: 24,
+    borderRadius: 20, // Reduced from 24
+    padding: 20, // Reduced from 24
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20, // Reduced from 24
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.1)',
   },
@@ -837,9 +949,9 @@ const styles = StyleSheet.create({
   },
   modalOptionEarnValue: {
     color: '#3b82f6',
-    fontSize: 36,
+    fontSize: 32, // Reduced from 36
     fontWeight: '900',
-    marginBottom: 10,
+    marginBottom: 8, // Reduced from 10
   },
   modalOptionEarnSub: {
     color: '#aaaab6',
@@ -849,8 +961,8 @@ const styles = StyleSheet.create({
   },
   modalSelectBtn: {
     backgroundColor: '#3b82f6',
-    paddingVertical: 18,
-    borderRadius: 20,
+    paddingVertical: 15, // Reduced from 18
+    borderRadius: 16, // Reduced from 20
     alignItems: 'center',
     shadowColor: '#3b82f6',
     shadowOffset: { width: 0, height: 8 },

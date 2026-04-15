@@ -20,7 +20,7 @@ const ListingCard = React.memo(({ item, onPress }: { item: any, onPress: (id: st
   const mainPhoto = photoUrls.length > 0 ? photoUrls[0] : null;
   const sellerInfo = item.profiles || {};
   const sellerName = sellerInfo.full_name || 'Anonim';
-  const sellerAvatar = sellerInfo.avatar_url || `https://ui-avatars.com/api/?name=${sellerName.replace(' ', '+')}&background=222&color=39ff14&rounded=true`;
+  const sellerAvatar = sellerInfo.avatar_url || `https://ui-avatars.com/api/?name=${sellerName.replace(' ', '+')}&background=12142d&color=00e5ff&rounded=true`;
 
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress(item.id)} activeOpacity={0.7}>
@@ -36,7 +36,7 @@ const ListingCard = React.memo(({ item, onPress }: { item: any, onPress: (id: st
 
         {/* Rating */}
         <View style={styles.ratingBadge}>
-          <Star color="#39ff14" size={9} fill="#39ff14" />
+          <Star color="#facc15" size={10} fill="#facc15" />
           <Text style={styles.ratingText}>{sellerInfo.rating || '5.0'}</Text>
         </View>
 
@@ -51,11 +51,23 @@ const ListingCard = React.memo(({ item, onPress }: { item: any, onPress: (id: st
       {/* Content */}
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.priceText}>₺{Number(item.required_balance).toLocaleString('tr-TR')}</Text>
+        <Text style={styles.cardDescription} numberOfLines={1}>{item.description || item.title}</Text>
 
         <View style={styles.cardFooter}>
-          <ExpoImage source={{ uri: sellerAvatar }} style={styles.sellerAvatar as any} placeholder={blurhash} contentFit="cover" transition={200} cachePolicy="memory-disk" />
-          <Text style={styles.sellerName} numberOfLines={1}>{sellerName}</Text>
+          <View style={styles.sellerContainer}>
+            <View style={styles.sellerAvatarContainer}>
+              <ExpoImage source={{ uri: sellerAvatar }} style={styles.sellerAvatar as any} placeholder={blurhash} contentFit="cover" transition={200} cachePolicy="memory-disk" />
+            </View>
+            <View style={styles.sellerTextCol}>
+              <Text style={styles.sellerLabel}>SATICI</Text>
+              <Text style={styles.sellerName} numberOfLines={1}>{sellerName}</Text>
+            </View>
+          </View>
+
+          <View style={styles.priceContainer}>
+            <Text style={styles.priceLabel}>FİYAT</Text>
+            <Text style={styles.priceText}>₺{Number(item.required_balance).toLocaleString('tr-TR')}</Text>
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -400,6 +412,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(57,255,20,0.08)', borderColor: 'rgba(57,255,20,0.3)',
   },
   locationBtn: { flexDirection: 'row', gap: 3, paddingHorizontal: 10 },
+  locationText: { color: 'rgba(186,204,176,0.5)', fontSize: 10, fontWeight: '500' },
   filterDot: {
     position: 'absolute', top: -2, right: -2,
     width: 5, height: 5, borderRadius: 3,
@@ -450,33 +463,47 @@ const styles = StyleSheet.create({
 
   // Card
   card: {
-    width: '48%', backgroundColor: 'rgba(29,32,35,0.6)',
-    borderWidth: 1, borderColor: 'rgba(60,75,53,0.15)', overflow: 'hidden',
+    width: '48%', backgroundColor: '#191b2e',
+    borderRadius: 20, overflow: 'hidden',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 5,
   },
-  imageContainer: { height: 120, width: '100%', backgroundColor: '#1d2023', position: 'relative' },
+  imageContainer: { aspectRatio: 4/3, width: '100%', backgroundColor: '#12142d', position: 'relative' },
   image: { width: '100%', height: '100%' },
   imagePlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  placeholderText: { fontSize: 28, fontWeight: '900', color: 'rgba(60,75,53,0.3)' },
+  placeholderText: { fontSize: 28, fontWeight: '900', color: 'rgba(255,255,255,0.1)' },
   ratingBadge: {
-    position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(0,0,0,0.5)',
-    flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 5, paddingVertical: 2,
+    position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.6)',
+    flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4,
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
   },
-  ratingText: { color: 'rgba(186,204,176,0.6)', fontSize: 9, fontWeight: '900' },
+  ratingText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
   listingBadge: {
-    position: 'absolute', bottom: 6, left: 6,
-    backgroundColor: 'rgba(57,255,20,0.12)', borderWidth: 1, borderColor: 'rgba(57,255,20,0.25)',
-    paddingHorizontal: 5, paddingVertical: 1,
+    position: 'absolute', bottom: 8, left: 8,
+    backgroundColor: 'rgba(0,0,0,0.6)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12,
   },
-  listingBadgeText: { color: '#39ff14', fontSize: 8, fontWeight: '900', letterSpacing: 1.5 },
-  cardContent: { padding: 10, flex: 1, gap: 3 },
-  cardTitle: { color: '#e1e2e7', fontWeight: 'bold', fontSize: 13 },
-  priceText: { color: '#fff', fontSize: 16, fontWeight: '900' },
+  listingBadgeText: { color: '#00e5ff', fontSize: 9, fontWeight: '900', letterSpacing: 1.5 },
+  cardContent: { padding: 12, flex: 1 },
+  cardTitle: { color: '#fff', fontWeight: 'bold', fontSize: 14, marginBottom: 2 },
+  cardDescription: { color: '#8c91a5', fontSize: 11, marginBottom: 14 },
+  
   cardFooter: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    marginTop: 'auto', paddingTop: 6, borderTopWidth: 1, borderTopColor: 'rgba(60,75,53,0.1)',
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end',
+    marginTop: 'auto',
   },
-  sellerAvatar: { width: 18, height: 18, borderRadius: 9, borderWidth: 1, borderColor: 'rgba(60,75,53,0.2)' },
-  sellerName: { color: 'rgba(186,204,176,0.4)', fontSize: 10, fontWeight: '500', flex: 1 },
+  sellerContainer: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1, paddingRight: 4 },
+  sellerAvatarContainer: {
+    width: 24, height: 24, borderRadius: 12, backgroundColor: '#12142d',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', overflow: 'hidden'
+  },
+  sellerAvatar: { width: '100%', height: '100%' },
+  sellerTextCol: { flexShrink: 1, justifyContent: 'center' },
+  sellerLabel: { color: '#8c91a5', fontSize: 8, fontWeight: 'bold', letterSpacing: 1, marginBottom: 2 },
+  sellerName: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
+
+  priceContainer: { alignItems: 'flex-end' },
+  priceLabel: { color: '#8c91a5', fontSize: 8, fontWeight: 'bold', letterSpacing: 1, marginBottom: 2 },
+  priceText: { color: '#00e5ff', fontSize: 15, fontWeight: '900' },
 
   // Filter Drawer
   drawerBackdrop: {
