@@ -264,7 +264,15 @@ export function MessagesListScreen() {
 
           <View style={styles.messageRow}>
             <Text style={[styles.lastMessage, unread && styles.lastMessageUnread]} numberOfLines={1}>
-              {t.last_message ? t.last_message : (t.messages && t.messages[0]?.content?.includes('[img]') ? '📷 Fotoğraf' : '🎵 Sesli Mesaj')}
+              {t.last_message 
+                ? t.last_message 
+                : t.messages && t.messages[0]?.content?.includes('[img]') 
+                  ? '📷 Fotoğraf' 
+                  : t.messages && t.messages[0]?.content?.includes('[audio]') 
+                    ? '🎵 Sesli Mesaj' 
+                    : t.messages && t.messages[0]?.content 
+                      ? t.messages[0].content 
+                      : 'Mesaj'}
             </Text>
             {unread && (
               <View style={styles.unreadIndicator}>

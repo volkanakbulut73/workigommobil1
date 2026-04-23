@@ -132,8 +132,9 @@ export function TaleplerCreateScreen() {
               </View>
             </View>
 
-            {/* Info Card */}
+            {/* Info Card - System Protocol Redesign */}
             <View style={styles.infoCard}>
+              <View style={styles.infoGlow} />
               <View style={styles.infoHeader}>
                 <View style={styles.infoIconBox}>
                   <Users color="#8eff71" size={24} />
@@ -436,10 +437,23 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   infoCard: {
-    backgroundColor: '#11131c',
+    backgroundColor: 'rgba(22,23,45,0.8)',
     borderRadius: 24,
     padding: 20,
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(142,255,113,0.12)',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  infoGlow: {
+    position: 'absolute',
+    top: -30,
+    right: -15,
+    width: 80,
+    height: 80,
+    backgroundColor: 'rgba(142,255,113,0.08)',
+    borderRadius: 40,
   },
   infoHeader: {
     flexDirection: 'row',

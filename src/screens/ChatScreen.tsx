@@ -570,62 +570,29 @@ export function ChatScreen() {
         )}
       </View>
 
-      {/* ─── Upload Indicator ────────────────────────────────────── */}
-      {uploading && (
-        <View style={styles.uploadingBar}>
-          <ActivityIndicator size="small" color="#FF007F" />
-          <Text style={styles.uploadingText}>Dosya yükleniyor...</Text>
+      {/* ─── Input Area ─────────────────────────────────────────── */}
+      <View style={[styles.inputArea, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Bir mesaj yazın..."
+            placeholderTextColor="#555"
+            value={inputText}
+            onChangeText={setInputText}
+            multiline
+            maxLength={1000}
+            editable={!otherUserBlocked}
+          />
         </View>
-      )}
 
-      {/* ─── Recording UI ────────────────────────────────────────── */}
-      {isRecording ? (
-        <View style={[styles.inputArea, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-          <TouchableOpacity style={styles.cancelRecordBtn} onPress={cancelRecording}>
-            <X color="#FF007F" size={20} />
-          </TouchableOpacity>
-
-          <View style={styles.recordingInfo}>
-            <Animated.View style={[styles.recordDot, { transform: [{ scale: pulseAnim }] }]} />
-            <Text style={styles.recordingText}>Kayıt yapılıyor</Text>
-            <Text style={styles.recordingTimer}>{formatRecordTime(recordDuration)}</Text>
-          </View>
-
-          <TouchableOpacity style={styles.sendRecordBtn} onPress={stopAndSendRecording}>
-            <Send color="#fff" size={18} />
-          </TouchableOpacity>
-        </View>
-      ) : (
-        /* ─── Input Area ─────────────────────────────────────────── */
-        <View style={[styles.inputArea, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-          <TouchableOpacity style={styles.attachBtn} onPress={pickImage} disabled={uploading}>
-            <ImageIcon color={uploading ? '#333' : '#FF007F'} size={20} />
-          </TouchableOpacity>
-
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Bir mesaj yazın..."
-              placeholderTextColor="#555"
-              value={inputText}
-              onChangeText={setInputText}
-              multiline
-              maxLength={1000}
-              editable={!otherUserBlocked}
-            />
-          </View>
-
-          {inputText.trim() ? (
-            <TouchableOpacity style={styles.sendBtn} onPress={handleSend} disabled={sending}>
-              <Send color="#fff" size={18} />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.micBtn} onPress={startRecording} disabled={uploading}>
-              <Mic color={uploading ? '#333' : '#FF007F'} size={20} />
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
+        <TouchableOpacity 
+          style={[styles.sendBtn, !inputText.trim() && { backgroundColor: 'rgba(255, 0, 127, 0.2)', shadowOpacity: 0 }]} 
+          onPress={handleSend} 
+          disabled={sending || !inputText.trim()}
+        >
+          <Send color={inputText.trim() ? "#fff" : "rgba(255, 255, 255, 0.3)"} size={18} />
+        </TouchableOpacity>
+      </View>
 
       {/* ─── Menu Modal ──────────────────────────────────────────── */}
       <Modal visible={showMenu} transparent animationType="fade" onRequestClose={() => setShowMenu(false)}>

@@ -90,6 +90,19 @@ export function MarketScreen() {
   const [locationVisible, setLocationVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(SCREEN_WIDTH)).current;
 
+  // Toast
+  const [toastVisible, setToastVisible] = useState(false);
+  const toastAnim = useRef(new Animated.Value(-100)).current;
+
+  const showToast = useCallback(() => {
+    setToastVisible(true);
+    Animated.sequence([
+      Animated.spring(toastAnim, { toValue: 50, useNativeDriver: true, damping: 15 }),
+      Animated.delay(2500),
+      Animated.timing(toastAnim, { toValue: -100, duration: 300, useNativeDriver: true })
+    ]).start(() => setToastVisible(false));
+  }, [toastAnim]);
+
   useFocusEffect(
     useCallback(() => {
       if (profile?.id) fetchListings(profile.id);
@@ -150,16 +163,24 @@ export function MarketScreen() {
           </Text>
         </View>
 
-        {/* ═══ COMPACT HEADER ═══ */}
-        <View style={styles.headerRow}>
-          {/* Back */}
+        {/* ═══ CUSTOM TOAST ═══ */}
+        {toastVisible && (
+          <Animated.View style={[styles.toastContainer, { transform: [{ translateY: toastAnim }] }]}>
+            <View style={styles.toastContent}>
+               <MapPin color="#39ff14" size={14} />
+               <Text style={styles.toastText}>Radar Filtresi Uygulandı</Text>
+            </View>
+          </Animated.View>
+        )}
+
+        {/* ═══ SEARCH HEADER ═══ */}
+        <View style={styles.searchRow}>
           <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()}>
-            <ChevronLeft color="rgba(186,204,176,0.5)" size={16} />
+            <ChevronLeft color="rgba(186,204,176,0.5)" size={16} strokeWidth={1.2} />
           </TouchableOpacity>
 
-          {/* Search */}
           <View style={styles.searchBox}>
-            <Search color="rgba(57,255,20,0.4)" size={14} />
+            <Search color="rgba(57,255,20,0.4)" size={14} strokeWidth={1.2} />
             <TextInput
               style={styles.searchInput}
               placeholder="İlan ara..."
@@ -170,44 +191,34 @@ export function MarketScreen() {
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <X color="rgba(186,204,176,0.3)" size={12} />
+                <X color="rgba(186,204,176,0.3)" size={12} strokeWidth={1.2} />
               </TouchableOpacity>
             )}
           </View>
 
-          {/* Filter */}
           <TouchableOpacity
             style={[styles.headerBtn, activeFilter !== 'Tümü' && styles.headerBtnActive]}
             onPress={openFilter}
           >
-            <SlidersHorizontal color={activeFilter !== 'Tümü' ? '#39ff14' : 'rgba(186,204,176,0.5)'} size={14} />
+            <SlidersHorizontal color={activeFilter !== 'Tümü' ? '#39ff14' : 'rgba(186,204,176,0.5)'} size={14} strokeWidth={1.2} />
             {activeFilter !== 'Tümü' && <View style={styles.filterDot} />}
           </TouchableOpacity>
-
-          {/* City Selection */}
-          <TouchableOpacity
-            style={[styles.headerBtn, { minWidth: 60, flex: 0.8 }, selectedLocation !== 'Tüm Konumlar' && styles.headerBtnActive]}
-            onPress={() => setLocationVisible(true)}
-          >
-            <MapPin color={selectedLocation !== 'Tüm Konumlar' ? '#39ff14' : 'rgba(186,204,176,0.5)'} size={10} />
-            <Text style={[styles.locationText, { fontSize: 9, color: selectedLocation !== 'Tüm Konumlar' ? '#39ff14' : 'rgba(186,204,176,0.5)' }]} numberOfLines={1}>
-              {selectedLocation === 'Tüm Konumlar' ? 'Şehir' : selectedLocation === 'İstanbul Avrupa' ? 'Avrupa' : selectedLocation === 'İstanbul Anadolu' ? 'Anadolu' : selectedLocation}
-            </Text>
-            <ChevronDown color="rgba(186,204,176,0.3)" size={8} />
-          </TouchableOpacity>
-
-          {/* District Selection */}
-          <TouchableOpacity
-            disabled={selectedLocation === 'Tüm Konumlar'}
-            style={[styles.headerBtn, { minWidth: 60, flex: 0.8 }, selectedDistrict !== 'Tüm İlçeler' && styles.headerBtnActive, selectedLocation === 'Tüm Konumlar' && { opacity: 0.3 }]}
-            onPress={() => setLocationVisible(true)}
-          >
-            <Text style={[styles.locationText, { fontSize: 9, color: selectedDistrict !== 'Tüm İlçeler' ? '#39ff14' : 'rgba(186,204,176,0.5)' }]} numberOfLines={1}>
-              {selectedDistrict === 'Tüm İlçeler' ? 'İlçe' : selectedDistrict}
-            </Text>
-            <ChevronDown color="rgba(186,204,176,0.3)" size={8} />
-          </TouchableOpacity>
         </View>
+
+        {/* ═══ RADAR TRIGGER ═══ */}
+        <TouchableOpacity style={styles.radarTrigger} onPress={() => setLocationVisible(true)} activeOpacity={0.8}>
+          <View style={styles.radarIconBox}>
+             <View style={styles.radarPing} />
+             <MapPin color="#39ff14" size={14} />
+          </View>
+          <View style={styles.radarContentContainer}>
+            <Text style={styles.radarTitle}>BÖLGE RADARI</Text>
+            <Text style={styles.radarSubtitle} numberOfLines={1}>
+               {selectedLocation === 'Tüm Konumlar' ? 'Tüm Konumlar' : `${selectedLocation}${selectedDistrict !== 'Tüm İlçeler' ? ` / ${selectedDistrict}` : ''}`}
+            </Text>
+          </View>
+          <ChevronDown color="#39ff14" size={16} style={{ opacity: 0.5 }} />
+        </TouchableOpacity>
 
         {/* ═══ ACTIVE FILTER INDICATORS ═══ */}
         {(activeFilter !== 'Tümü' || selectedLocation !== 'Tüm Konumlar') && (
@@ -321,65 +332,81 @@ export function MarketScreen() {
           </Animated.View>
         </Modal>
 
-        {/* ═══ LOCATION PICKER (Modal) ═══ */}
-        <Modal visible={locationVisible} transparent animationType="fade" onRequestClose={() => setLocationVisible(false)}>
-          <TouchableOpacity style={styles.locationBackdrop} activeOpacity={1} onPress={() => setLocationVisible(false)}>
-            <View style={[styles.locationPanel, { flexDirection: 'row', width: '90%', maxHeight: '60%', padding: 0, overflow: 'hidden' }]}>
-              {/* Cities Column */}
-              <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.05)' }}>
-                <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' }}>
-                  <Text style={[styles.locationPanelTitle, { marginBottom: 0 }]}>ŞEHİR</Text>
-                </View>
-                <ScrollView>
-                  {LOCATIONS.map(loc => (
-                    <TouchableOpacity
-                      key={loc}
-                      style={[styles.locationItem, selectedLocation === loc && styles.locationItemActive]}
-                      onPress={() => { 
-                        setSelectedLocation(loc); 
-                        setSelectedDistrict('Tüm İlçeler');
-                        if (loc === 'Tüm Konumlar') setLocationVisible(false);
-                      }}
-                    >
-                      <Text style={[styles.locationItemText, selectedLocation === loc && styles.locationItemTextActive, { fontSize: 10 }]}>
-                        {loc}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+        {/* ═══ CYBER BOTTOM SHEET ═══ */}
+        <Modal visible={locationVisible} transparent animationType="slide" onRequestClose={() => setLocationVisible(false)}>
+          <View style={styles.bottomSheetWrapper}>
+            <TouchableOpacity style={styles.bottomSheetBackdrop} activeOpacity={1} onPress={() => setLocationVisible(false)} />
+            <View style={styles.bottomSheetContainer}>
+              <View style={styles.bottomSheetHandle} />
+              <View style={styles.bottomSheetHeader}>
+                <MapPin color="#39ff14" size={16} />
+                <Text style={styles.bottomSheetTitle}>BÖLGE SEÇİMİ</Text>
               </View>
 
-              {/* Districts Column */}
-              {selectedLocation !== 'Tüm Konumlar' && (
-                <View style={{ flex: 1.2, backgroundColor: 'rgba(255,255,255,0.02)' }}>
-                  <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' }}>
-                    <Text style={[styles.locationPanelTitle, { marginBottom: 0 }]}>İLÇE</Text>
-                  </View>
-                  <ScrollView>
-                    <TouchableOpacity
-                      style={[styles.locationItem, selectedDistrict === 'Tüm İlçeler' && styles.locationItemActive]}
-                      onPress={() => { setSelectedDistrict('Tüm İlçeler'); setLocationVisible(false); }}
-                    >
-                      <Text style={[styles.locationItemText, selectedDistrict === 'Tüm İlçeler' && styles.locationItemTextActive, { fontSize: 10 }]}>
-                        Tüm İlçeler
-                      </Text>
-                    </TouchableOpacity>
-                    {getMarketDistricts(selectedLocation as MarketCity).map(dist => (
+              <View style={styles.bottomSheetBody}>
+                {/* Cities Column */}
+                <View style={styles.bsCityCol}>
+                  <Text style={styles.bsColTitle}>ŞEHİR</Text>
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    {LOCATIONS.map(loc => (
                       <TouchableOpacity
-                        key={dist}
-                        style={[styles.locationItem, selectedDistrict === dist && styles.locationItemActive]}
-                        onPress={() => { setSelectedDistrict(dist); setLocationVisible(false); }}
+                        key={loc}
+                        style={[styles.bsItem, selectedLocation === loc && styles.bsItemActive]}
+                        onPress={() => { 
+                          setSelectedLocation(loc); 
+                          setSelectedDistrict('Tüm İlçeler');
+                          if (loc === 'Tüm Konumlar') {
+                            setLocationVisible(false);
+                            showToast();
+                          }
+                        }}
                       >
-                        <Text style={[styles.locationItemText, selectedDistrict === dist && styles.locationItemTextActive, { fontSize: 10 }]}>
-                          {dist}
+                        <Text style={[styles.bsItemText, selectedLocation === loc && styles.bsItemTextActive]}>
+                          {loc}
                         </Text>
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
                 </View>
-              )}
+
+                {/* Districts Column */}
+                {selectedLocation !== 'Tüm Konumlar' && (
+                  <View style={styles.bsDistrictCol}>
+                    <Text style={styles.bsColTitle}>İLÇE</Text>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                      <TouchableOpacity
+                        style={[styles.bsItem, selectedDistrict === 'Tüm İlçeler' && styles.bsItemActive]}
+                        onPress={() => { 
+                          setSelectedDistrict('Tüm İlçeler'); 
+                          setLocationVisible(false); 
+                          showToast();
+                        }}
+                      >
+                        <Text style={[styles.bsItemText, selectedDistrict === 'Tüm İlçeler' && styles.bsItemTextActive]}>
+                          Tüm İlçeler
+                        </Text>
+                      </TouchableOpacity>
+                      {getMarketDistricts(selectedLocation as MarketCity).map(dist => (
+                        <TouchableOpacity
+                          key={dist}
+                          style={[styles.bsItem, selectedDistrict === dist && styles.bsItemActive]}
+                          onPress={() => { 
+                            setSelectedDistrict(dist); 
+                            setLocationVisible(false); 
+                            showToast();
+                          }}
+                        >
+                          <Text style={[styles.bsItemText, selectedDistrict === dist && styles.bsItemTextActive]}>
+                            {dist}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
             </View>
-          </TouchableOpacity>
+          </View>
         </Modal>
       </View>
     </Layout>
@@ -539,26 +566,73 @@ const styles = StyleSheet.create({
   },
   clearBtnText: { color: 'rgba(186,204,176,0.35)', fontSize: 9, fontWeight: 'bold', letterSpacing: 2 },
 
-  // Location Picker
-  locationBackdrop: {
-    flex: 1, justifyContent: 'center', alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
+  // Custom Toast
+  toastContainer: {
+    position: 'absolute', top: 50, left: 0, right: 0, zIndex: 999,
+    alignItems: 'center',
   },
-  locationPanel: {
-    width: '75%', backgroundColor: '#111417',
-    borderWidth: 1, borderColor: 'rgba(60,75,53,0.3)',
-    paddingVertical: 8,
+  toastContent: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: 'rgba(29,32,35,0.95)', paddingHorizontal: 20, paddingVertical: 12,
+    borderRadius: 30, borderWidth: 1, borderColor: 'rgba(57,255,20,0.5)',
+    shadowColor: '#39ff14', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
-  locationPanelTitle: {
-    color: 'rgba(186,204,176,0.35)', fontSize: 8, letterSpacing: 3,
-    paddingHorizontal: 16, paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: 'rgba(60,75,53,0.15)',
+  toastText: { color: '#e1e2e7', fontSize: 12, fontWeight: 'bold', letterSpacing: 1 },
+
+  // Search Header
+  searchRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    marginHorizontal: 16, marginBottom: 12,
   },
-  locationItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingVertical: 12, paddingHorizontal: 16,
+  
+  // Radar Trigger
+  radarTrigger: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    marginHorizontal: 16, marginBottom: 16, padding: 12,
+    backgroundColor: 'rgba(29,32,35,0.7)',
+    borderWidth: 1, borderColor: 'rgba(57,255,20,0.4)', borderRadius: 12,
   },
-  locationItemActive: { backgroundColor: 'rgba(57,255,20,0.08)' },
-  locationItemText: { color: 'rgba(186,204,176,0.5)', fontSize: 12, fontWeight: '500' },
-  locationItemTextActive: { color: '#39ff14', fontWeight: 'bold' },
+  radarIconBox: {
+    width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(57,255,20,0.1)',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  radarPing: {
+    position: 'absolute', width: '100%', height: '100%', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(57,255,20,0.4)', opacity: 0.5,
+  },
+  radarContentContainer: { flex: 1 },
+  radarTitle: { color: 'rgba(186,204,176,0.5)', fontSize: 9, letterSpacing: 2, marginBottom: 2 },
+  radarSubtitle: { color: '#39ff14', fontSize: 13, fontWeight: 'bold' },
+
+  // Cyber Bottom Sheet
+  bottomSheetWrapper: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'transparent' },
+  bottomSheetBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.7)' },
+  bottomSheetContainer: {
+    height: '65%', backgroundColor: '#111417',
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    borderTopWidth: 1, borderTopColor: 'rgba(57,255,20,0.3)',
+    borderLeftWidth: 1, borderLeftColor: 'rgba(57,255,20,0.15)',
+    borderRightWidth: 1, borderRightColor: 'rgba(57,255,20,0.15)',
+    paddingBottom: 20,
+  },
+  bottomSheetHandle: {
+    width: 40, height: 4, backgroundColor: 'rgba(186,204,176,0.3)',
+    borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 16,
+  },
+  bottomSheetHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(60,75,53,0.2)',
+  },
+  bottomSheetTitle: { color: '#e1e2e7', fontSize: 11, fontWeight: 'bold', letterSpacing: 3 },
+  bottomSheetBody: { flex: 1, flexDirection: 'row' },
+  bsCityCol: { flex: 1, borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.05)' },
+  bsDistrictCol: { flex: 1.2, backgroundColor: 'rgba(255,255,255,0.02)' },
+  bsColTitle: {
+    color: 'rgba(186,204,176,0.35)', fontSize: 9, letterSpacing: 3,
+    padding: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(60,75,53,0.15)',
+  },
+  bsItem: { paddingVertical: 14, paddingHorizontal: 16 },
+  bsItemActive: { backgroundColor: 'rgba(57,255,20,0.08)' },
+  bsItemText: { color: 'rgba(186,204,176,0.5)', fontSize: 13, fontWeight: '500' },
+  bsItemTextActive: { color: '#39ff14', fontWeight: 'bold' }
 });

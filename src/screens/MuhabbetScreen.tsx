@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase';
 import * as ImagePicker from 'expo-image-picker';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system/legacy';
+import { decode } from 'base64-arraybuffer';
 import { Send, Globe, Users as UsersIcon, X, Bot, ChevronDown, Bell, User, Bold, Italic, Underline, Palette, Smile, Type, MessageSquareWarning, Image as ImageIcon, Mic, Square, Ban, Play } from 'lucide-react-native';
 import { MessageService } from '../services/messageService';
 import { useNotificationStore } from '../store/useNotificationStore';
@@ -334,7 +335,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   inputNew: {
-    color: '#fff',
+    color: '#39ff14',
     fontSize: 15,
     minHeight: 44,
     maxHeight: 120,
@@ -657,6 +658,17 @@ export default function MuhabbetScreen() {
 
   const slideAnim = useRef(new Animated.Value(-width)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const inputPulseAnim = useRef(new Animated.Value(0)).current;
+
+  // Input Pulsing Effect
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(inputPulseAnim, { toValue: 1, duration: 1500, useNativeDriver: false }),
+        Animated.timing(inputPulseAnim, { toValue: 0, duration: 1500, useNativeDriver: false })
+      ])
+    ).start();
+  }, []);
 
   useEffect(() => {
     if (unreadMessageCount > 0) {
@@ -708,6 +720,8 @@ export default function MuhabbetScreen() {
       useNativeDriver: true,
     }).start();
   }, [showUsersSidebar]);
+
+
 
   const handleSend = async () => {
     if (!inputText.trim()) return;
@@ -1061,11 +1075,20 @@ export default function MuhabbetScreen() {
             isMine ? styles.bubbleMine : styles.bubbleTheirs,
             msg.sender_id === 'bot-1' && styles.bubbleBot
           ]}>
-            {msg.imageUrl && (
-              <Image source={{ uri: msg.imageUrl }} style={{ width: 200, height: 200, borderRadius: 8, marginBottom: 8 }} resizeMode="cover" />
-            )}
-            {msg.audioUrl ? (
-              <AudioPlayer uri={msg.audioUrl} isMine={isMine} />
+            {msg.imageUrl ? (
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 9, color: 'rgba(255,255,255,0.5)', fontStyle: 'italic', marginBottom: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', paddingBottom: 4, width: '100%', textAlign: 'center' }}>
+                  Anlık Veri - Sayfa yenilendiğinde silinir
+                </Text>
+                <Image source={{ uri: msg.imageUrl }} style={{ width: 200, height: 200, borderRadius: 8, marginBottom: 4 }} resizeMode="cover" />
+              </View>
+            ) : msg.audioUrl ? (
+              <View>
+                <Text style={{ fontSize: 9, color: 'rgba(255,255,255,0.5)', fontStyle: 'italic', marginBottom: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', paddingBottom: 4, width: '100%', textAlign: 'center' }}>
+                  Anlık Veri - Sayfa yenilendiğinde silinir
+                </Text>
+                <AudioPlayer uri={msg.audioUrl} isMine={isMine} />
+              </View>
             ) : (
               <Text style={[styles.messageText, isMine ? styles.messageTextMine : styles.messageTextTheirs]}>
                 {msg.content}
@@ -1243,104 +1266,101 @@ export default function MuhabbetScreen() {
             </View>
           )}
 
-          {/* Input Dock (Redesigned & Functional) */}
-          <View style={[styles.inputDockNew, { paddingBottom: Math.max(insets.bottom, 20) }]}>
-            {/* Formatting Toolbar */}
-            <View style={styles.formatToolbar}>
-              <TouchableOpacity
-                style={styles.toolbarBtn}
-                onPress={() => toggleFormat('bold')}
-              >
-                <Bold color={inputText.includes('**') ? '#FF007F' : '#aaaab6'} size={18} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.toolbarBtn}
-                onPress={() => toggleFormat('italic')}
-              >
-                <Italic color={inputText.includes('_') ? '#FF007F' : '#aaaab6'} size={18} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.toolbarBtn}
-                onPress={() => toggleFormat('underline')}
-              >
-                <Underline color={inputText.includes('__') ? '#FF007F' : '#aaaab6'} size={18} />
-              </TouchableOpacity>
+          {/* Input Dock - Terminal Style Redesign */}
+          <View style={[styles.inputDockNew, { paddingBottom: Math.max(insets.bottom, 20), paddingTop: 20 }]}>
+            
+            {imageLoading && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingBottom: 8, gap: 6 }}>
+                <Text style={{ color: '#39ff14', fontSize: 11, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }}>MEDYA İLETİLİYOR...</Text>
+              </View>
+            )}
 
-              <View style={styles.toolbarDivider} />
-
-              <TouchableOpacity
-                style={styles.toolbarBtn}
-                onPress={() => {
-                  setShowColorPicker(!showColorPicker);
-                  setShowEmojiPicker(false);
-                }}
-              >
-                <Palette color={showColorPicker ? '#FF007F' : '#aaaab6'} size={18} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.toolbarBtn}
-                onPress={() => {
-                  setShowEmojiPicker(!showEmojiPicker);
-                  setShowColorPicker(false);
-                }}
-              >
-                <Smile color={showEmojiPicker ? '#FF007F' : '#aaaab6'} size={18} />
-              </TouchableOpacity>
-
-              {!!activePrivateTab && (
-                <>
-                  <View style={styles.toolbarDivider} />
-
-                  {!recording && (
-                    <TouchableOpacity
-                      style={styles.toolbarBtn}
-                      onPress={handlePickImage}
-                      disabled={imageLoading}
-                    >
-                      <ImageIcon color={imageLoading ? '#444' : '#aaaab6'} size={18} />
-                    </TouchableOpacity>
-                  )}
-                  {recording ? (
-                    <TouchableOpacity
-                      style={[styles.toolbarBtn, { backgroundColor: 'rgba(255,0,0,0.1)', borderRadius: 8, paddingHorizontal: 8 }]}
-                      onPress={stopRecordingAndSend}
-                    >
-                      <Square color="#FF0000" size={14} fill="#FF0000" />
-                      <Text style={{ color: '#FF0000', fontSize: 10, marginLeft: 4, fontWeight: 'bold' }}>{recordingTime}s</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      style={styles.toolbarBtn}
-                      onPress={startRecording}
-                    >
-                      <Mic color="#aaaab6" size={18} />
-                    </TouchableOpacity>
-                  )}
-                </>
-              )}
-            </View>
+            {recording && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingBottom: 8, gap: 6 }}>
+                <Animated.View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF007F', transform: [{ scale: pulseAnim }] }} />
+                <Text style={{ color: '#FF007F', fontSize: 11, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }}>SES KAYDEDİLİYOR: {recordingTime}sn</Text>
+              </View>
+            )}
 
             <View style={styles.inputRowNew}>
-              <View style={styles.inputContainerNew}>
+              {activePrivateTab && (
+                <TouchableOpacity onPress={handlePickImage} disabled={imageLoading || !!recording} style={{ padding: 8 }}>
+                  <ImageIcon color={imageLoading ? '#333' : '#39ff14'} size={24} />
+                </TouchableOpacity>
+              )}
+
+              <Animated.View 
+                style={[
+                  styles.inputContainerNew,
+                  {
+                    borderColor: inputPulseAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['rgba(57,255,20,0.05)', 'rgba(57,255,20,0.4)']
+                    }),
+                    shadowColor: '#39ff14',
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: inputPulseAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 0.4]
+                    }),
+                    shadowRadius: inputPulseAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [2, 10]
+                    }),
+                    backgroundColor: 'rgba(0,0,0,0.3)', // Deep terminal background
+                  }
+                ]}
+              >
                 <TextInput
-                  style={styles.inputNew}
-                  placeholder={activePrivateTab ? "Mesajınızı yazın..." : "AI için @workigom yazın..."}
-                  placeholderTextColor="#666"
+                  style={[styles.inputNew, { fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }]}
+                  placeholder={activePrivateTab ? "Sistem komutu beklemede..." : "Sistem: AI için @workigom yazın..."}
+                  placeholderTextColor="rgba(57,255,20,0.2)"
                   value={inputText}
                   onChangeText={setInputText}
-                  onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                   multiline
-                  maxLength={500}
+                  onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                 />
-              </View>
+              </Animated.View>
 
-              <TouchableOpacity
-                onPress={handleSend}
-                disabled={!inputText.trim()}
-                style={[styles.sendButtonNew, !inputText.trim() && styles.sendButtonDisabledNew]}
-              >
-                <Send color="#fff" size={20} />
-              </TouchableOpacity>
+              {inputText.trim() ? (
+                <TouchableOpacity
+                  style={[
+                    styles.sendButtonNew, 
+                    { backgroundColor: '#39ff14', shadowColor: '#39ff14' } // Sentinel Green
+                  ]}
+                  onPress={handleSend}
+                >
+                  <Send color="#fff" size={20} />
+                </TouchableOpacity>
+              ) : activePrivateTab ? (
+                recording ? (
+                  <TouchableOpacity
+                    style={[styles.sendButtonNew, { backgroundColor: '#FF007F', shadowColor: '#FF007F' }]}
+                    onPress={stopRecordingAndSend}
+                  >
+                    <Send color="#fff" size={20} />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.sendButtonNew, { backgroundColor: '#1d1f2a', borderWidth: 1, borderColor: '#39ff14' }]}
+                    onPress={startRecording}
+                    disabled={imageLoading}
+                  >
+                    <Mic color={imageLoading ? '#333' : '#39ff14'} size={20} />
+                  </TouchableOpacity>
+                )
+              ) : (
+                <TouchableOpacity
+                  style={[
+                    styles.sendButtonNew, 
+                    styles.sendButtonDisabledNew,
+                    { backgroundColor: '#39ff14', shadowColor: '#39ff14' }
+                  ]}
+                  disabled={true}
+                >
+                  <Send color="#fff" size={20} />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </KeyboardAvoidingView>
