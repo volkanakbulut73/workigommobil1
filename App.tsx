@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/react-native';
 import 'react-native-url-polyfill/auto';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, AppState } from 'react-native';
+import { Image } from 'expo-image';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AnalyticsService } from './src/services/analyticsService';
 import { supabase } from './src/lib/supabase';
@@ -36,10 +37,16 @@ const FallbackComponent = (props: { error: unknown; resetError: () => void }) =>
 
 function App() {
   const [isConnected, setIsConnected] = useState<boolean | null>(true);
+  const [showCustomSplash, setShowCustomSplash] = useState(true);
 
   useEffect(() => {
-    // Hide splash screen unconditionally to prevent locking
-    SplashScreen.hideAsync().catch(() => {});
+    // Hide the native splash screen unconditionally so our custom one can be seen immediately
+    SplashScreen.hideAsync().catch(() => {}); 
+
+    // Keep custom splash visible for 3.5 seconds
+    const splashTimer = setTimeout(() => { 
+      setShowCustomSplash(false);
+    }, 3500);
 
     const unsubscribe = NetInfo.addEventListener((state: any) => {
       setIsConnected(state.isConnected);
@@ -54,10 +61,23 @@ function App() {
     });
 
     return () => {
+      clearTimeout(splashTimer);
       unsubscribe();
       subscription.remove();
     };
   }, []);
+
+  if (showCustomSplash) {
+    return (
+      <View style={styles.splashContainer}>
+        <Image 
+          source={require('./assets/splash.png')} 
+          style={styles.splashImage} 
+          contentFit="contain" 
+        />
+      </View>
+    );
+  }
 
   return (
     <Sentry.ErrorBoundary fallback={FallbackComponent}>
@@ -78,7 +98,9 @@ const styles = StyleSheet.create({
   errorText: { color: '#fff', textAlign: 'center', marginBottom: 20 },
   resetButton: { color: '#00e5ff', padding: 10, borderWidth: 1, borderColor: '#00e5ff', borderRadius: 8, fontWeight: 'bold' },
   offlineBanner: { backgroundColor: '#ff3333', padding: 10, alignItems: 'center', paddingTop: 40, zIndex: 100 },
-  offlineText: { color: '#fff', fontWeight: 'bold' }
+  offlineText: { color: '#fff', fontWeight: 'bold' },
+  splashContainer: { flex: 1, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center' },
+  splashImage: { flex: 1, width: '100%', height: '100%' }
 });
 
 export default sentryDsn ? Sentry.wrap(App) : App;

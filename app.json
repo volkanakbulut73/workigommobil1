@@ -22,11 +22,21 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Profil fotoğrafı güncellemek ve ilan görselleri kamerasından fotoğraf çekebilmek için kameraya izin verin.",
         "NSPhotoLibraryUsageDescription": "Pazara resim yükleyebilmeniz için galeriye erişim izni gereklidir."
+      },
+      "splash": {
+        "image": "./assets/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#000000"
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "splash": {
+        "image": "./assets/splash.png",
+        "resizeMode": "contain",
         "backgroundColor": "#000000"
       },
       "package": "com.workigom.app",
