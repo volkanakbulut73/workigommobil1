@@ -4,8 +4,10 @@ import { useNavigation } from '@react-navigation/native';
 import { DBService } from '../services/dbService';
 import { useAuthStore } from '../store/useAuthStore';
 import { AnalyticsService } from '../services/analyticsService';
-import { ChevronLeft, Wallet, FileText, CheckCircle2, Users, Zap, ShieldCheck, MapPin, ChevronDown, X } from 'lucide-react-native';
+import { ChevronLeft, Wallet, FileText, CheckCircle2, Users, Zap, ShieldCheck, MapPin, ChevronDown, X, CreditCard } from 'lucide-react-native';
 import { getCities, getDistricts } from '../data/locations';
+
+const MEAL_CARDS = ['Pluxee', 'Multinet Up', 'Edenred', 'Setcard', 'MetropolCard', 'Yemekmatik', 'Paye Kart'];
 
 export function TaleplerCreateScreen() {
   const navigation = useNavigation<any>();
@@ -18,7 +20,14 @@ export function TaleplerCreateScreen() {
   const [district, setDistrict] = useState('');
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [showDistrictPicker, setShowDistrictPicker] = useState(false);
+  const [mealCards, setMealCards] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const toggleMealCard = (card: string) => {
+    setMealCards(prev => 
+      prev.includes(card) ? prev.filter(c => c !== card) : [...prev, card]
+    );
+  };
 
   const handleNext = () => {
     if (step === 1) {
@@ -49,6 +58,7 @@ export function TaleplerCreateScreen() {
         userId,
         Number(amount),
         description.trim() || 'Paylaşım Talebi',
+        mealCards,
         city,
         district
       );
@@ -129,6 +139,21 @@ export function TaleplerCreateScreen() {
                   value={description}
                   onChangeText={setDescription}
                 />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>ÖDEMENİN YAPILABİLECEĞİ YEMEK KARTLARI</Text>
+              <View style={styles.mealCardsContainer}>
+                {MEAL_CARDS.map(card => (
+                  <TouchableOpacity
+                    key={card}
+                    style={[styles.mealCardBtn, mealCards.includes(card) && styles.mealCardBtnActive]}
+                    onPress={() => toggleMealCard(card)}
+                  >
+                    <Text style={[styles.mealCardText, mealCards.includes(card) && styles.mealCardTextActive]}>{card}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
 
@@ -484,6 +509,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+  },
+  mealCardsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  mealCardBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(10,11,30,0.6)',
+  },
+  mealCardBtnActive: {
+    borderColor: '#8eff71',
+    backgroundColor: 'rgba(142,255,113,0.15)',
+  },
+  mealCardText: {
+    color: '#aaaab6',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  mealCardTextActive: {
+    color: '#8eff71',
   },
   badge: {
     flexDirection: 'row',

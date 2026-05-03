@@ -77,7 +77,7 @@ export const DBService = {
     return data as Profile;
   },
 
-  async createTransactionRequest(seekerId: string, amount: number, listingTitle: string, city?: string, district?: string) {
+  async createTransactionRequest(seekerId: string, amount: number, listingTitle: string, mealCards: string[] = [], city?: string, district?: string) {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 30);
 
@@ -91,6 +91,7 @@ export const DBService = {
         support_percentage: 12,
         city: city || null,
         district: district || null,
+        meal_cards: mealCards,
         listing_id: generateListingId('REQ'),
         expiry_date: expiryDate.toISOString()
       })

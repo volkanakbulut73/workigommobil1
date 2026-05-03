@@ -53,6 +53,20 @@ const TalepCardItem = React.memo(({ item, isMine, profile, onAccept, onCancel, o
           <Text style={styles.descText}>"{item.listing_title}"</Text>
         </View>
 
+        {/* Meal Cards */}
+        {item.meal_cards && item.meal_cards.length > 0 && (
+          <View style={{ marginBottom: 20 }}>
+            <Text style={[styles.descLabel, { marginBottom: 8 }]}>ÖDEMENİN YAPILABİLECEĞİ YEMEK KARTLARI</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+              {item.meal_cards.map((card: string, idx: number) => (
+                <View key={idx} style={{ backgroundColor: 'rgba(142, 255, 113, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(142, 255, 113, 0.2)' }}>
+                  <Text style={{ color: '#8eff71', fontSize: 10, fontWeight: 'bold' }}>{card}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Features / Chips */}
         <View style={styles.featuresRow}>
           <View style={styles.featureChip}>

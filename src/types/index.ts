@@ -35,6 +35,7 @@ export type Transaction = {
     qr_url: string | null;
     city: string | null;
     district: string | null;
+    meal_cards?: string[];
     created_at: string;
     expiry_date: string | null;
     profiles?: Partial<Profile>;
