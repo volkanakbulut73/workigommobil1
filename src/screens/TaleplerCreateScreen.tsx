@@ -143,7 +143,7 @@ export function TaleplerCreateScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>ÖDEMENİN YAPILABİLECEĞİ YEMEK KARTLARI</Text>
+              <Text style={styles.label}>LÜTFEN ÖDEMENİN YAPILABİLECEĞİ YEMEK KARTLARINI SEÇİN</Text>
               <View style={styles.mealCardsContainer}>
                 {MEAL_CARDS.map(card => (
                   <TouchableOpacity
